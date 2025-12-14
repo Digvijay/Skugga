@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Skugga.Benchmarks/Skugga.Benchmarks.csproj" />
+  <Project Path="Skugga.Generator/Skugga.Generator.csproj" />
+</Solution>

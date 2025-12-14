@@ -1,0 +1,12 @@
+mode: Mainline
+branches:
+  main:
+    regex: ^main$
+    tag: ''
+    increment: Patch
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+  test:
+    regex: ^test$
+    tag: beta
+    increment: Patch
