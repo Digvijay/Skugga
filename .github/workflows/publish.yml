@@ -40,4 +40,8 @@ jobs:
 
       - name: Publish to NuGet
         # The ApiKey 'az' is a dummy value; NuGet.org validates the OIDC token instead.
-        run: nuget push nupkg/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey az -SkipDuplicate
+        run: |
+          dotnet nuget push nupkg/*.nupkg \
+          --source https://api.nuget.org/v3/index.json \
+          --api-key az \
+          --skip-duplicate
