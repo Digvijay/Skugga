@@ -2,9 +2,9 @@ name: Skugga CI
 
 on:
   push:
-    branches: [ "main" ] # Updated to main
+    branches: [ "master", "test" ] # CHANGED: Now watches master and test
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master", "test" ]
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 10.0.x # Use your SDK version (10.0) or 8.0
+        dotnet-version: 10.0.x 
 
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v1.1.1
@@ -44,7 +44,6 @@ jobs:
         /p:Version=${{ steps.gitversion.outputs.semVer }}
 
     # Run Benchmarks (Smoke Test)
-    # We use 'filter' to run only the 'Skugga' benchmark to save time/resources in CI
     - name: Run Smoke Test
       run: |
         dotnet run --project Skugga.Benchmarks/Skugga.Benchmarks.csproj \
