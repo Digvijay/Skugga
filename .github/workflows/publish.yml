@@ -28,7 +28,11 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
       - name: Pack
-        run: dotnet pack --configuration Release --output nupkg /p:PackageVersion=${{ env.VERSION }}
+        run: |
+          dotnet pack Skugga.Core/Skugga.Core.csproj \
+          --configuration Release \
+          --output nupkg \
+          /p:PackageVersion=${{ env.VERSION }}
 
       # NuGet.exe is currently required for OIDC (Trusted Publishing)
       - name: Setup NuGet.exe
