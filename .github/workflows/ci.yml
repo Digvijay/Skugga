@@ -33,12 +33,12 @@ jobs:
         useConfigFile: true
 
     - name: Restore Dependencies
-      run: dotnet restore Skugga.sln
+      run: dotnet restore Skugga.slnx
 
     # Build everything
     - name: Build Solution
       run: |
-        dotnet build Skugga.sln \
+        dotnet build Skugga.slnx \
         --configuration Release \
         --no-restore \
         /p:Version=${{ steps.gitversion.outputs.semVer }}
