@@ -4,29 +4,12 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
     <LangVersion>latest</LangVersion>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <PackageId>Skugga</PackageId>
-    <Authors>Digvijay Chauhan</Authors>
-    <Description>A Roslyn-based mocking framework that leverages Source Generators and Interceptors to create static, AOT-safe mocks with zero runtime footprint.</Description>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/Digvijay/Skugga</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>mocking;native-aot;source-generator;testing;dotnet;interceptors</PackageTags>
-    <PackageIcon>Skugga.png</PackageIcon>
+    
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
-    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
-    <None Include="..\images\Skugga.png" Pack="true" PackagePath="\" />
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 </Project>

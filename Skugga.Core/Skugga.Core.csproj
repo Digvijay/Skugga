@@ -1,6 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <PackageId>Skugga</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Digvijay Chauhan</Authors>
+    <Description>A Roslyn-based mocking framework that leverages Source Generators and Interceptors.</Description>
+    <RepositoryUrl>https://github.com/Digvijay/Skugga</RepositoryUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>mocking;native-aot;source-generator;testing;dotnet;interceptors</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Skugga.Generator\Skugga.Generator.csproj" 
+                      OutputItemType="Analyzer" 
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+    </ItemGroup>
 </Project>
