@@ -97,10 +97,6 @@ var mock = Mock.Create<IEmailService>();
 ```
 -----
 
-Here is the **Benchmarks** section, formatted in Markdown with your specific test results integrated. You can copy-paste this directly into your `README.md`.
-
-***
-
 ## ⚡ Benchmarks
 
 Skugga isn't just AOT-compatible; it is significantly faster and lighter than reflection-based alternatives.
