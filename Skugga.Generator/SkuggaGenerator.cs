@@ -1,3 +1,4 @@
+#nullable enable
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -28,13 +29,12 @@ namespace Skugga.Generator
 
                 foreach (var target in targets)
                 {
-                    GenerateInterceptor(spc, target);
+                    GenerateInterceptor(spc, target!);
 
-                    // Use fully qualified name for deduplication
-                    var symbolKey = target.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    var symbolKey = target!.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                     if (distinctInterfaces.Add(symbolKey)) 
                     {
-                        GenerateMockClass(spc, target);
+                        GenerateMockClass(spc, target!);
                     }
                 }
             });
@@ -55,7 +55,6 @@ namespace Skugga.Generator
                         var symbol = context.SemanticModel.GetTypeInfo(typeArg).Type as INamedTypeSymbol;
                         if (symbol != null && symbol.TypeKind == TypeKind.Interface)
                         {
-                            // Correctly capture the 'Create' identifier location
                             return new MockTarget(symbol, member.Name.Identifier.GetLocation());
                         }
                     }
@@ -69,8 +68,6 @@ namespace Skugga.Generator
             var symbol = target.Symbol;
             var stableHash = Math.Abs(symbol.ToDisplayString().GetHashCode()).ToString();
             var className = $"Skugga_{symbol.Name}_{stableHash}";
-            
-            // USE FULLY QUALIFIED FORMAT to handle namespaces automatically (global::System...)
             var fullInterfaceName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             
             var sb = new StringBuilder();
@@ -80,26 +77,38 @@ using System;
 using System.Collections.Generic;
 using Skugga.Core;
 
-// We put the generated class in the 'Skugga.Generated' namespace to avoid collisions with global types
 namespace Skugga.Generated
 {{
     public class {className} : {fullInterfaceName}, IMockSetup
     {{
-        private readonly Dictionary<string, object?> _results = new();
+        // Use the new MockHandler engine
+        private readonly MockHandler _handler = new();
 
-        public void SetupMethod(string signature, object? value)
+        public void AddSetup(string signature, object?[] args, object? value)
         {{
-            _results[signature] = value;
+            _handler.AddSetup(signature, args, value);
+        }}
+
+        public object? Invoke(string signature, object?[] args)
+        {{
+            return _handler.Invoke(signature, args);
         }}
 ");
+            // 1. Generate Methods
             var allMethods = GetAllMethods(symbol);
-
             foreach (var method in allMethods)
             {
+                // Skip property accessors (get_X, set_X) as we handle them in properties loop
+                if (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.PropertySet) continue;
+
                 var returnType = method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 var methodName = method.Name;
                 var parameters = string.Join(", ", method.Parameters.Select(p => $"{p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {p.Name}"));
-                var signatureKey = method.Name; 
+                
+                // Pass arguments array to handler
+                var argArray = method.Parameters.Length == 0 
+                    ? "Array.Empty<object?>()" 
+                    : "new object?[] { " + string.Join(", ", method.Parameters.Select(p => p.Name)) + " }";
 
                 if (method.ReturnsVoid)
                 {
@@ -107,15 +116,37 @@ namespace Skugga.Generated
                 }
                 else
                 {
-                    var defaultValue = method.ReturnType.IsReferenceType ? "null" : $"default({returnType})";
+                    var defaultValue = method.ReturnType.IsReferenceType ? "null!" : $"default({returnType})";
                     sb.AppendLine($@"
         public {returnType} {methodName}({parameters}) 
         {{
-            if (_results.TryGetValue(""{signatureKey}"", out var val)) return ({returnType})val!;
+            var result = _handler.Invoke(""{methodName}"", {argArray});
+            if (result != null) return ({returnType})result;
             return {defaultValue};
         }}");
                 }
             }
+
+            // 2. Generate Properties
+            var allProps = GetAllProperties(symbol);
+            foreach (var prop in allProps)
+            {
+                var type = prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                var name = prop.Name;
+                
+                sb.AppendLine($@"
+        public {type} {name} 
+        {{
+            get 
+            {{
+                var result = _handler.Invoke(""get_{name}"", Array.Empty<object?>());
+                if (result != null) return ({type})result;
+                return default({type})!;
+            }}
+            set {{ }} // Setter does nothing for now
+        }}");
+            }
+
             sb.AppendLine("    }");
             sb.AppendLine("}");
             spc.AddSource($"{className}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
@@ -133,7 +164,9 @@ namespace Skugga.Generated
             var charPos = lineSpan.StartLinePosition.Character + 1;
 
             var sb = new StringBuilder();
+            
             sb.AppendLine($@"// <auto-generated/>
+#pragma warning disable CS9270
 namespace System.Runtime.CompilerServices
 {{
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
@@ -150,7 +183,6 @@ namespace Skugga.Generated
         [System.Runtime.CompilerServices.InterceptsLocation(@""{filePath}"", {line}, {charPos})]
         public static {target.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} InterceptCreate()
         {{
-            // We instantiated the class inside Skugga.Generated, so we can refer to it directly
             return new Skugga.Generated.{targetClassName}();
         }}
     }}
@@ -166,6 +198,16 @@ namespace Skugga.Generated
                 methods.AddRange(iface.GetMembers().OfType<IMethodSymbol>());
             }
             return methods;
+        }
+
+        private static IEnumerable<IPropertySymbol> GetAllProperties(INamedTypeSymbol symbol)
+        {
+            var props = symbol.GetMembers().OfType<IPropertySymbol>().ToList();
+            foreach (var iface in symbol.AllInterfaces)
+            {
+                props.AddRange(iface.GetMembers().OfType<IPropertySymbol>());
+            }
+            return props;
         }
     }
 

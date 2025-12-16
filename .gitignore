@@ -3,3 +3,6 @@ obj/
 .vs/
 *.user
 nupkgs/
+BenchmarkDotNet.Artifacts
+.DS_Store
+Skugga.Performance.E2E/artifacts/

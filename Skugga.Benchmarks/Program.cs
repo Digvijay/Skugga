@@ -3,11 +3,13 @@ using BenchmarkDotNet.Running;
 using Moq;
 using Skugga.Core;
 
-// THIS INTERFACE IS IN THE GLOBAL NAMESPACE
-// The generator now handles this via FullyQualifiedFormat
-public interface IEmailService
+public interface IUserService
 {
-    string GetEmailAddress(int userId);
+    // Method with Args
+    string GetRole(int userId);
+    
+    // Property
+    string TenantName { get; set; }
 }
 
 [MemoryDiagnoser] 
@@ -16,17 +18,17 @@ public class MockBenchmarks
     [Benchmark(Baseline = true)]
     public string Moq_Benchmark()
     {
-        var moq = new Mock<IEmailService>();
-        moq.Setup(x => x.GetEmailAddress(It.IsAny<int>())).Returns("david@microsoft.com");
-        return moq.Object.GetEmailAddress(1);
+        var moq = new Mock<IUserService>();
+        moq.Setup(x => x.GetRole(1)).Returns("Admin");
+        return moq.Object.GetRole(1);
     }
 
     [Benchmark]
     public string Skugga_Benchmark()
     {
-        var skugga = Skugga.Core.Mock.Create<IEmailService>();
-        skugga.Setup(x => x.GetEmailAddress(0)).Returns("david@microsoft.com");
-        return skugga.GetEmailAddress(1);
+        var skugga = Skugga.Core.Mock.Create<IUserService>();
+        skugga.Setup(x => x.GetRole(1)).Returns("Admin");
+        return skugga.GetRole(1);
     }
 }
 
@@ -34,15 +36,38 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine("--- Functional Test ---");
-        var service = Skugga.Core.Mock.Create<IEmailService>();
-        service.Setup(x => x.GetEmailAddress(0)).Returns("fowler@asp.net");
-        var result = service.GetEmailAddress(99);
+        Console.WriteLine("--- Functional Test (New Features) ---");
+        var mock = Skugga.Core.Mock.Create<IUserService>();
+
+        // 1. Test Argument Matching
+        mock.Setup(x => x.GetRole(1)).Returns("Admin");
+        mock.Setup(x => x.GetRole(99)).Returns("Guest");
+
+        var role1 = mock.GetRole(1);
+        var role99 = mock.GetRole(99);
+        var roleUnknown = mock.GetRole(500); // Should be null
+
+        Console.WriteLine($"Args Match (1): {role1} (Expected: Admin)");
+        Console.WriteLine($"Args Match (99): {role99} (Expected: Guest)");
+        Console.WriteLine($"Args Match (500): '{roleUnknown}' (Expected: '')");
+
+        if (role1 == "Admin" && role99 == "Guest") 
+            Console.WriteLine("✅ SUCCESS: Argument Matching Works!");
+        else 
+            Console.WriteLine("❌ FAIL: Argument Matching Failed.");
+
+        // 2. Test Property Support
+        mock.Setup(x => x.TenantName).Returns("Microsoft");
+        var tenant = mock.TenantName;
         
-        if (result == "fowler@asp.net") Console.WriteLine("✅ SUCCESS: Skugga mock returned correct value.");
-        else Console.WriteLine($"❌ FAIL: Got '{result}'");
+        Console.WriteLine($"Property: {tenant} (Expected: Microsoft)");
+
+        if (tenant == "Microsoft") 
+            Console.WriteLine("✅ SUCCESS: Property Mocking Works!");
+        else 
+            Console.WriteLine("❌ FAIL: Property Mocking Failed.");
 
         // Uncomment to run benchmarks:
-        // BenchmarkRunner.Run<MockBenchmarks>();
+        BenchmarkRunner.Run<MockBenchmarks>();
     }
 }

@@ -1,0 +1,183 @@
+# Skugga
+
+[![CI/CD](https://github.com/Digvijay/Skugga/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/Digvijay/Skugga/actions/workflows/ci-cd.yaml)
+[![NuGet](https://img.shields.io/nuget/v/Skugga.svg)](https://www.nuget.org/packages/Skugga/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+![Skugga Banner](images/skugga_banner_small.png)
+
+> **"Mocking at the Speed of Compilation."**
+
+**Skugga** (Swedish for *Shadow*) is a mocking library engineered specifically for **Native AOT** and Cloud-Native .NET.
+
+Legacy tools like Moq rely on runtime reflection, which is slow, memory-intensive, and incompatible with Native AOT. Skugga takes a different approach: it moves the mocking logic to **Compile-Time**. The result is a library that is 100% AOT-compatible, uses zero reflection, and enables "Distroless" container deployments.
+
+---
+
+## The "Reflection Wall"
+
+As organizations adopt **Native AOT** to reduce cloud costs, they hit a barrier: the **"Reflection Wall"**.
+
+Legacy mocking tools depend on the JIT (Just-In-Time) compiler to generate proxy objects on the fly. Since Native AOT strips away the JIT, these tools crash instantly. Teams are forced to choose between **performance** (AOT) and **quality** (Testability).
+
+**Skugga eliminates this trade-off.** By generating mock implementations during the build process, it treats test doubles as standard, static code.
+
+```mermaid
+graph TB
+    subgraph "Legacy (Runtime Approach)"
+        A1[Mock.Of<T>] -->|Requires| B1(JIT Compilation)
+        B1 -->|Uses| C1(System.Reflection.Emit)
+        C1 --x|CRASH| D1[🚫 The Reflection Wall]
+    end
+
+    subgraph "Skugga (Compile-Time Approach)"
+        A2[Mock.Create<T>] -->|Bypasses| B2(Source Generator)
+        B2 -->|Generates| C2[Static Shadow Class]
+        C2 -->|Compiles to| D2(Native Machine Code)
+        D2 -->|Result| E2(✅ Zero Overhead)
+    end
+
+    style D1 fill:#b30000,stroke:#333,color:#fff
+    style E2 fill:#006600,stroke:#333,color:#fff
+````
+
+-----
+
+## Proven Performance: Solves the .NET "Cold Start" Problem
+
+Skugga isn't just AOT-compatible; it's a key enabler for high-performance, cloud-native .NET applications. Our benchmarks, conducted in a real-world microservice pilot, prove that Skugga's compile-time architecture delivers massive efficiency gains.
+
+### 1. 7x Faster Cold Starts
+
+In serverless environments like AWS Lambda and Azure Functions, "cold start" times are critical. Skugga, when combined with Native AOT, makes cold starts a thing of the past.
+
+| Metric        | Standard .NET (JIT) | Skugga (Native AOT) | Impact                  |
+| :------------ | :------------------ | :------------------ | :---------------------- |
+| **Startup Time** | 476 ms              | **72 ms**             | **6.6x Faster Startup** ⚡ |
+
+This means your serverless functions can respond to requests almost instantly, eliminating the latency that plagues traditional .NET serverless applications.
+
+### 2. Alpine vs. Debian: Optimizing AOT Deployments
+
+Choosing the right base image for your Native AOT application can further enhance performance. Our benchmarks show a significant difference between Alpine and Debian.
+
+| Metric        | Native AOT (Alpine) | Native AOT (Debian) | Impact                               |
+| :------------ | :------------------ | :------------------ | :----------------------------------- |
+| **Startup Time** | **66 ms**           | 835 ms              | **12.6x Faster on Alpine** 🚀        |
+
+Alpine Linux, with its minimal footprint, provides an even faster startup for Native AOT applications compared to Debian. This is crucial for maximizing efficiency in resource-constrained environments.
+
+### 3. 4x Faster Execution
+
+Beyond startup, Skugga's zero-overhead mocks lead to faster execution times for your application logic.
+
+| Metric          | Standard .NET (JIT) | Skugga (Native AOT) | Impact                    |
+| :-------------- | :------------------ | :------------------ | :------------------------ |
+| **Execution Time** | ~1.3 s              | **~0.3 s**          | **4x Faster Execution** 🚀 |
+
+This translates to lower CPU bills and a more responsive application for your users.
+
+### 3. Zero-Impact on Developer Workflow
+
+A common concern with source generators is their impact on build times. Skugga is designed to be fast. Our stress test, which involved compiling over 500 mock objects, completed in **under 6 seconds**. This proves that Skugga has a negligible impact on your day-to-day development workflow.
+
+By using Skugga, you can finally embrace the performance and cost benefits of .NET Native AOT without sacrificing testability or developer productivity.
+
+-----
+
+## How It Works
+
+Skugga leverages **C\# 12 Interceptors** to seamlessly rewire your code during compilation.
+
+1.  **Scan:** The Source Generator detects calls to `Mock.Create<T>()`.
+2.  **Generate:** It writes a concrete, optimized C\# class (`Skugga_T`) that implements `T`.
+3.  **Intercept:** The compiler physically replaces your `Mock.Create` call with `new Skugga_T()`.
+
+> **Zero Friction:** To the developer, it looks like a normal method call. To the runtime, it looks like hand-written, optimized code.
+
+-----
+
+## Installation
+
+```bash
+dotnet add package Skugga
+```
+
+*Requirements: .NET 8.0+ and C\# 12 enabled.*
+
+## Usage
+
+The API is designed to feel familiar. If you know Moq, you already know Skugga.
+
+```csharp
+using Skugga.Core;
+
+public interface IEmailService
+{
+    string GetEmailAddress(int userId);
+    string TenantName { get; }
+}
+
+public class Test
+{
+    public void Run()
+    {
+        // 1. Create the mock (Intercepted at compile time)
+        var mock = Mock.Create<IEmailService>();
+
+        // 2. Configure behavior (Strict matching & Property support)
+        mock.Setup(x => x.GetEmailAddress(1)).Returns("digvijay@digvijay.dev");
+        mock.Setup(x => x.TenantName).Returns("Contoso");
+
+        // 3. Execute
+        var email = mock.GetEmailAddress(1); // Returns "digvijay@digvijay.dev"
+        var tenant = mock.TenantName;        // Returns "Contoso"
+    }
+}
+```
+
+## Contributing
+
+Skugga is currently an **Experimental Proof of Concept** evolving into a production-ready library.
+
+We welcome community contributions!
+
+  * Found a bug? Open an [Issue](https://github.com/Digvijay/Skugga/issues).
+  * Want to help? Submit a Pull Request.
+
+## Running on Azure.
+
+Skugga and Azure are a perfect match. By combining Skugga's AOT efficiency with Azure's serverless compute, you can build hyper-efficient, scalable, and secure applications.
+
+```mermaid
+graph TD
+    subgraph "Azure"
+        A[Azure Container Apps]
+        B[Azure Functions]
+        C[Azure Kubernetes Service]
+    end
+
+    subgraph "Skugga-Powered .NET App"
+        D{Native AOT}
+        E[Distroless Container]
+    end
+
+    D --> E
+    E --> A
+    E --> B
+    E --> C
+
+    style A fill:#0078D4,stroke:#fff,color:#fff
+    style B fill:#0078D4,stroke:#fff,color:#fff
+    style C fill:#0078D4,stroke:#fff,color:#fff
+```
+
+### Key Advantages
+
+*   **Cost Efficiency on ACA & Functions:** Run your services on Azure Container Apps or Azure Functions with minimal resource allocation. Skugga's low CPU and memory footprint means you pay less for the same workload.
+*   **Instant Scale with AKS:** Deploy to Azure Kubernetes Service (AKS) and benefit from near-instant pod scaling. Smaller container images mean faster pulls and quicker startup times.
+*   **Enhanced Security:** "Distroless" containers, made possible by Skugga, dramatically reduce the attack surface of your application, aligning perfectly with Azure's security-first principles.
+
+## License
+
+[MIT](LICENSE)
