@@ -1,6 +1,6 @@
 # Skugga
 
-[![CI/CD](https://github.com/Digvijay/Skugga/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/Digvijay/Skugga/actions/workflows/ci-cd.yaml)
+[![Skugga CI](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml/badge.svg)](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Skugga.svg)](https://www.nuget.org/packages/Skugga/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
