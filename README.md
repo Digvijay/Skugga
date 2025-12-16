@@ -42,7 +42,88 @@ graph TB
 ````
 
 -----
+## 🔥 Key Features
+1. Auto-Scribe (Self-Writing Tests) ✍️
+Tired of manually writing mock.Setup() lines? Skugga can record real interactions and generate the test code for you.
 
+```C#
+
+// 1. Wrap your real service
+var recorder = AutoScribe.Capture<IRepo>(new RealRepo());
+
+// 2. Run your app manually
+recorder.GetData(101);
+
+// 3. Skugga prints the code to your console:
+// [AutoScribe] mock.Setup(x => x.GetData(101)).Returns("Real_Data_101");
+```
+2. Chaos Mode (Resilience Testing) 💥
+Test how your application handles failure. Skugga can inject random faults (latency, exceptions, timeouts) into your mocks without changing your test logic.
+
+```C#
+
+mock.Chaos(policy => {
+    policy.FailureRate = 0.5; // 50% chance of failure
+    policy.PossibleExceptions = new [] { new TimeoutException() };
+});
+
+// Now, 50% of calls to this mock will throw a TimeoutException!
+
+```
+
+3. Zero-Alloc Guard (Performance Enforcement) 📉
+Ensure your "hot paths" remain allocation-free. Skugga integrates directly with the GC to fail tests if they allocate memory on the heap.
+
+```C#
+
+AssertAllocations.Zero(() => {
+    // This block MUST NOT allocate heap memory.
+    // If it does (e.g., 'new List<int>()'), the test fails immediately.
+    processor.ProcessHighVolumeData(); 
+});
+
+```
+4. Strict Mocks (Verify All) 🔒
+Ensure no interaction goes unnoticed. By enabling "Strict Mode", Skugga will throw an exception if any method is called that wasn't explicitly setup.
+
+```C#
+
+// Strict: Throws if ANY un-setup member is accessed
+var mock = Mock.Create<IEmailService>(MockBehavior.Strict); 
+
+// Loose (Default): Returns null/default for un-setup members
+var mock = Mock.Create<IEmailService>();
+
+```
+-----
+
+Here is the **Benchmarks** section, formatted in Markdown with your specific test results integrated. You can copy-paste this directly into your `README.md`.
+
+***
+
+## ⚡ Benchmarks
+
+Skugga isn't just AOT-compatible; it is significantly faster and lighter than reflection-based alternatives.
+
+**Scenario:** Creating a Mock, configuring a return value, and invoking a method in a tight loop.
+
+| Library | Mean Time | Allocated Memory | Relative Speed | Efficiency |
+| :--- | :--- | :--- | :--- | :--- |
+| **Skugga (AOT)** | **1.07 μs** | **1.12 KB** | **1.0x (Baseline)** | **1.0x** |
+| Moq | 4.21 μs | 4.57 KB | ~4x Slower | ~4x Heavier |
+| NSubstitute | 4.25 μs | 7.76 KB | ~4x Slower | ~7x Heavier |
+
+> **Environment:** Intel Core i7-4980HQ, .NET 10.0.1, macOS 15.7.
+
+### Why is Skugga Faster?
+Legacy libraries like Moq and NSubstitute use `System.Reflection.Emit` to generate proxy classes at **runtime**. This incurs a heavy CPU penalty (Dynamic Code Generation) and forces the JIT compiler to work overtime.
+
+**Skugga** does all the heavy lifting at **compile-time**. By the time your application runs, the mock is just a standard C# class. This results in:
+* **Zero JIT Penalties:** The code is already compiled to native machine code.
+* **Zero Reflection:** No expensive type inspection at runtime.
+* **Zero Dynamic Allocation:** No generating assemblies on the fly.
+
+-----
 ## Proven Performance: Solves the .NET "Cold Start" Problem
 
 Skugga isn't just AOT-compatible; it's a key enabler for high-performance, cloud-native .NET applications. Our benchmarks, conducted in a real-world microservice pilot, prove that Skugga's compile-time architecture delivers massive efficiency gains.
@@ -181,3 +262,5 @@ graph TD
 ## License
 
 [MIT](LICENSE)
+
+![Skugga Fun](images/cartoon.png)

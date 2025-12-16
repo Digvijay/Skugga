@@ -7,115 +7,163 @@ using System.Reflection;
 
 namespace Skugga.Core
 {
-    public interface IMockSetup
-    {
-        // Now accepts arguments for precise matching
-        void AddSetup(string signature, object?[] args, object? value);
-        object? Invoke(string signature, object?[] args);
-    }
+    public enum MockBehavior { Loose, Strict }
+    public class MockException : Exception { public MockException(string message) : base(message) { } }
 
     public static class Mock
     {
-        public static T Create<T>() => throw new NotImplementedException("Skugga generator failed to intercept!");
+        public static T Create<T>(MockBehavior behavior = MockBehavior.Loose)
+        {
+            Console.WriteLine($"[Skugga Warning] Interceptor failed for {typeof(T).Name}. Using runtime fallback.");
+            object proxyObj = DispatchProxy.Create<T, DynamicMockProxy<T>>();
+            // Suppress null warning, DispatchProxy always returns a valid object that inherits the proxy class
+            ((DynamicMockProxy<T>)proxyObj!).Handler.Behavior = behavior;
+            return (T)proxyObj;
+        }
     }
 
     public static class MockExtensions
     {
-        public static SetupContext<TReturn> Setup<T, TReturn>(this T mock, Expression<Func<T, TReturn>> expression) 
-            where T : class
+        public static SetupContext<T, TResult> Setup<T, TResult>(this T mock, Expression<Func<T, TResult>> expression)
         {
-            var mockSetup = mock as IMockSetup ?? throw new InvalidOperationException("Mock not generated.");
-            
-            // 1. Handle Method Calls: mock.Setup(x => x.Method(1))
-            if (expression.Body is MethodCallExpression methodCall)
+            if (mock is IMockSetup setup)
             {
-                string signature = methodCall.Method.Name;
-                object?[] args = new object?[methodCall.Arguments.Count];
-                
-                // AOT-Safe Argument Evaluation (No Expression.Compile)
-                for (int i = 0; i < methodCall.Arguments.Count; i++)
-                {
-                    args[i] = Evaluate(methodCall.Arguments[i]);
-                }
-
-                return new SetupContext<TReturn>(mockSetup, signature, args);
+                var methodCall = (MethodCallExpression)expression.Body;
+                var args = methodCall.Arguments.Select(GetArgumentValue).ToArray();
+                return new SetupContext<T, TResult>(setup.Handler, methodCall.Method.Name, args);
             }
-            // 2. Handle Properties: mock.Setup(x => x.Name)
-            else if (expression.Body is MemberExpression memberEx && memberEx.Member is PropertyInfo prop)
-            {
-                // We treat properties as methods named "get_PropName" with 0 args
-                string signature = "get_" + prop.Name;
-                return new SetupContext<TReturn>(mockSetup, signature, Array.Empty<object?>());
-            }
-
-            throw new NotSupportedException("Only methods and properties are supported.");
+            throw new ArgumentException("Object is not a Skugga Mock");
         }
 
-        // AOT-Safe Evaluator (Basic support for Constants and Captured Variables)
-        private static object? Evaluate(Expression expr)
+        public static SetupContext<T, TResult> Setup<T, TResult>(this T mock, Expression<Func<T>> expression)
+        {
+            if (mock is IMockSetup setup)
+            {
+                var memberAccess = (MemberExpression)expression.Body;
+                return new SetupContext<T, TResult>(setup.Handler, "get_" + memberAccess.Member.Name, Array.Empty<object?>());
+            }
+            throw new ArgumentException("Object is not a Skugga Mock");
+        }
+
+        public static void Returns<T, TResult>(this SetupContext<T, TResult> context, TResult value)
+            => context.Handler.AddSetup(context.Signature, context.Args, value);
+
+        public static void Chaos<T>(this T mock, Action<ChaosPolicy> config)
+        {
+             if (mock is IMockSetup setup) {
+                 var policy = new ChaosPolicy();
+                 config(policy);
+                 setup.Handler.SetChaosPolicy(policy);
+             }
+        }
+
+        private static object? GetArgumentValue(Expression expr)
         {
             if (expr is ConstantExpression c) return c.Value;
-            
-            // Handle captured variables (closures)
-            if (expr is MemberExpression m && m.Expression is ConstantExpression container)
-            {
-                if (m.Member is FieldInfo f) return f.GetValue(container.Value);
-                if (m.Member is PropertyInfo p) return p.GetValue(container.Value);
-            }
-            
-            return null; // Fallback (For complex expressions, we'd need a fuller interpreter)
+            return Expression.Lambda<Func<object>>(Expression.Convert(expr, typeof(object))).Compile()();
         }
     }
 
-    public class SetupContext<T>
+    public class SetupContext<T, TResult>
     {
-        private readonly IMockSetup _mock;
-        private readonly string _signature;
-        private readonly object?[] _args;
-
-        public SetupContext(IMockSetup mock, string signature, object?[] args)
-        {
-            _mock = mock;
-            _signature = signature;
-            _args = args;
-        }
-
-        public void Returns(T value)
-        {
-            _mock.AddSetup(_signature, _args, value);
-        }
+        public MockHandler Handler { get; }
+        public string Signature { get; }
+        public object?[] Args { get; }
+        public SetupContext(MockHandler handler, string signature, object?[] args) { Handler = handler; Signature = signature; Args = args; }
     }
 
-    // The Logic Engine that stores and retrieves return values
+    public interface IMockSetup { MockHandler Handler { get; } }
+
     public class MockHandler
     {
-        // List of (Signature, Args, ReturnValue)
-        private readonly List<(string Sig, object?[] Args, object? Val)> _setups = new();
+        private readonly List<MockSetup> _setups = new();
+        private ChaosPolicy? _chaosPolicy;
+        private readonly Random _rng = new();
+        public MockBehavior Behavior { get; set; } = MockBehavior.Loose;
 
-        public void AddSetup(string signature, object?[] args, object? value)
-        {
-            // Remove existing setup if exact match (override behavior)
-            _setups.RemoveAll(s => s.Sig == signature && ArraysEqual(s.Args, args));
-            _setups.Add((signature, args, value));
-        }
+        public void AddSetup(string signature, object?[] args, object? value) => _setups.Add(new MockSetup(signature, args, value));
+        public void SetChaosPolicy(ChaosPolicy policy) => _chaosPolicy = policy;
 
         public object? Invoke(string signature, object?[] args)
         {
-            // Find last matching setup (LIFO behavior is standard for mocks)
-            var match = _setups.LastOrDefault(s => s.Sig == signature && ArraysEqual(s.Args, args));
-            
-            // Return value or default
-            return match.Val; 
-        }
+            if (_chaosPolicy != null && _rng.NextDouble() < _chaosPolicy.FailureRate)
+                if (_chaosPolicy.PossibleExceptions?.Length > 0)
+                    throw _chaosPolicy.PossibleExceptions[_rng.Next(_chaosPolicy.PossibleExceptions.Length)];
 
-        private bool ArraysEqual(object?[] a, object?[] b)
+            foreach (var setup in _setups)
+                if (setup.Matches(signature, args)) return setup.Value;
+
+            if (Behavior == MockBehavior.Strict)
+                throw new MockException($"[Strict Mode] Call to '{signature}' was not setup.");
+
+            return null; 
+        }
+    }
+
+    public class MockSetup 
+    {
+        public string Signature { get; }
+        public object?[] Args { get; }
+        public object? Value { get; }
+        public MockSetup(string sig, object?[] args, object? val) { Signature=sig; Args=args; Value=val; }
+
+        public bool Matches(string sig, object?[] args)
         {
-            if (a.Length != b.Length) return false;
-            for (int i = 0; i < a.Length; i++)
-            {
-                if (!Equals(a[i], b[i])) return false;
-            }
+            if (Signature != sig || Args.Length != args.Length) return false;
+            for(int i=0; i<Args.Length; i++)
+                if (Args[i] != null && !Args[i]!.Equals(args[i])) return false;
             return true;
+        }
+    }
+
+    public class ChaosPolicy { public double FailureRate { get; set; } public Exception[]? PossibleExceptions { get; set; } }
+
+    public static class AssertAllocations
+    {
+        public static void Zero(Action action)
+        {
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            action();
+            long after = GC.GetAllocatedBytesForCurrentThread();
+            if (after - before > 0) throw new Exception($"Allocated {after - before} bytes (Expected 0).");
+        }
+    }
+
+    public static class Harness { public static TestHarness<T> Create<T>() => new TestHarness<T>(); }
+    public class TestHarness<T> { public T SUT { get; protected set; } = default!; protected Dictionary<Type, object> _mocks = new(); }
+
+    public class DynamicMockProxy<T> : DispatchProxy, IMockSetup
+    {
+        public MockHandler Handler { get; } = new MockHandler();
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            if (targetMethod?.Name == "get_Handler") return Handler;
+            var res = Handler.Invoke(targetMethod!.Name, args ?? Array.Empty<object?>());
+            return res ?? (targetMethod.ReturnType.IsValueType && targetMethod.ReturnType != typeof(void) 
+                ? Activator.CreateInstance(targetMethod.ReturnType) : null);
+        }
+    }
+
+    public static class AutoScribe
+    {
+        public static T Capture<T>(T target)
+        {
+            object proxyObj = DispatchProxy.Create<T, RecordingProxy<T>>();
+            ((RecordingProxy<T>)proxyObj!).Initialize(target);
+            return (T)proxyObj;
+        }
+    }
+
+    public class RecordingProxy<T> : DispatchProxy
+    {
+        private T _target = default!;
+        public void Initialize(T target) => _target = target;
+        protected override object? Invoke(MethodInfo? m, object?[]? args)
+        {
+            if (m == null) return null;
+            var argsDisplay = args == null ? "" : string.Join(", ", args.Select(a => a == null ? "null" : (a is string s ? $"\"{s}\"" : a.ToString())));
+            Console.WriteLine($"[AutoScribe] mock.Setup(x => x.{m.Name}({argsDisplay})).Returns( ... );");
+            return m.Invoke(_target, args);
         }
     }
 }

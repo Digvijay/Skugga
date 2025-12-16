@@ -1,73 +1,94 @@
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
-using Moq;
+using System;
 using Skugga.Core;
+using System.Collections.Generic;
+using BenchmarkDotNet.Running; // <--- REQUIRED for benchmarks
 
-public interface IUserService
-{
-    // Method with Args
-    string GetRole(int userId);
-    
-    // Property
-    string TenantName { get; set; }
-}
-
-[MemoryDiagnoser] 
-public class MockBenchmarks
-{
-    [Benchmark(Baseline = true)]
-    public string Moq_Benchmark()
-    {
-        var moq = new Mock<IUserService>();
-        moq.Setup(x => x.GetRole(1)).Returns("Admin");
-        return moq.Object.GetRole(1);
-    }
-
-    [Benchmark]
-    public string Skugga_Benchmark()
-    {
-        var skugga = Skugga.Core.Mock.Create<IUserService>();
-        skugga.Setup(x => x.GetRole(1)).Returns("Admin");
-        return skugga.GetRole(1);
-    }
+// --- DEFINITIONS ---
+public interface IRepo { string GetData(int id); }
+public class RealRepo : IRepo { 
+    public string GetData(int id) => $"Real_Data_{id}"; 
 }
 
 public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine("--- Functional Test (New Features) ---");
-        var mock = Skugga.Core.Mock.Create<IUserService>();
+        #if DEBUG
+            // In DEBUG mode, we run the Functional Demo
+            Console.WriteLine("=========================================");
+            Console.WriteLine("      SKUGGA TRINITY DEMO (v1.0)      ");
+            Console.WriteLine("=========================================");
 
-        // 1. Test Argument Matching
-        mock.Setup(x => x.GetRole(1)).Returns("Admin");
-        mock.Setup(x => x.GetRole(99)).Returns("Guest");
+            RunAutoScribeDemo();
+            Console.WriteLine();
+            RunChaosDemo();
+            Console.WriteLine();
+            RunZeroAllocDemo();
+            
+            Console.WriteLine("\n---------------------------------------------");
+            Console.WriteLine("ℹ️  To run BENCHMARKS, use Release mode:");
+            Console.WriteLine("   dotnet run -c Release --project Skugga.Benchmarks/Skugga.Benchmarks.csproj");
+            Console.WriteLine("---------------------------------------------");
 
-        var role1 = mock.GetRole(1);
-        var role99 = mock.GetRole(99);
-        var roleUnknown = mock.GetRole(500); // Should be null
+        #else
+            // In RELEASE mode, we run the Benchmarks
+            Console.WriteLine("🚀 Running Benchmarks in Release Mode...");
+            BenchmarkRunner.Run<MockingBenchmarks>();
+        #endif
+    }
 
-        Console.WriteLine($"Args Match (1): {role1} (Expected: Admin)");
-        Console.WriteLine($"Args Match (99): {role99} (Expected: Guest)");
-        Console.WriteLine($"Args Match (500): '{roleUnknown}' (Expected: '')");
+    // --- FEATURE 1: AUTO-SCRIBE ---
+    static void RunAutoScribeDemo()
+    {
+        Console.WriteLine("--- ✍️  Feature 1: Auto-Scribe (Self-Writing Tests) ---");
+        var realRepo = new RealRepo();
+        var recorder = AutoScribe.Capture<IRepo>(realRepo);
 
-        if (role1 == "Admin" && role99 == "Guest") 
-            Console.WriteLine("✅ SUCCESS: Argument Matching Works!");
-        else 
-            Console.WriteLine("❌ FAIL: Argument Matching Failed.");
+        Console.WriteLine("[Action] Running real code with recorder...");
+        recorder.GetData(101);
+        recorder.GetData(500);
+        Console.WriteLine("[Result] Copy the lines above into your unit test!");
+    }
 
-        // 2. Test Property Support
-        mock.Setup(x => x.TenantName).Returns("Microsoft");
-        var tenant = mock.TenantName;
-        
-        Console.WriteLine($"Property: {tenant} (Expected: Microsoft)");
+    // --- FEATURE 2: CHAOS MODE ---
+    static void RunChaosDemo()
+    {
+        Console.WriteLine("--- 💥 Feature 2: Chaos Mode (Resilience) ---");
+        var mock = Mock.Create<IRepo>();
+        mock.Setup(x => x.GetData(1)).Returns("Success!");
 
-        if (tenant == "Microsoft") 
-            Console.WriteLine("✅ SUCCESS: Property Mocking Works!");
-        else 
-            Console.WriteLine("❌ FAIL: Property Mocking Failed.");
+        Console.WriteLine("[Config] Injecting 50% failure rate...");
+        mock.Chaos(policy => {
+            policy.FailureRate = 0.5;
+            policy.PossibleExceptions = new Exception[] { new TimeoutException("DB Timeout") };
+        });
 
-        // Uncomment to run benchmarks:
-        BenchmarkRunner.Run<MockBenchmarks>();
+        int success = 0; int failures = 0;
+        Console.Write("[Action] Invoking mock 20 times: ");
+        for(int i=0; i<20; i++)
+        {
+            try { mock.GetData(1); success++; Console.Write("."); }
+            catch(TimeoutException) { failures++; Console.Write("X"); }
+        }
+        Console.WriteLine($"\n[Result] Success: {success}, Failures: {failures}");
+        Console.WriteLine(failures > 0 ? "✅ Resilience test passed." : "⚠️ RNG bad luck, try again.");
+    }
+
+    // --- FEATURE 3: ZERO-ALLOC GUARD ---
+    static void RunZeroAllocDemo()
+    {
+        Console.WriteLine("--- 📉 Feature 3: Zero-Alloc Guard ---");
+
+        Console.WriteLine("[Test 1] Testing a zero-allocation method...");
+        try {
+            AssertAllocations.Zero(() => { int a=10; int b=20; int c=a+b; });
+            Console.WriteLine("✅ Success: No allocations detected.");
+        } catch(Exception ex) { Console.WriteLine($"❌ Failed: {ex.Message}"); }
+
+        Console.WriteLine("[Test 2] Testing a method that allocates...");
+        try {
+            AssertAllocations.Zero(() => { var list = new List<int>(); });
+            Console.WriteLine("❌ Failed: Should have caught allocation.");
+        } catch(Exception ex) { Console.WriteLine($"✅ Caught Expected Allocation: {ex.Message}"); }
     }
 }
