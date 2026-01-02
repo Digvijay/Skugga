@@ -1,25 +1,26 @@
-﻿using Step1_WithMoq;
+﻿using Moq;
+using Step1_WithMoq;
 using Step1_WithMoq.Models;
 using Step1_WithMoq.Services;
 
 Console.WriteLine("🚀 Order Processing System - Step 1 (With Moq)");
-Console.WriteLine("⚠️  This version uses Moq and will NOT work with Native AOT");
+Console.WriteLine("⚠️  This version uses Moq with Native AOT ENABLED");
 Console.WriteLine();
 
-// This is a demonstration app
-// Real implementation would have actual service implementations
-// Tests demonstrate why Moq fails with AOT
-
-Console.WriteLine("✅ Application structure created");
-Console.WriteLine("✅ Services defined (IOrderService, IPaymentService, etc.)");
-Console.WriteLine("✅ OrderProcessor business logic implemented");
-Console.WriteLine();
-Console.WriteLine("📝 Run the tests to see Moq in action:");
-Console.WriteLine("   cd Step1-WithMoq.Tests");
-Console.WriteLine("   dotnet test");
-Console.WriteLine();
-Console.WriteLine("💥 Try to enable AOT and watch it fail:");
-Console.WriteLine("   Add <PublishAot>true</PublishAot> to .csproj");
-Console.WriteLine("   dotnet publish -c Release");
-Console.WriteLine();
-Console.WriteLine("❌ Expected: AOT compilation errors due to reflection");
+try
+{
+    Console.WriteLine("Attempting to create a mock with Moq under AOT...");
+    var mock = new Mock<IOrderService>();
+    mock.Setup(x => x.GetPrice(100)).Returns(50.0m);
+    
+    var price = mock.Object.GetPrice(100);
+    Console.WriteLine($"✅ Mock created successfully! Price: ${price}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"❌ FAILED: {ex.GetType().Name}");
+    Console.WriteLine($"   Message: {ex.Message}");
+    Console.WriteLine();
+    Console.WriteLine("💡 This is expected! Moq uses reflection which is incompatible with Native AOT.");
+    Console.WriteLine("   See Step2-WithSkugga for the working solution!");
+}
