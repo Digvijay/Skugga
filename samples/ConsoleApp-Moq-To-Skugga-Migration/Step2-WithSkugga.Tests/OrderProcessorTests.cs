@@ -241,7 +241,7 @@ public class OrderProcessorTests
         // Demonstrates Callback
         notificationServiceMock
             .Setup(x => x.LogActivity(It.IsAny<string>()))
-            .Callback<string>(activity => loggedActivities.Add(activity));
+            .Callback((string activity) => loggedActivities.Add(activity));
 
         var processor = new OrderProcessor(
             orderServiceMock,
@@ -364,7 +364,7 @@ public class OrderProcessorTests
         
         notificationServiceMock
             .Setup(x => x.LogActivity(It.IsAny<string>()))
-            .Callback<string>(activity => loggedActivities.Add(activity));
+            .Callback((string activity) => loggedActivities.Add(activity));
 
         var processor = new OrderProcessor(
             orderServiceMock,
