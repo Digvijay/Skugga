@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Automatically enable interceptors for Skugga.Generated namespace -->
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Skugga.Generated</InterceptorsPreviewNamespaces>
+  </PropertyGroup>
+</Project>

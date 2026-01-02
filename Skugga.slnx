@@ -1,5 +1,21 @@
 <Solution>
-  <Project Path="Skugga.Benchmarks/Skugga.Benchmarks.csproj" />
-  <Project Path="Skugga.Core/Skugga.Core.csproj" />
-  <Project Path="Skugga.Generator/Skugga.Generator.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/Skugga.Core/Skugga.Core.csproj" />
+    <Project Path="src/Skugga.Generator/Skugga.Generator.csproj" />
+    <Project Path="src/Skugga.Core.Generators/Skugga.Core.Generators.csproj" />
+    <Project Path="src/Skugga.Core.Tests/Skugga.Core.Tests.csproj" />
+    <Project Path="src/Skugga.Generator.Tests/Skugga.Generator.Tests.csproj" />
+    <Project Path="src/Skugga.Benchmarks/Skugga.Benchmarks.csproj" />
+    <Project Path="src/Skugga.Performance.E2E/src/Skugga.Performance.E2E.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/BasicConsoleApp/BasicConsoleApp.csproj" />
+    <Project Path="samples/BasicConsoleApp.Tests/BasicConsoleApp.Tests.csproj" />
+    <Project Path="samples/AspNetCoreWebApi/AspNetCoreWebApi.csproj" />
+    <Project Path="samples/AspNetCoreWebApi.Tests/AspNetCoreWebApi.Tests.csproj" />
+    <Project Path="samples/MinimalApiAot/MinimalApiAot.csproj" />
+    <Project Path="samples/MinimalApiAot.Tests/MinimalApiAot.Tests.csproj" />
+    <Project Path="samples/AzureFunctions/AzureFunctions.csproj" />
+    <Project Path="samples/AzureFunctions.Tests/AzureFunctions.Tests.csproj" />
+  </Folder>
 </Solution>

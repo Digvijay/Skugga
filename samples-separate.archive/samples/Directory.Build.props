@@ -1,0 +1,22 @@
+<Project>
+  <!-- Import the root Directory.Build.props first -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <!-- Samples-specific settings -->
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    
+    <!-- Mark test projects -->
+    <IsTestProject Condition="$(MSBuildProjectName.EndsWith('.Tests'))">true</IsTestProject>
+    
+    <!-- Enable interceptors for Skugga source generator -->
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Skugga.Generated</InterceptorsPreviewNamespaces>
+    
+    <!-- Samples don't need to treat warnings as errors -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    
+    <!-- Relaxed nullable settings for samples -->
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>

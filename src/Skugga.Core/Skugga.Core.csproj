@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Package Identity -->
+    <PackageId>Skugga</PackageId>
+    <Version>1.1.0</Version>
+    <Authors>Digvijay Chauhan</Authors>
+    <Company>Skugga</Company>
+    
+    <!-- Package Description -->
+    <Description>A compile-time mocking framework designed for Native AOT and cloud-native .NET applications. Skugga uses Roslyn source generators to eliminate reflection, enabling zero-overhead mocking with full AOT compatibility. 3.9x faster than Moq with 4.1x less memory. Features: AutoScribe (self-writing tests), Chaos Mode, SetupSequence, advanced argument matchers, and comprehensive diagnostics.</Description>
+    <PackageTags>mocking;native-aot;source-generator;testing;dotnet;interceptors;performance;cloud-native;zero-allocation;compile-time;moq-alternative;aot-compatible;roslyn;testing-framework</PackageTags>
+    <PackageProjectUrl>https://github.com/Digvijay/Skugga</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Digvijay/Skugga</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    
+    <!-- Package Assets - Use LicenseExpression from Directory.Build.props -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    
+    <!-- Release Notes -->
+    <PackageReleaseNotes>See CHANGELOG.md for full details on the project site.</PackageReleaseNotes>
+    
+    <!-- Source Link Support -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <!-- Deterministic Builds -->
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    
+    <!-- Compiler Features -->
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    
+    <!-- Enable source generators for this project -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\Generated</CompilerGeneratedFilesOutputPath>
+    
+    <!-- Ensure generator is included in GetTargetPath for packaging -->
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference the generator for local development -->
+    <ProjectReference Include="..\Skugga.Generator\Skugga.Generator.csproj" 
+                      OutputItemType="Analyzer" 
+                      ReferenceOutputAssembly="false" />
+    <!-- Reference our extension method generator to generate Returns/ReturnsAsync overloads at compile time -->
+    <ProjectReference Include="..\Skugga.Core.Generators\Skugga.Core.Generators.csproj" 
+                      OutputItemType="Analyzer" 
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="..\Skugga.Generator\bin\$(Configuration)\netstandard2.0\Skugga.Generator.dll" 
+          Pack="true" 
+          PackagePath="analyzers/dotnet/cs" 
+          Visible="false" />
+    
+    <!-- Include build targets to automatically configure interceptors -->
+    <None Include="build\Skugga.targets" 
+          Pack="true" 
+          PackagePath="build" 
+          Visible="false" />
+    <None Include="build\Skugga.targets" 
+          Pack="true" 
+          PackagePath="buildTransitive" 
+          Visible="false" />
+  </ItemGroup>
+
+  <Target Name="GetDependencyTargetPaths">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="..\Skugga.Generator\bin\$(Configuration)\netstandard2.0\Skugga.Generator.dll" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ItemGroup for package files removed - now handled by Directory.Build.props -->
+</Project>

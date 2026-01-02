@@ -21,19 +21,54 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: | 
+            8.0.x
+            10.0.x
 
       - name: Get Version
         id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "::notice::Publishing version $VERSION"
+
+      - name: Restore Dependencies
+        run: dotnet restore Skugga.slnx
+
+      - name: Build Solution
+        run: |
+          dotnet build Skugga.slnx \
+          --configuration Release \
+          --no-restore \
+          /p:Version=${{ steps.get_version.outputs.VERSION }}
+
+      - name: Run Tests
+        run: |
+          dotnet test Skugga.slnx \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --logger "trx;LogFileName=test-results.trx"
 
       - name: Pack
-        run: dotnet pack --configuration Release --output nupkg /p:PackageVersion=${{ env.VERSION }}
-
-      # NuGet.exe is currently required for OIDC (Trusted Publishing)
-      - name: Setup NuGet.exe
-        uses: nuget/setup-nuget@v2
+        run: |
+          dotnet pack src/Skugga.Core/Skugga.Core.csproj \
+          --configuration Release \
+          --no-build \
+          --output nupkg \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} \
+          /p:RepositoryCommit=${{ github.sha }}
 
       - name: Publish to NuGet
-        # The ApiKey 'az' is a dummy value; NuGet.org validates the OIDC token instead.
-        run: nuget push nupkg/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey az -SkipDuplicate
+        run: |
+            dotnet nuget push nupkg/*.nupkg \
+            --source https://api.nuget.org/v3/index.json \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --skip-duplicate
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: nupkg/*.nupkg

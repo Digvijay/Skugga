@@ -1,12 +1,19 @@
 mode: ContinuousDelivery
 branches:
-  main:
-    regex: ^main$
+  master:
+    regex: ^master$
     tag: ''
     increment: Patch
-    prevent-increment-of-merged-branch-version: true
-    track-merge-target: false
+    is-source-branch-for: ['test']
   test:
     regex: ^test$
     tag: beta
     increment: Patch
+    source-branches: ['master']
+  feature:
+    regex: ^features?[/-]
+    tag: useBranchName
+    increment: Minor
+    source-branches: ['master']
+ignore:
+  sha: []

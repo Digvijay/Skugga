@@ -1,9 +1,0 @@
-<Solution>
-  <Folder Name="/src/">
-    <Project Path="src/Skugga.Performance.E2E.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/Skugga.Performance.E2E.Tests/Skugga.Performance.E2E.Tests.csproj" />
-  </Folder>
-  <Project Path="../Skugga.Generator/Skugga.Generator.csproj" />
-</Solution>
