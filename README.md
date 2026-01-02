@@ -3,8 +3,9 @@
 [![Skugga CI](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml/badge.svg)](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Skugga.svg)](https://www.nuget.org/packages/Skugga/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/tests-371%20passing-brightgreen)](https://github.com/Digvijay/Skugga)
 
-![Skugga Banner](images/skugga_banner_small.png)
+![Skugga Banner](docs/images/skugga_banner_small.png)
 
 > **"Mocking at the Speed of Compilation."**
 
@@ -95,29 +96,164 @@ var mock = Mock.Create<IEmailService>(MockBehavior.Strict);
 var mock = Mock.Create<IEmailService>();
 
 ```
+5. Argument Matchers (Flexible Matching) 🎯
+Match method arguments with flexible predicates, value sets, null checks, and regex patterns.
+
+```C#
+
+// Match with custom predicate
+mock.Setup(x => x.Process(It.Is<int>(n => n > 0))).Returns("positive");
+mock.Process(5);   // Returns "positive"
+mock.Process(-1);  // Returns null (no match)
+
+// Match values in a set
+mock.Setup(x => x.Handle(It.IsIn("red", "green", "blue"))).Returns("color");
+mock.Handle("red");     // Returns "color"
+mock.Handle("yellow");  // Returns null (no match)
+
+// Match only non-null values
+mock.Setup(x => x.ValidateObject(It.IsNotNull<object>())).Returns(true);
+mock.ValidateObject(new object()); // Returns true
+mock.ValidateObject(null);         // Returns false (no match)
+
+// Match with regex patterns
+mock.Setup(x => x.ValidateEmail(It.IsRegex(@"^[\w\.-]+@[\w\.-]+\.\w+$"))).Returns(true);
+mock.ValidateEmail("test@example.com"); // Returns true
+mock.ValidateEmail("invalid");          // Returns false (no match)
+
+// Combine matchers
+mock.Setup(x => x.ProcessTwo(It.Is<int>(n => n > 0), It.IsNotNull<string>())).Returns("valid");
+
+// Use in Verify
+mock.Verify(x => x.Process(It.Is<int>(n => n > 10)), Times.AtLeast(2));
+
+```
+6. Protected Members (Abstract Class Mocking) 🔐
+Mock protected methods and properties on abstract classes - essential for testing inheritance hierarchies and template method patterns.
+
+```C#
+// Abstract class with protected members
+public abstract class AbstractService
+{
+    public string Execute(string input)
+    {
+        // Public method calls protected method
+        return ProcessCore(input);
+    }
+    
+    protected abstract string ProcessCore(string input);
+    protected abstract int MaxRetries { get; }
+}
+
+// Mock the abstract class
+var mock = Mock.Create<AbstractService>();
+
+// Setup protected method by name
+mock.Protected()
+    .Setup<string>("ProcessCore", It.IsAny<string>())
+    .Returns("mocked result");
+
+// Setup protected property
+mock.Protected()
+    .SetupGet<int>("MaxRetries")
+    .Returns(3);
+
+// Test the public API which uses protected members
+var result = mock.Execute("test"); // Returns "mocked result"
+
+// Protected callbacks for side effects
+mock.Protected()
+    .Setup("ProcessCore", It.IsAny<string>())
+    .Callback<string>(input => Console.WriteLine($"Processing: {input}"));
+
+// Works with Verify too
+mock.Protected().Verify("ProcessCore", Times.Once(), It.Is<string>(s => s.Length > 0));
+
+```
+7. Setup Sequence (State Simulation) 🔄
+Configure methods to return different values on consecutive calls - perfect for testing retry logic, pagination, and stateful scenarios.
+
+```C#
+
+// Return different values on each call
+mock.SetupSequence(x => x.GetNext())
+    .Returns(1)
+    .Returns(2)
+    .Returns(3);
+    
+mock.GetNext(); // Returns 1
+mock.GetNext(); // Returns 2
+mock.GetNext(); // Returns 3
+mock.GetNext(); // Returns 3 (repeats last value)
+
+// Mix returns and exceptions for retry testing
+mock.SetupSequence(x => x.FetchData())
+    .Throws(new TimeoutException())
+    .Throws(new TimeoutException())
+    .Returns("success");
+    
+// First two calls throw, third succeeds
+try { mock.FetchData(); } catch { /* retry */ }
+try { mock.FetchData(); } catch { /* retry */ }
+var data = mock.FetchData(); // "success"
+
+// Works with properties too
+mock.SetupSequence(x => x.Counter)
+    .Returns(0)
+    .Returns(1)
+    .Returns(2);
+
+```
 -----
 
 ## ⚡ Benchmarks
 
 Skugga isn't just AOT-compatible; it is significantly faster and lighter than reflection-based alternatives.
 
-**Scenario:** Creating a Mock, configuring a return value, and invoking a method in a tight loop.
+### Quick Comparison: Skugga vs. Alternatives
 
-| Library | Mean Time | Allocated Memory | Relative Speed | Efficiency |
-| :--- | :--- | :--- | :--- | :--- |
-| **Skugga (AOT)** | **1.07 μs** | **1.12 KB** | **1.0x (Baseline)** | **1.0x** |
-| Moq | 4.21 μs | 4.57 KB | ~4x Slower | ~4x Heavier |
-| NSubstitute | 4.25 μs | 7.76 KB | ~4x Slower | ~7x Heavier |
+**Comprehensive benchmarks across 12 scenarios covering all major features** (50,000 iterations each):
 
-> **Environment:** Intel Core i7-4980HQ, .NET 10.0.1, macOS 15.7.
+| Framework     | Speed vs Skugga | Notes                              |
+|---------------|-----------------|-----------------------------------|
+| **Skugga**    | **Baseline**    | Compile-time, zero reflection      |
+| Moq           | 2.6-80x slower  | ⚠️ 80x slower on argument matching  |
+| NSubstitute   | 3.5x slower     | Consistent but reflection-heavy    |
+| FakeItEasy    | 3.9x slower     | Similar overhead across scenarios  |
+
+> **Environment:** Intel Core i7-4980HQ @ 2.80GHz, 16GB RAM, macOS 15.7, .NET 10.0.1 | [Full Benchmark Report →](docs/BENCHMARK_COMPARISON.md)
+
+### Critical Performance Findings
+
+**Overall Performance (12-scenario comprehensive test):**
+- **Skugga is 6.36x faster than Moq overall**
+- Argument Matching: **79.84x faster** ⚡
+- Void Method Setup: **59.26x faster**
+- Callback Execution: **53.34x faster**
+- Simple Mock Creation: **15.29x faster**
+
+**4-Framework Common Scenarios:**
+- Moq: **2.58x slower** than Skugga
+- NSubstitute: **3.49x slower** than Skugga
+- FakeItEasy: **3.88x slower** than Skugga
+
+**Real-World Impact:** For a test suite with 10,000 tests using argument matchers, Skugga completes in **2.7 seconds** vs. Moq's **218 seconds** - that's **215 seconds saved per test run**! ⚡
+
+> **Benchmark Environment:** Intel Core i7-4980HQ @ 2.80GHz, 16GB RAM, macOS 15.7, .NET 10.0.1  
+> **Latest Results:** See `/benchmarks/MoqVsSkugga.md` and `/benchmarks/FourFramework.md`  
+> **Methodology:** Manual timing with 50,000 iterations per scenario (BenchmarkDotNet incompatible with source generators)
 
 ### Why is Skugga Faster?
-Legacy libraries like Moq and NSubstitute use `System.Reflection.Emit` to generate proxy classes at **runtime**. This incurs a heavy CPU penalty (Dynamic Code Generation) and forces the JIT compiler to work overtime.
+
+Legacy libraries like Moq, NSubstitute, and FakeItEasy use `System.Reflection.Emit` to generate proxy classes at **runtime**. This incurs heavy CPU penalties and forces the JIT compiler to work overtime.
 
 **Skugga** does all the heavy lifting at **compile-time**. By the time your application runs, the mock is just a standard C# class. This results in:
 * **Zero JIT Penalties:** The code is already compiled to native machine code.
-* **Zero Reflection:** No expensive type inspection at runtime.
-* **Zero Dynamic Allocation:** No generating assemblies on the fly.
+* **Zero Reflection:** No expensive type inspection, `Expression.Lambda().Compile()`, or `MethodInfo` lookups at runtime.
+* **Zero Dynamic Allocation:** No generating assemblies on the fly via Castle.DynamicProxy or similar.
+* **Optimized Dispatch:** Simple dictionary lookups instead of reflection-based invocation.
+
+> **Reproducing Results:** Run `dotnet run --project src/Skugga.Benchmarks/Skugga.Benchmarks.csproj -c Release` to generate fresh benchmark data. Results are saved to `/benchmarks/MoqVsSkugga.md` and `/benchmarks/FourFramework.md`.
 
 -----
 ## Proven Performance: Solves the .NET "Cold Start" Problem
@@ -213,14 +349,249 @@ public class Test
 }
 ```
 
+## 🔧 Troubleshooting & Best Practices
+
+### Common Issues
+
+**"Cannot mock sealed classes" (SKUGGA001)**
+```csharp
+// ❌ Won't work - sealed class
+public sealed class EmailService { }
+var mock = Mock.Create<EmailService>(); // Error!
+
+// ✅ Use interfaces instead
+public interface IEmailService { }
+var mock = Mock.Create<IEmailService>(); // Works!
+```
+
+**"Class has no virtual members" (SKUGGA002)**
+```csharp
+// ❌ Won't work - non-virtual members
+public class EmailService {
+    public string GetEmail() => ""; // Not virtual!
+}
+
+// ✅ Make members virtual
+public class EmailService {
+    public virtual string GetEmail() => ""; // Virtual!
+}
+```
+
+**Generated code not updating**
+```bash
+# Clean and rebuild
+dotnet clean && dotnet build
+```
+
+**Setup not matching**
+```csharp
+// ❌ Exact match required
+mock.Setup(x => x.GetData(1)).Returns("one");
+mock.GetData(2); // Returns null - no match
+
+// ✅ Use It.IsAny<T>() for flexible matching
+mock.Setup(x => x.GetData(It.IsAny<int>())).Returns("any");
+mock.GetData(2); // Returns "any"
+```
+
+### Migrating from Moq
+
+Skugga achieves **100% practical parity** with Moq's core API (371 tests covering all major features). The API is intentionally identical for seamless migration:
+
+#### Feature Comparison Table
+
+| Feature | Moq | Skugga | Migration Notes |
+|---------|-----|--------|----------------|
+| **Core Setup/Returns** | ✅ | ✅ | Identical API |
+| **Verify with Times** | ✅ | ✅ | Identical API |
+| **Properties (Get/Set)** | ✅ | ✅ | Identical API |
+| **Callbacks** | ✅ | ✅ | Identical API |
+| **Multiple Returns/Throws** | ✅ | ✅ | Identical API |
+| **Argument Matchers** | ✅ | ✅ | `It.IsAny`, `It.Is`, `It.IsIn`, `It.IsNotNull`, `It.IsRegex` |
+| **Strict Mocks** | ✅ | ✅ | `MockBehavior.Strict` |
+| **Setup Sequences** | ✅ | ✅ | Identical API |
+| **Protected Members** | ✅ | ✅ | `.Protected().Setup<T>("MethodName")` |
+| **Mock.Get<T>()** | ✅ | ✅ | Retrieve IMockSetup from mocked object |
+| **Generic Type Parameters** | ✅ | ✅ | `Setup(x => x.Process<int>(It.IsAny<int>()))` |
+| **Multiple Interfaces (As)** | ✅ | ✅ | `mock.As<IDisposable>()` |
+| **Custom Matchers** | ✅ | ✅ | `Match.Create<T>(predicate)` |
+| **Verify with Matchers** | ✅ | ✅ | Works with all matcher types |
+| **Events (Raise)** | ✅ | ✅ | Identical API |
+| **Partial Mocks** | ✅ | ✅ | Override specific methods via interceptors |
+| **Mock.Of<T>(expr)** | ✅ | ❌ | **AOT limitation** - use `Mock.Create` + explicit `Setup` calls |
+| **Native AOT Support** | ❌ | ✅ | Moq crashes in AOT, Skugga is AOT-first |
+| **Zero Reflection** | ❌ | ✅ | Skugga uses compile-time generation |
+| **AutoScribe** | ❌ | ✅ | Self-writing tests (Skugga exclusive) |
+| **Chaos Mode** | ❌ | ✅ | Resilience testing (Skugga exclusive) |
+| **Zero-Alloc Guard** | ❌ | ✅ | Performance enforcement (Skugga exclusive) |
+
+#### Quick Migration Examples
+
+**1. Basic Setup/Returns**
+```csharp
+// Moq
+var moqMock = new Mock<IEmailService>();
+moqMock.Setup(x => x.GetEmail(1)).Returns("test@test.com");
+var service = moqMock.Object;
+
+// Skugga - Identical setup API
+var skuggaMock = Mock.Create<IEmailService>();
+skuggaMock.Setup(x => x.GetEmail(1)).Returns("test@test.com");
+// No .Object property needed - mock IS the object
+```
+
+**2. Verify with Times**
+```csharp
+// Moq
+moqMock.Verify(x => x.SendEmail(It.IsAny<string>()), Times.Exactly(3));
+
+// Skugga - Identical
+skuggaMock.Verify(x => x.SendEmail(It.IsAny<string>()), Times.Exactly(3));
+```
+
+**3. Properties**
+```csharp
+// Moq
+moqMock.Setup(x => x.ServerUrl).Returns("https://api.example.com");
+moqMock.SetupSet(x => x.ServerUrl = "https://new.example.com").Verifiable();
+
+// Skugga - Identical
+skuggaMock.Setup(x => x.ServerUrl).Returns("https://api.example.com");
+skuggaMock.SetupSet(x => x.ServerUrl = "https://new.example.com").Verifiable();
+```
+
+**4. Callbacks**
+```csharp
+// Moq
+int callCount = 0;
+moqMock.Setup(x => x.Process(It.IsAny<int>()))
+       .Callback<int>(n => callCount += n)
+       .Returns(true);
+
+// Skugga - Identical
+int callCount = 0;
+skuggaMock.Setup(x => x.Process(It.IsAny<int>()))
+           .Callback<int>(n => callCount += n)
+           .Returns(true);
+```
+
+**5. Setup Sequences**
+```csharp
+// Moq
+moqMock.SetupSequence(x => x.GetNext())
+       .Returns(1)
+       .Returns(2)
+       .Throws(new InvalidOperationException());
+
+// Skugga - Identical
+skuggaMock.SetupSequence(x => x.GetNext())
+           .Returns(1)
+           .Returns(2)
+           .Throws(new InvalidOperationException());
+```
+
+**6. Protected Members (Abstract Classes)**
+```csharp
+// Moq
+var moqMock = new Mock<AbstractService>();
+moqMock.Protected()
+       .Setup<string>("ProcessCore", ItExpr.IsAny<string>())
+       .Returns("mocked");
+
+// Skugga - Similar API (uses It.IsAny instead of ItExpr)
+var skuggaMock = Mock.Create<AbstractService>();
+skuggaMock.Protected()
+           .Setup<string>("ProcessCore", It.IsAny<string>())
+           .Returns("mocked");
+```
+
+**7. Strict Mocks**
+```csharp
+// Moq
+var moqMock = new Mock<IService>(MockBehavior.Strict);
+// Throws on any un-setup member access
+
+// Skugga - Identical
+var skuggaMock = Mock.Create<IService>(MockBehavior.Strict);
+// Throws on any un-setup member access
+```
+
+**8. Mock.Get (Retrieve Mock from Object)**
+```csharp
+// Moq
+var service = Mock.Of<IEmailService>();
+var moqMock = Mock.Get(service);
+moqMock.Setup(x => x.GetEmail(1)).Returns("test@test.com");
+
+// Skugga - Mock.Get is supported!
+var service = Mock.Create<IEmailService>();
+var skuggaMock = Mock.Get(service);
+skuggaMock.Setup(x => x.GetEmail(1)).Returns("test@test.com");
+```
+
+**9. Argument Matchers**
+```csharp
+// Moq
+moqMock.Setup(x => x.Process(It.Is<int>(n => n > 0))).Returns("positive");
+moqMock.Setup(x => x.Handle(It.IsIn("red", "green"))).Returns("color");
+moqMock.Setup(x => x.Validate(It.IsRegex("^\\d+$"))).Returns(true);
+
+// Skugga - Identical
+skuggaMock.Setup(x => x.Process(It.Is<int>(n => n > 0))).Returns("positive");
+skuggaMock.Setup(x => x.Handle(It.IsIn("red", "green"))).Returns("color");
+skuggaMock.Setup(x => x.Validate(It.IsRegex("^\\d+$"))).Returns(true);
+```
+
+**10. Multiple Interfaces**
+```csharp
+// Moq
+var moqMock = new Mock<IEmailService>();
+moqMock.As<IDisposable>().Setup(x => x.Dispose());
+
+// Skugga - Identical
+var skuggaMock = Mock.Create<IEmailService>();
+skuggaMock.As<IDisposable>().Setup(x => x.Dispose());
+```
+
+#### Migration Checklist
+
+- ✅ Replace `new Mock<T>()` with `Mock.Create<T>()`
+- ✅ Remove `.Object` property access (Skugga mock IS the object)
+- ✅ Replace `Mock.Of<T>(expr)` with `Mock.Create<T>()` + explicit `Setup()` calls
+- ✅ Replace `ItExpr.*` with `It.*` in Protected() setups
+- ✅ All other API calls remain identical
+- ✅ Test early and often - Skugga's strict type checking catches issues at compile time
+
+### AOT Constraint: Mock.Of<T>() Limitation
+
+**Note**: Skugga does **not** support `Mock.Of<T>(expression)` syntax due to a fundamental C# interceptor limitation:
+
+```csharp
+// ❌ NOT SUPPORTED in Skugga
+var mock = Mock.Of<IFoo>(f => f.Name == "bar" && f.Count == 42);
+
+// ✅ Use this pattern instead
+var mock = Mock.Create<IFoo>();
+mock.Setup(f => f.Name).Returns("bar");
+mock.Setup(f => f.Count).Returns(42);
+```
+
+**Why?** C# interceptors only work on direct call sites in user code being compiled. When `Mock.Of()` internally calls `Mock.Create()`, that library-internal call cannot be intercepted without runtime IL generation (which breaks AOT compatibility). This is an architectural trade-off to maintain Native AOT support.
+
+**Mock.Get()** *is* fully supported for retrieving the mock interface from created objects.
+
 ## Contributing
 
-Skugga is currently an **Experimental Proof of Concept** evolving into a production-ready library.
+We welcome community contributions! Skugga is evolving from proof-of-concept to production-ready, and your help is valuable.
 
-We welcome community contributions!
+### How to Contribute
 
-  * Found a bug? Open an [Issue](https://github.com/Digvijay/Skugga/issues).
-  * Want to help? Submit a Pull Request.
+- 🐛 **Found a bug?** Open an [Issue](https://github.com/Digvijay/Skugga/issues)
+- 💡 **Have an idea?** Start a [Discussion](https://github.com/Digvijay/Skugga/discussions)
+- 🔧 **Want to help?** Check our [Contributing Guide](CONTRIBUTING.md)
+- ✨ **Submit a PR** following our guidelines
+
+Read the [full contributing guidelines](CONTRIBUTING.md) to get started.
 
 ## Running on Azure.
 
@@ -255,8 +626,21 @@ graph TD
 *   **Instant Scale with AKS:** Deploy to Azure Kubernetes Service (AKS) and benefit from near-instant pod scaling. Smaller container images mean faster pulls and quicker startup times.
 *   **Enhanced Security:** "Distroless" containers, made possible by Skugga, dramatically reduce the attack surface of your application, aligning perfectly with Azure's security-first principles.
 
+---
+
+## 📚 Documentation
+
+- **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation with examples
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Executive Summary](docs/EXECUTIVE_SUMMARY.md)** - Business value and key differentiators
+- **[Technical Summary](docs/TECHNICAL_SUMMARY.md)** - Architecture and implementation details
+- **[Benchmark Comparison](docs/BENCHMARK_COMPARISON.md)** - Performance vs other mocking libraries
+- **[Benchmark Summary](docs/BENCHMARK_SUMMARY.md)** - Detailed performance analysis
+- **[Dependencies](docs/DEPENDENCIES.md)** - Package versions and requirements
+- **[Security Policy](docs/SECURITY.md)** - Vulnerability reporting and security guidelines
+
 ## License
 
 [MIT](LICENSE)
 
-![Skugga Fun](images/cartoon.png)
+![Skugga Fun](docs/images/cartoon.png)

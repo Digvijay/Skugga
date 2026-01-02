@@ -1,0 +1,6 @@
+<Project>
+  <!-- These properties are needed for Skugga's source generator to work in BenchmarkDotNet's isolated builds -->
+  <PropertyGroup>
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Skugga.Generated</InterceptorsPreviewNamespaces>
+  </PropertyGroup>
+</Project>

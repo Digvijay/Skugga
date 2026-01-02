@@ -2,7 +2,7 @@ name: Skugga CI
 
 on:
   push:
-    branches: [ "master", "test" ] # CHANGED: Now watches master and test
+    branches: [ "master", "test", "feature/**" ]
   pull_request:
     branches: [ "master", "test" ]
   workflow_dispatch:
@@ -10,16 +10,20 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '8.0.x', '10.0.x' ]
+    
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0 
 
-    - name: Setup .NET
+    - name: Setup .NET ${{ matrix.dotnet-version }}
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 10.0.x 
+        dotnet-version: ${{ matrix.dotnet-version }}
 
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v1.1.1
@@ -32,20 +36,51 @@ jobs:
       with:
         useConfigFile: true
 
+    - name: Display Version
+      run: |
+        echo "::notice::SemVer: ${{ steps.gitversion.outputs.semVer }}"
+        echo "::notice::FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
+
     - name: Restore Dependencies
       run: dotnet restore Skugga.slnx
 
-    # Build everything
     - name: Build Solution
       run: |
         dotnet build Skugga.slnx \
         --configuration Release \
         --no-restore \
-        /p:Version=${{ steps.gitversion.outputs.semVer }}
+        /p:Version=${{ steps.gitversion.outputs.semVer }} \
+        /p:TreatWarningsAsErrors=true
 
-    # Run Benchmarks (Smoke Test)
-    - name: Run Smoke Test
+    - name: Run Unit Tests
       run: |
-        dotnet run --project Skugga.Benchmarks/Skugga.Benchmarks.csproj \
+        dotnet test src/Skugga.Core.Tests/Skugga.Core.Tests.csproj \
+        --configuration Release \
+        --no-build \
+        --verbosity normal \
+        --logger "trx;LogFileName=test-results.trx" \
+        --collect:"XPlat Code Coverage" \
+        -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.dotnet-version }}
+        path: "**/TestResults/**/*"
+
+    - name: Run Benchmarks (Smoke Test)
+      if: matrix.dotnet-version == '10.0.x'
+      run: |
+        dotnet run --project src/Skugga.Benchmarks/Skugga.Benchmarks.csproj \
         --configuration Release \
         --filter *Skugga*
+
+    - name: Build Summary
+      if: always()
+      run: |
+        echo "### Build Summary for .NET ${{ matrix.dotnet-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- Version: \`${{ steps.gitversion.outputs.semVer }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Configuration: Release" >> $GITHUB_STEP_SUMMARY
+        echo "- Warnings as Errors: Enabled" >> $GITHUB_STEP_SUMMARY
