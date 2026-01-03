@@ -1,21 +1,32 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Skugga.Core/Skugga.Core.csproj" />
-    <Project Path="src/Skugga.Generator/Skugga.Generator.csproj" />
     <Project Path="src/Skugga.Core.Generators/Skugga.Core.Generators.csproj" />
-    <Project Path="src/Skugga.Core.Tests/Skugga.Core.Tests.csproj" />
-    <Project Path="src/Skugga.Generator.Tests/Skugga.Generator.Tests.csproj" />
-    <Project Path="src/Skugga.Benchmarks/Skugga.Benchmarks.csproj" />
-    <Project Path="src/Skugga.Performance.E2E/src/Skugga.Performance.E2E.csproj" />
+    <Project Path="src/Skugga.Generator/Skugga.Generator.csproj" />
   </Folder>
-  <Folder Name="/samples/">
-    <Project Path="samples/BasicConsoleApp/BasicConsoleApp.csproj" />
-    <Project Path="samples/BasicConsoleApp.Tests/BasicConsoleApp.Tests.csproj" />
-    <Project Path="samples/AspNetCoreWebApi/AspNetCoreWebApi.csproj" />
-    <Project Path="samples/AspNetCoreWebApi.Tests/AspNetCoreWebApi.Tests.csproj" />
-    <Project Path="samples/MinimalApiAot/MinimalApiAot.csproj" />
-    <Project Path="samples/MinimalApiAot.Tests/MinimalApiAot.Tests.csproj" />
-    <Project Path="samples/AzureFunctions/AzureFunctions.csproj" />
-    <Project Path="samples/AzureFunctions.Tests/AzureFunctions.Tests.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="tests/Skugga.Core.Tests/Skugga.Core.Tests.csproj" />
+    <Project Path="tests/Skugga.Generator.Tests/Skugga.Generator.Tests.csproj" />
+    <Project Path="tests/Skugga.Benchmarks/Skugga.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/perf/">
+    <Project Path="perf/Skugga.Performance.E2E/src/Skugga.Performance.E2E.csproj" />
+    <Project Path="perf/Skugga.Performance.E2E/tests/Skugga.Performance.E2E.Tests/Skugga.Performance.E2E.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/ConsoleApp.Moq.Migration/">
+    <Project Path="samples/ConsoleApp.Moq.Migration/Step1.WithMoq/Step1-WithMoq.csproj" />
+    <Project Path="samples/ConsoleApp.Moq.Migration/Step1.WithMoq.Tests/Step1-WithMoq.Tests.csproj" />
+    <Project Path="samples/ConsoleApp.Moq.Migration/Step2.WithSkugga/Step2-WithSkugga.csproj" />
+    <Project Path="samples/ConsoleApp.Moq.Migration/Step2.WithSkugga.Tests/Step2-WithSkugga.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/AspNetCoreWebApi.Moq.Migration/">
+    <Project Path="samples/AspNetCoreWebApi.Moq.Migration/Step1.WithMoq/Step1-WithMoq.csproj" />
+    <Project Path="samples/AspNetCoreWebApi.Moq.Migration/Step1.WithMoq.Tests/Step1-WithMoq.Tests.csproj" />
+    <Project Path="samples/AspNetCoreWebApi.Moq.Migration/Step2.WithSkugga/Step2-WithSkugga.csproj" />
+    <Project Path="samples/AspNetCoreWebApi.Moq.Migration/Step2.WithSkugga.Tests/Step2-WithSkugga.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/AzureFunctions.NonInvasive/">
+    <Project Path="samples/AzureFunctions.NonInvasive/src/OrdersApi.csproj" />
+    <Project Path="samples/AzureFunctions.NonInvasive/tests/OrdersApi.Tests.csproj" />
   </Folder>
 </Solution>
