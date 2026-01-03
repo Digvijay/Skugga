@@ -124,6 +124,9 @@ ipch/
 # Visual Studio Trace Files
 *.e2e
 
+# Exception: Allow E2E project files
+!*.E2E.csproj
+
 # TFS 2012 Local Workspace
 $tf/
 
