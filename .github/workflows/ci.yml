@@ -49,7 +49,8 @@ jobs:
         dotnet build Skugga.slnx \
         --configuration Release \
         --no-restore \
-        /p:Version=${{ steps.gitversion.outputs.semVer }}
+        /p:Version=${{ steps.gitversion.outputs.semVer }} \
+        /p:TreatWarningsAsErrors=true
 
     - name: Run Unit Tests
       run: |
@@ -82,3 +83,4 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "- Version: \`${{ steps.gitversion.outputs.semVer }}\`" >> $GITHUB_STEP_SUMMARY
         echo "- Configuration: Release" >> $GITHUB_STEP_SUMMARY
+        echo "- Warnings as Errors: Enabled" >> $GITHUB_STEP_SUMMARY
