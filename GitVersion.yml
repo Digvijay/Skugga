@@ -3,22 +3,22 @@ next-version: 1.2.0
 branches:
   master:
     regex: ^master$
-    tag: ''
+    label: ''
     increment: Patch
     is-source-branch-for: ['test']
   development:
     regex: ^development$
-    tag: alpha
+    label: alpha
     increment: Minor
     source-branches: ['master']
   test:
     regex: ^test$
-    tag: beta
+    label: beta
     increment: Patch
     source-branches: ['master', 'development']
   feature:
     regex: ^features?[/-]
-    tag: useBranchName
+    label: useBranchName
     increment: Minor
     source-branches: ['development']
 ignore:
