@@ -429,3 +429,6 @@ $RECYCLE.BIN/
 nupkgs/
 Skugga.Performance.E2E/artifacts/*
 artifacts/
+
+# Private release documentation
+RELEASE_GUIDE.md

@@ -7,7 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-01-03
+
 ### Added
+- **Enterprise-Grade Repository Structure** - Professional organization for maintainability
+  - Top-level directories: `/src`, `/tests`, `/perf`, `/samples`, `/eng`, `/artifacts`
+  - Organized test files by feature: Core/, Advanced/, Verification/, Setup/, Matchers/
+  - Organized source files: Generator/, Analyzers/, Core/
+  - Microsoft-style conventions throughout
+  - All 937 tests passing after reorganization
+- **Dual Generator NuGet Packaging** - Both generators included as analyzers
+  - Skugga.Generator.dll packaged in `analyzers/dotnet/cs/`
+  - Skugga.Core.Generators.dll packaged in `analyzers/dotnet/cs/`
+  - Automatic analyzer registration when package installed
+  - Build targets auto-configure interceptors
+- **CI/CD Improvements** - Updated to latest GitHub Actions
+  - actions/checkout: v4 → v6
+  - actions/setup-dotnet: v4 → v5
+  - actions/upload-artifact: v4 → v6
+  - gittools/actions: v1.1.1 → v4.2.0
+  - Fixed workflow paths after repository reorganization
+  - Explicit generator build steps before NuGet packing
+- **Dependency Fixes** - Resolved all version conflicts
+  - System.Collections.Immutable version conflicts resolved
+  - Added explicit v9.0.0 references to affected test projects
+  - Clean builds with TreatWarningsAsErrors enabled
+  - 0 warnings, 0 errors across all 18 projects
 - **Advanced Chaos Engineering** - Enhanced resilience testing capabilities
   - Timeout simulation: `policy.TimeoutMilliseconds = 100` simulates slow responses or network delays
   - Configurable random seed: `policy.Seed = 12345` for reproducible chaos scenarios in tests
@@ -168,5 +193,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal memory footprint
 - Distroless container support
 
-[Unreleased]: https://github.com/Digvijay/Skugga/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Digvijay/Skugga/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Digvijay/Skugga/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Digvijay/Skugga/releases/tag/v1.0.0

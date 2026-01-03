@@ -1,19 +1,25 @@
 mode: ContinuousDelivery
+next-version: 1.2.0
 branches:
   master:
     regex: ^master$
     tag: ''
     increment: Patch
     is-source-branch-for: ['test']
+  development:
+    regex: ^development$
+    tag: alpha
+    increment: Minor
+    source-branches: ['master']
   test:
     regex: ^test$
     tag: beta
     increment: Patch
-    source-branches: ['master']
+    source-branches: ['master', 'development']
   feature:
     regex: ^features?[/-]
     tag: useBranchName
     increment: Minor
-    source-branches: ['master']
+    source-branches: ['development']
 ignore:
   sha: []

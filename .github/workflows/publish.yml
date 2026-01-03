@@ -14,12 +14,12 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: | 
             8.0.x
@@ -50,11 +50,19 @@ jobs:
           --verbosity normal \
           --logger "trx;LogFileName=test-results.trx"
 
+      - name: Build Generators
+        run: |
+          dotnet build src/Skugga.Generator/Skugga.Generator.csproj \
+          --configuration Release \
+          --no-restore
+          dotnet build src/Skugga.Core.Generators/Skugga.Core.Generators.csproj \
+          --configuration Release \
+          --no-restore
+
       - name: Pack
         run: |
           dotnet pack src/Skugga.Core/Skugga.Core.csproj \
           --configuration Release \
-          --no-build \
           --output nupkg \
           /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} \
           /p:RepositoryCommit=${{ github.sha }}
@@ -68,7 +76,7 @@ jobs:
 
       - name: Upload Artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nuget-package
           path: nupkg/*.nupkg
