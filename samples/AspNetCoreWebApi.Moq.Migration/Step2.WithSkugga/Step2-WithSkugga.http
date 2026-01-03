@@ -1,0 +1,6 @@
+@Step2_WithSkugga_HostAddress = http://localhost:5064
+
+GET {{Step2_WithSkugga_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

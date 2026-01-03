@@ -3,7 +3,7 @@
 [![Skugga CI](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml/badge.svg)](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Skugga.svg)](https://www.nuget.org/packages/Skugga/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-371%20passing-brightgreen)](https://github.com/Digvijay/Skugga)
+[![Tests](https://img.shields.io/badge/tests-937%20passing-brightgreen)](https://github.com/Digvijay/Skugga)
 
 ![Skugga Banner](docs/images/skugga_banner_small.png)
 
@@ -396,7 +396,7 @@ mock.GetData(2); // Returns "any"
 
 ### Migrating from Moq
 
-Skugga achieves **100% practical parity** with Moq's core API (371 tests covering all major features). The API is intentionally identical for seamless migration:
+Skugga achieves **100% practical parity** with Moq's core API (937 tests covering all major features). The API is intentionally identical for seamless migration:
 
 #### Feature Comparison Table
 
