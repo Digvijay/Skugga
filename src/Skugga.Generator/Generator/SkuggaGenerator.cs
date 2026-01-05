@@ -622,7 +622,7 @@ namespace Skugga.Generator
                     }
                     else
                     {
-                        sb.Append("            _handler.Invoke(\"");
+                        sb.Append("            var setup = _handler.Invoke(\"");
                         sb.Append(method.Name);
                         sb.Append("\", ");
                         sb.Append(argArray);
@@ -1173,12 +1173,15 @@ namespace Skugga.Generated
             // Fields
             sb.AppendLine($"        private readonly {baseType} _real;");
             sb.AppendLine("        private readonly StringBuilder _script = new();");
+            sb.AppendLine("        private readonly System.Collections.Generic.List<string> _callLog = new();");
+            sb.AppendLine("        private int _callCount = 0;");
             sb.AppendLine();
             
             // Constructor
             sb.AppendLine($"        public {className}({baseType} realImplementation)");
             sb.AppendLine("        {");
             sb.AppendLine("            _real = realImplementation ?? throw new ArgumentNullException(nameof(realImplementation));");
+            sb.AppendLine($"            Console.WriteLine(\"// [AutoScribe] Recording started for {symbol.Name}\");");
             sb.AppendLine("        }");
             sb.AppendLine();
             
@@ -1186,16 +1189,11 @@ namespace Skugga.Generated
             sb.AppendLine("        public string GetGeneratedScript() => _script.ToString();");
             sb.AppendLine();
             
+            // PrintTestMethod - outputs a complete, formatted test method
+            AutoScribeCodeGenerator.GeneratePrintTestMethod(sb, symbol.Name);
+            
             // SerializeValue helper
-            sb.AppendLine("        private static string SerializeValue(object? value)");
-            sb.AppendLine("        {");
-            sb.AppendLine("            if (value == null) return \"null\";");
-            sb.AppendLine("            if (value is string s) return $\"\\\"{s.Replace(\"\\\"\", \"\\\\\\\"\")}\\\"\";");
-            sb.AppendLine("            if (value is bool b) return b ? \"true\" : \"false\";");
-            sb.AppendLine("            if (value is char c) return $\"'{c}'\";");
-            sb.AppendLine("            return value.ToString() ?? \"null\";");
-            sb.AppendLine("        }");
-            sb.AppendLine();
+            AutoScribeCodeGenerator.GenerateSerializeValueMethod(sb);
             
             // Generate interface methods
             foreach (var method in methods)
@@ -1205,7 +1203,14 @@ namespace Skugga.Generated
                     $"{p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {p.Name}"));
                 var argNames = string.Join(", ", method.Parameters.Select(p => p.Name));
                 
-                sb.AppendLine($"        public {returnType} {method.Name}({paramList})");
+                // Check if method returns Task or Task<T>
+                bool isAsync = method.ReturnType.Name == "Task" || 
+                               (method.ReturnType is INamedTypeSymbol nts && nts.OriginalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<TResult>");
+                bool isAsyncWithResult = method.ReturnType is INamedTypeSymbol namedType && 
+                                         namedType.IsGenericType && 
+                                         namedType.ConstructedFrom.ToDisplayString() == "System.Threading.Tasks.Task<TResult>";
+                
+                sb.AppendLine($"        public {(isAsync ? "async " : "")}{returnType} {method.Name}({paramList})");
                 sb.AppendLine("        {");
                 
                 if (method.ReturnsVoid)
@@ -1214,29 +1219,67 @@ namespace Skugga.Generated
                     if (method.Parameters.Length > 0)
                     {
                         var args = string.Join(" + \", \" + ", method.Parameters.Select(p => $"SerializeValue({p.Name})"));
-                        sb.AppendLine($"            var code = \"[AutoScribe] mock.Setup(x => x.{method.Name}(\" + {args} + \"));\";");
+                        sb.AppendLine($"            var code = \"mock.Setup(x => x.{method.Name}(\" + {args} + \"));\";");
                     }
                     else
                     {
-                        sb.AppendLine($"            var code = \"[AutoScribe] mock.Setup(x => x.{method.Name}());\";");
+                        sb.AppendLine($"            var code = \"mock.Setup(x => x.{method.Name}());\";");
                     }
-                    sb.AppendLine("            _script.AppendLine(code);");
-                    sb.AppendLine("            Console.WriteLine(code);");
+                    sb.AppendLine("            _callLog.Add(code);");
+                    sb.AppendLine("            _callCount++;");
+                    sb.AppendLine("            Console.WriteLine($\"// [AutoScribe] Call {_callCount}: {code}\");");
+                }
+                else if (isAsync && !isAsyncWithResult)
+                {
+                    // Task (void async)
+                    sb.AppendLine($"            await _real.{method.Name}({argNames});");
+                    if (method.Parameters.Length > 0)
+                    {
+                        var args = string.Join(" + \", \" + ", method.Parameters.Select(p => $"SerializeValue({p.Name})"));
+                        sb.AppendLine($"            var code = \"mock.Setup(x => x.{method.Name}(\" + {args} + \"));\";");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"            var code = \"mock.Setup(x => x.{method.Name}());\";");
+                    }
+                    sb.AppendLine("            _callLog.Add(code);");
+                    sb.AppendLine("            _callCount++;");
+                    sb.AppendLine("            Console.WriteLine($\"// [AutoScribe] Call {_callCount}: {code}\");");
+                }
+                else if (isAsyncWithResult)
+                {
+                    // Task<T> - await and serialize the actual result
+                    sb.AppendLine($"            var result = await _real.{method.Name}({argNames});");
+                    if (method.Parameters.Length > 0)
+                    {
+                        var args = string.Join(" + \", \" + ", method.Parameters.Select(p => $"SerializeValue({p.Name})"));
+                        sb.AppendLine($"            var code = \"mock.Setup(x => x.{method.Name}(\" + {args} + \")).ReturnsAsync(\" + SerializeValue(result) + \");\";");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"            var code = \"mock.Setup(x => x.{method.Name}()).ReturnsAsync(\" + SerializeValue(result) + \");\";");
+                    }
+                    sb.AppendLine("            _callLog.Add(code);");
+                    sb.AppendLine("            _callCount++;");
+                    sb.AppendLine("            Console.WriteLine($\"// [AutoScribe] Call {_callCount}: {code}\");");
+                    sb.AppendLine("            return result;");
                 }
                 else
                 {
+                    // Sync method with return value
                     sb.AppendLine($"            var result = _real.{method.Name}({argNames});");
                     if (method.Parameters.Length > 0)
                     {
                         var args = string.Join(" + \", \" + ", method.Parameters.Select(p => $"SerializeValue({p.Name})"));
-                        sb.AppendLine($"            var code = \"[AutoScribe] mock.Setup(x => x.{method.Name}(\" + {args} + \")).Returns(\" + SerializeValue(result) + \");\";");
+                        sb.AppendLine($"            var code = \"mock.Setup(x => x.{method.Name}(\" + {args} + \")).Returns(\" + SerializeValue(result) + \");\";");
                     }
                     else
                     {
-                        sb.AppendLine($"            var code = \"[AutoScribe] mock.Setup(x => x.{method.Name}()).Returns(\" + SerializeValue(result) + \");\";");
+                        sb.AppendLine($"            var code = \"mock.Setup(x => x.{method.Name}()).Returns(\" + SerializeValue(result) + \");\";");
                     }
-                    sb.AppendLine("            _script.AppendLine(code);");
-                    sb.AppendLine("            Console.WriteLine(code);");
+                    sb.AppendLine("            _callLog.Add(code);");
+                    sb.AppendLine("            _callCount++;");
+                    sb.AppendLine("            Console.WriteLine($\"// [AutoScribe] Call {_callCount}: {code}\");");
                     sb.AppendLine("            return result;");
                 }
                 

@@ -18,6 +18,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncNoArgs_ShouldEvaluateFunctionOnEachCall()
     {
         // Arrange
@@ -33,6 +34,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncNoArgs_MultipleSetups_ShouldWorkIndependently()
     {
         // Arrange
@@ -51,6 +53,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncOneArg_ShouldPassArgumentToFunction()
     {
         // Arrange
@@ -66,6 +69,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncOneArg_DifferentArguments_ShouldUseSeparateSetups()
     {
         // Arrange
@@ -80,6 +84,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncOneArg_StringProcessing_ShouldWork()
     {
         // Arrange
@@ -95,6 +100,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncTwoArgs_ShouldPassBothArgumentsToFunction()
     {
         // Arrange
@@ -110,6 +116,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncTwoArgs_ComplexLogic_ShouldWork()
     {
         // Arrange
@@ -129,6 +136,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncTwoArgs_StringConcatenation_ShouldWork()
     {
         // Arrange
@@ -144,6 +152,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncThreeArgs_ShouldPassAllArgumentsToFunction()
     {
         // Arrange
@@ -159,6 +168,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncThreeArgs_StringJoin_ShouldWork()
     {
         // Arrange
@@ -174,6 +184,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFuncThreeArgs_ComplexCalculation_ShouldWork()
     {
         // Arrange
@@ -193,6 +204,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFunc_AndCallback_ShouldExecuteBoth()
     {
         // Arrange
@@ -212,6 +224,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFunc_ThenStaticValue_ShouldUseStaticValue()
     {
         // Arrange
@@ -228,6 +241,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_StaticValue_ThenFunc_ShouldUseFunc()
     {
         // Arrange
@@ -244,6 +258,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFunc_CalledMultipleTimes_ShouldEvaluateEachTime()
     {
         // Arrange
@@ -260,6 +275,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFunc_AccessingExternalState_ShouldWork()
     {
         // Arrange
@@ -280,6 +296,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFunc_ThrowingException_ShouldThrow()
     {
         // Arrange
@@ -293,6 +310,7 @@ public class ReturnsWithFunctionTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Returns_WithFunc_AndVerify_ShouldBothWork()
     {
         // Arrange

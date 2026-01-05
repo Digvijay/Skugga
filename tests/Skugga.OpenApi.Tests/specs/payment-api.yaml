@@ -1,0 +1,137 @@
+openapi: 3.0.0
+info:
+  title: Payment API
+  version: 1.0.0
+  description: Example payment API for testing error scenarios
+paths:
+  /charges:
+    post:
+      operationId: createCharge
+      summary: Create a payment charge
+      parameters:
+        - name: amount
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+        - name: currency
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeRequest'
+      responses:
+        '200':
+          description: Charge created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChargeResult'
+        '400':
+          description: Bad request - invalid parameters
+        '401':
+          description: Unauthorized - invalid API key
+        '402':
+          description: Payment required - insufficient funds
+        '429':
+          description: Too many requests - rate limited
+        '500':
+          description: Internal server error
+  /accounts/{accountId}:
+    get:
+      operationId: getAccount
+      summary: Get account information
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInfo'
+        '403':
+          description: Forbidden - no access to account
+        '404':
+          description: Account not found
+    put:
+      operationId: updateAccount
+      summary: Update account balance
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: balance
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountUpdate'
+      responses:
+        '200':
+          description: Account updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInfo'
+        '403':
+          description: Forbidden - account is frozen
+        '404':
+          description: Account not found
+components:
+  schemas:
+    ChargeRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+      required:
+        - amount
+        - currency
+    AccountUpdate:
+      type: object
+      properties:
+        balance:
+          type: number
+          format: double
+      required:
+        - balance
+    ChargeResult:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        amount:
+          type: number
+          format: double
+        status:
+          type: string
+    AccountInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        balance:
+          type: number
+          format: double

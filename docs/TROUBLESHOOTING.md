@@ -9,6 +9,7 @@ This guide helps you resolve common issues when using Skugga in your projects.
 - [Compilation Errors](#compilation-errors)
 - [Generic Type Issues](#generic-type-issues)
 - [Solution Structure Requirements](#solution-structure-requirements)
+- [Diagnostic Codes Reference](#diagnostic-codes-reference)
 
 ---
 
@@ -397,6 +398,189 @@ mock.Verify(x => x.DangerousMethod(), Times.Never());
 
 ---
 
+## Doppelgänger (OpenAPI) Issues
+
+### Symptom: "Could not load OpenAPI spec from source"
+
+```
+error SKUGGA_OPENAPI_003: Could not load OpenAPI spec from source: https://api.example.com/spec.json. 
+Ensure the file is added to AdditionalFiles.
+```
+
+### Root Causes and Solutions
+
+#### 1. URL Not Downloaded (First Build)
+
+**Problem:** On the first build, URL specs don't exist yet because they're downloaded during build.
+
+**Solution:** Build twice when using URLs:
+```bash
+# First build: Downloads and caches the spec
+dotnet build  # ❌ Fails with SKUGGA_OPENAPI_003
+
+# Second build: Uses cached spec
+dotnet build  # ✅ Succeeds
+```
+
+**Why?** MSBuild evaluation phase (when source generators run) happens BEFORE the execution phase (when download tasks run). The cache is populated during the first build's execution phase, but source generators can't see it until the second build's evaluation phase.
+
+#### 2. MSBuild Targets Import Order
+
+**Problem:** AdditionalFiles not being populated from cached specs even after download.
+
+**Solution:** Import the `.targets` file **at the end** of your `.csproj`:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  
+  <!-- ... other content ... -->
+  
+  <ItemGroup>
+    <AdditionalFiles Include="specs/local.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <SkuggaOpenApiUrl Include="https://api.example.com/spec.json" />
+  </ItemGroup>
+
+  <!-- ✅ Import at the END -->
+  <Import Project="path/to/Skugga.OpenApi.Tasks.targets" />
+  
+</Project>
+```
+
+**Why?** ItemGroups in imported `.targets` files are evaluated during MSBuild's evaluation phase. If the Import happens before your `SkuggaOpenApiUrl` items are defined, the targets file can't see them.
+
+#### 3. Cache Directory Missing
+
+**Problem:** Cache exists but source generator can't find files.
+
+**Solution:** Verify cache location and contents:
+```bash
+# Check if cache exists
+ls -lh obj/skugga-openapi-cache/
+
+# Should see .json files with hash names:
+# 48d20ee6325eab90.json
+# 48d20ee6325eab90.meta
+```
+
+If cache is missing, check MSBuild output:
+```bash
+dotnet build -v:detailed | grep -i "Skugga"
+```
+
+You should see:
+```
+[Skugga] Downloading/validating OpenAPI specifications...
+[Skugga] Using 1 cached spec(s) for source generation.
+```
+
+#### 4. AdditionalFiles Not Populated
+
+**Problem:** Cache exists but isn't being added to AdditionalFiles.
+
+**Debug:** Check what AdditionalFiles the generator sees:
+```bash
+# Enable diagnostic logging in SkuggaOpenApiGenerator.cs
+dotnet build -v:diag 2>&1 | grep -i "AdditionalFiles"
+```
+
+**Common causes:**
+- `.targets` Import is too early in `.csproj`
+- `SkuggaOpenApiUrl` items not defined before Import
+- Glob pattern `obj/skugga-openapi-cache/*.json` not expanding
+
+**Solution:** Ensure this order in your `.csproj`:
+1. Define `SkuggaOpenApiUrl` items
+2. Import `.targets` file (at end)
+3. Rebuild project
+
+#### 5. Schema Name Collisions
+
+**Problem:** Multiple OpenAPI specs define the same schema names (e.g., multiple specs with a `Pet` class).
+
+```
+error CS0101: The namespace 'MyNamespace' already contains a definition for 'Pet'
+```
+
+**Solution:** Use different specs or apply namespace prefixes (future feature).
+
+### Local File Path Issues
+
+**Problem:** Spec file not found even though it exists.
+
+**Solution:** Check your path syntax:
+```csharp
+// ✅ Correct - relative to project directory
+[SkuggaFromOpenApi("specs/api.json")]
+
+// ✅ Correct - relative with parent directory
+[SkuggaFromOpenApi("../shared/api.json")]
+
+// ✅ Correct - absolute path
+[SkuggaFromOpenApi("/Users/me/specs/api.json")]
+
+// ❌ Wrong - must match AdditionalFiles path exactly
+[SkuggaFromOpenApi("api.json")]  // If AdditionalFiles has "specs/api.json"
+```
+
+The path in `[SkuggaFromOpenApi]` must match the `AdditionalFiles` path.
+
+### Cache Configuration
+
+**Default cache location:**
+```
+$(MSBuildProjectDirectory)/obj/skugga-openapi-cache/
+```
+
+**Custom cache location:**
+```xml
+<PropertyGroup>
+  <SkuggaOpenApiCacheDirectory>$(MSBuildProjectDirectory)/custom/cache</SkuggaOpenApiCacheDirectory>
+</PropertyGroup>
+```
+
+**Cache contents:**
+- `*.json` - The downloaded OpenAPI spec
+- `*.meta` - Metadata file with URL and ETag
+
+**Clean cache:**
+```bash
+rm -rf obj/skugga-openapi-cache/
+dotnet build  # Re-downloads on next build
+```
+
+---
+
+## Diagnostic Codes Reference
+
+Skugga reports errors and warnings using diagnostic codes to help identify and resolve issues quickly.
+
+### Core Skugga Diagnostics
+
+| Code | Severity | Description | Solution |
+|------|----------|-------------|----------|
+| **SKUGGA001** | Error | Cannot mock sealed class | Sealed classes cannot be mocked. Mock an interface instead or remove the `sealed` keyword. |
+| **SKUGGA002** | Warning | Class has no virtual members | Classes must have virtual members to be mocked. Consider mocking an interface or make members `virtual`. |
+
+### OpenAPI Generator Diagnostics
+
+| Code | Severity | Description | Solution |
+|------|----------|-------------|----------|
+| **SKUGGA_OPENAPI_001** | Error | Unexpected generator error | Internal error during code generation. Check build output for stack trace and report as bug. |
+| **SKUGGA_OPENAPI_002** | Error | Empty or invalid source parameter | The `SkuggaFromOpenApi` attribute requires a valid file path or URL. |
+| **SKUGGA_OPENAPI_003** | Error | Could not load OpenAPI spec | Ensure file is added to `<AdditionalFiles>` in `.csproj`. For URLs, run build twice (see [OpenAPI URL issues](#doppelgänger-openapi-issues)). |
+| **SKUGGA_OPENAPI_004** | Error | OpenAPI spec parse error | The OpenAPI/Swagger file has syntax errors. Validate using [Swagger Editor](https://editor.swagger.io/). |
+| **SKUGGA_OPENAPI_005** | Error | Failed to generate code | Error occurred during code generation. Check that schemas and operations are valid. |
+| **SKUGGA_OPENAPI_006** | Info | OpenAPI 2.0 (Swagger) detected | The spec is being automatically converted to OpenAPI 3.0. No action needed. |
+| **SKUGGA_OPENAPI_007** | Warning | Operation has no success response | Operation has no 2xx or default response. The generated method will return `void` (or `Task` if async). |
+| **SKUGGA_OPENAPI_008** | Warning | Document validation issues | OpenAPI document has structural issues (missing paths, null schemas, etc.). Review the diagnostic message for details. |
+
+**Note:** These diagnostics appear during compilation, not at runtime. Skugga is a compile-time library—runtime errors indicate build configuration problems.
+
+---
+
 ## Key Takeaways
 
 1. **Skugga is compile-time only** - If it fails at runtime, your build configuration is wrong
@@ -404,5 +588,6 @@ mock.Verify(x => x.DangerousMethod(), Times.Never());
 3. **No `.Object` property** - Mocks implement interfaces directly  
 4. **Use `Task.FromResult()`** - For async methods returning `Task<T>`
 5. **Simple test doubles** - For complex generic interfaces like `ILogger<T>`
-
-Following these guidelines will resolve 99% of Skugga issues.
+6. **URL specs require two builds** - First build downloads, second build uses cache
+7. **Import order matters** - Import `.targets` files at the end of your `.csproj`
+8. **Check diagnostic codes** - Error and warning codes provide specific guidance (see [Diagnostic Codes Reference](#diagnostic-codes-reference))

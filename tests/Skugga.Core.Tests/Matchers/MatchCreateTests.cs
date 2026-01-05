@@ -14,6 +14,7 @@ public interface IValidator
 public class MatchCreateTests
 {
     [Fact]
+    [Trait("Category", "Matchers")]
     public void MatchCreate_WithSimplePredicate_MatchesCorrectly()
     {
         // Arrange
@@ -27,6 +28,7 @@ public class MatchCreateTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void MatchCreate_WithDescription_MatchesCorrectly()
     {
         // Arrange
@@ -39,6 +41,7 @@ public class MatchCreateTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void MatchCreate_WithNumericPredicate_MatchesCorrectly()
     {
         // Arrange
@@ -53,6 +56,7 @@ public class MatchCreateTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void MatchCreate_WithParameterizedPredicate_MatchesCorrectly()
     {
         // Arrange
@@ -69,6 +73,7 @@ public class MatchCreateTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void MatchCreate_CanBeUsedWithVerify()
     {
         // Arrange
@@ -83,6 +88,7 @@ public class MatchCreateTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void MatchCreate_WithCombinedMatchers_Works()
     {
         // Arrange
@@ -101,6 +107,7 @@ public class MatchCreateTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void MatchCreate_MultipleSetupsWithDifferentMatchers_Work()
     {
         // Arrange
@@ -119,6 +126,7 @@ public class MatchCreateTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void MatchCreate_WithComplexPredicate_Works()
     {
         // Arrange

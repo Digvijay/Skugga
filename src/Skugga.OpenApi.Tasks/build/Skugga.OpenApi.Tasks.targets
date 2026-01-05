@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  
+  <!-- Define the task assembly location -->
+  <Choose>
+    <When Condition="'$(SkuggaOpenApiTasksAssembly)' != ''">
+      <!-- Already set by consuming project -->
+      <PropertyGroup />
+    </When>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/Debug/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
+      <!-- Local development Debug build -->
+      <PropertyGroup>
+        <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/Debug/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
+      </PropertyGroup>
+    </When>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/Release/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
+      <!-- Local development Release build -->
+      <PropertyGroup>
+        <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/Release/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <!-- Packaged usage -->
+      <PropertyGroup>
+        <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../tasks/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  
+  <PropertyGroup>
+    <SkuggaOpenApiCacheDirectory Condition="'$(SkuggaOpenApiCacheDirectory)' == ''">$(MSBuildProjectDirectory)/obj/skugga-openapi-cache</SkuggaOpenApiCacheDirectory>
+  </PropertyGroup>
+
+  <!-- Register the task -->
+  <UsingTask TaskName="Skugga.OpenApi.Tasks.DownloadOpenApiSpecsTask" 
+             AssemblyFile="$(SkuggaOpenApiTasksAssembly)" />
+
+  <!--
+    Add cached files to AdditionalFiles DURING EVALUATION (not in a target).
+    This ensures source generators can see them on incremental builds.
+    On first build, cache won't exist yet - files will be available on next build.
+  -->
+  <ItemGroup>
+    <SkuggaOpenApiCachedSpec Include="$(SkuggaOpenApiCacheDirectory)/*.json" />
+    <AdditionalFiles Include="@(SkuggaOpenApiCachedSpec)" Condition="'@(SkuggaOpenApiUrl)' != ''" />
+  </ItemGroup>
+
+  <!-- 
+    Target that downloads OpenAPI specs from URLs before compilation.
+    Downloads on first build, validates ETag on subsequent builds.
+    Files are available to source generators on the NEXT build (after cache is populated).
+  -->
+  <Target Name="SkuggaDownloadOpenApiSpecs" 
+          BeforeTargets="BeforeCompile;CoreCompile"
+          Condition="'@(SkuggaOpenApiUrl)' != ''">
+    
+    <Message Text="[Skugga] Downloading/validating OpenAPI specifications..." Importance="high" />
+    
+    <!-- Run the download task -->
+    <DownloadOpenApiSpecsTask 
+      Urls="@(SkuggaOpenApiUrl)"
+      CacheDirectory="$(SkuggaOpenApiCacheDirectory)">
+      <Output TaskParameter="CachedFiles" ItemName="SkuggaOpenApiCachedFile" />
+    </DownloadOpenApiSpecsTask>
+    
+    <Message Text="[Skugga] Cached @(SkuggaOpenApiCachedFile->Count()) spec(s). Run build again to use them in source generation." Importance="high" Condition="!Exists('$(SkuggaOpenApiCacheDirectory)')" />
+    <Message Text="[Skugga] Using @(SkuggaOpenApiCachedFile->Count()) cached spec(s) for source generation." Importance="high" Condition="Exists('$(SkuggaOpenApiCacheDirectory)')" />
+    
+  </Target>
+
+  <!-- 
+    Clean target removes the cache directory.
+    Runs as part of 'dotnet clean'.
+  -->
+  <Target Name="SkuggaCleanOpenApiCache" 
+          AfterTargets="Clean"
+          Condition="Exists('$(SkuggaOpenApiCacheDirectory)')">
+    
+    <Message Text="[Skugga] Cleaning OpenAPI spec cache..." Importance="normal" />
+    
+    <RemoveDir Directories="$(SkuggaOpenApiCacheDirectory)" />
+    
+  </Target>
+
+</Project>

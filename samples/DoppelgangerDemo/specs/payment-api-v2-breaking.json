@@ -1,0 +1,135 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Payment Gateway API",
+    "version": "2.0.0",
+    "description": "BREAKING CHANGE: amount changed from int to decimal, added required currency field"
+  },
+  "paths": {
+    "/api/payments/{id}": {
+      "get": {
+        "operationId": "retrievePayment",
+        "summary": "Retrieve payment by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                },
+                "example": {
+                  "id": "pay_123",
+                  "amount": 99.99,
+                  "currency": "USD",
+                  "status": "completed",
+                  "createdAt": "2024-01-15T10:30:00Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/payments": {
+      "post": {
+        "operationId": "createPayment",
+        "summary": "Create a new payment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Payment": {
+        "type": "object",
+        "required": ["id", "amount", "currency", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique payment identifier"
+          },
+          "amount": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Amount in currency units (e.g., 99.99)"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code",
+            "enum": ["USD", "EUR", "GBP"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "completed", "failed", "refunded"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreatePaymentRequest": {
+        "type": "object",
+        "required": ["amount", "currency"],
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Amount in currency units"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

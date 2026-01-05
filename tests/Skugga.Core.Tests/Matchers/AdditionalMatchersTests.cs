@@ -19,6 +19,7 @@ public class AdditionalMatchersTests
     // === It.Is<T>(predicate) Tests ===
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIs_MatchesValuesMatchingPredicate()
     {
         // Arrange
@@ -33,6 +34,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsString_MatchesStringsPredicate()
     {
         // Arrange
@@ -48,6 +50,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsComplexPredicate_WorksCorrectly()
     {
         // Arrange
@@ -64,6 +67,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithItIs_MatchesCorrectly()
     {
         // Arrange
@@ -82,6 +86,7 @@ public class AdditionalMatchersTests
     // === It.IsIn<T>(values) Tests ===
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsIn_MatchesValuesInSet()
     {
         // Arrange
@@ -97,6 +102,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsInStrings_MatchesCorrectly()
     {
         // Arrange
@@ -112,6 +118,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsInSingleValue_WorksCorrectly()
     {
         // Arrange
@@ -125,6 +132,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithItIsIn_MatchesCorrectly()
     {
         // Arrange
@@ -144,6 +152,7 @@ public class AdditionalMatchersTests
     // === It.IsNotNull<T>() Tests ===
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsNotNull_MatchesNonNullValues()
     {
         // Arrange
@@ -158,6 +167,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsNotNullString_MatchesCorrectly()
     {
         // Arrange
@@ -171,6 +181,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithItIsNotNull_MatchesCorrectly()
     {
         // Arrange
@@ -188,6 +199,7 @@ public class AdditionalMatchersTests
     // === It.IsRegex(pattern) Tests ===
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsRegex_MatchesPattern()
     {
         // Arrange
@@ -203,6 +215,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsRegexEmail_MatchesCorrectly()
     {
         // Arrange
@@ -218,6 +231,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsRegexStartsWith_WorksCorrectly()
     {
         // Arrange
@@ -231,6 +245,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithItIsRegex_MatchesCorrectly()
     {
         // Arrange
@@ -249,6 +264,7 @@ public class AdditionalMatchersTests
     // === Mixed Matcher Tests ===
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithMixedItIsAndSpecific_WorksCorrectly()
     {
         // Arrange
@@ -263,6 +279,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsAndItIsIn_WorksTogether()
     {
         // Arrange
@@ -278,6 +295,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_MultipleSetupsWithDifferentMatchers_FirstMatchWins()
     {
         // Arrange
@@ -292,6 +310,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithDifferentMatcherTypes_AllWork()
     {
         // Arrange
@@ -311,6 +330,7 @@ public class AdditionalMatchersTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void StrictMock_WithItIsMatchers_WorksCorrectly()
     {
         // Arrange

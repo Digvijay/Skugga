@@ -1,0 +1,74 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Allow validation warnings for tests - we're testing these diagnostics -->
+    <NoWarn>$(NoWarn);SKUGGA_OPENAPI_007;SKUGGA_OPENAPI_008;SKUGGA_OPENAPI_009</NoWarn>
+    <!-- Suppress linting diagnostics - we're testing lint rules, not enforcing them -->
+    <NoWarn>$(NoWarn);SKUGGA_LINT_001;SKUGGA_LINT_002;SKUGGA_LINT_003;SKUGGA_LINT_004;SKUGGA_LINT_005;SKUGGA_LINT_006;SKUGGA_LINT_007;SKUGGA_LINT_008;SKUGGA_LINT_009;SKUGGA_LINT_010;SKUGGA_LINT_011;SKUGGA_LINT_012;SKUGGA_LINT_013;SKUGGA_LINT_014;SKUGGA_LINT_015;SKUGGA_LINT_016;SKUGGA_LINT_017</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.28" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Skugga.Core\Skugga.Core.csproj" />
+    <ProjectReference Include="..\..\src\Skugga.Generator\Skugga.Generator.csproj" 
+                      OutputItemType="Analyzer" 
+                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Skugga.OpenApi.Generator\Skugga.OpenApi.Generator.csproj" 
+                      OutputItemType="Analyzer" 
+                      ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\..\src\Skugga.OpenApi.Tasks\Skugga.OpenApi.Tasks.csproj" />
+  </ItemGroup>
+
+  <!-- Example: Add a local OpenAPI spec to be processed -->
+  <ItemGroup>
+    <AdditionalFiles Include="specs\petstore.json" />
+    <AdditionalFiles Include="specs\advanced-features.json" />
+    <AdditionalFiles Include="specs/allof-test.json" />
+    <AdditionalFiles Include="specs/swagger2-test.json" />
+    <AdditionalFiles Include="specs/validation-no-success-response.json" />
+    <AdditionalFiles Include="specs/validation-empty-paths.json" />
+    <AdditionalFiles Include="specs/content-type-variants.json" />
+    <AdditionalFiles Include="specs/example-sets.json" />
+    <AdditionalFiles Include="specs/response-headers.json" />
+    <AdditionalFiles Include="specs/enum-validation.json" />
+    <AdditionalFiles Include="specs/enum-errors.json" />
+    <AdditionalFiles Include="specs/enum-properties.json" />
+    <AdditionalFiles Include="specs/yaml-simple.yaml" />
+    <AdditionalFiles Include="specs/yaml-petstore.yml" />
+    <AdditionalFiles Include="specs/linting-valid.json" />
+    <AdditionalFiles Include="specs/linting-violations.json" />
+    <AdditionalFiles Include="specs/stateful-users.yaml" />
+    <AdditionalFiles Include="specs/validation-test.yaml" />
+    <AdditionalFiles Include="specs/auth-test.yaml" />
+    <AdditionalFiles Include="specs/payment-api.yaml" />
+  </ItemGroup>
+
+  <!-- Test URL downloading with USPTO API spec v3.0 (no schema collisions with local specs) -->
+  <!-- NOTE: Requires TWO builds - first downloads, second generates code -->
+  <ItemGroup>
+    <SkuggaOpenApiUrl Include="https://raw.githubusercontent.com/OAI/learn.openapis.org/refs/heads/main/examples/v3.0/uspto.json" />
+  </ItemGroup>
+
+  <!-- Import the MSBuild targets for URL downloading (at end so ItemGroup evaluation happens after) -->
+  <!-- Override task assembly path for local development -->
+  <PropertyGroup>
+    <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)..\..\src\Skugga.OpenApi.Tasks\bin\Debug\netstandard2.0\Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
+  </PropertyGroup>
+  <Import Project="..\..\src\Skugga.OpenApi.Tasks\build\Skugga.OpenApi.Tasks.targets" />
+
+</Project>

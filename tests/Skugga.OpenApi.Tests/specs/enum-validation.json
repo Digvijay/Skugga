@@ -1,0 +1,168 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Enum Validation Test API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/users": {
+      "get": {
+        "operationId": "getUsers",
+        "summary": "Get users with status filter",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Filter by user status",
+            "schema": {
+              "type": "string",
+              "enum": ["active", "inactive", "pending"]
+            },
+            "example": "active"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "description": "Filter by user role",
+            "schema": {
+              "type": "string",
+              "enum": ["admin", "user", "guest"]
+            },
+            "example": "user"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                },
+                "examples": {
+                  "activeUsers": {
+                    "summary": "Active users",
+                    "value": [
+                      {
+                        "id": 1,
+                        "name": "Alice",
+                        "status": "active",
+                        "role": "admin"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}/status": {
+      "patch": {
+        "operationId": "updateProductStatus",
+        "summary": "Update product status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                },
+                "example": {
+                  "id": 123,
+                  "name": "Widget",
+                  "status": "available"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": ["id", "name", "status", "role"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Alice"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive", "pending"],
+            "example": "active"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "user", "guest"],
+            "example": "user"
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": ["id", "name", "status"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 123
+          },
+          "name": {
+            "type": "string",
+            "example": "Widget"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["available", "out_of_stock", "discontinued"],
+            "example": "available"
+          }
+        }
+      },
+      "StatusUpdate": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["available", "out_of_stock", "discontinued"],
+            "example": "available"
+          }
+        }
+      }
+    }
+  }
+}

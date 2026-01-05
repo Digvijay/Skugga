@@ -20,6 +20,7 @@ public interface ICounter
 public class VerifyPropertyTests
 {
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifyGet_PropertyAccessed_ShouldPass()
     {
         // Arrange
@@ -34,6 +35,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifyGet_PropertyNotAccessed_ShouldThrow()
     {
         // Arrange
@@ -49,6 +51,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifyGet_PropertyAccessedMultipleTimes_ShouldVerifyCorrectCount()
     {
         // Arrange
@@ -65,6 +68,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifyGet_WithSetupProperty_ShouldTrackAccess()
     {
         // Arrange
@@ -80,6 +84,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_PropertySet_ShouldPass()
     {
         // Arrange
@@ -94,6 +99,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_PropertyNotSet_ShouldThrow()
     {
         // Arrange
@@ -109,6 +115,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_PropertySetMultipleTimes_ShouldVerifyCorrectCount()
     {
         // Arrange
@@ -126,6 +133,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_WithDifferentValue_ShouldNotMatch()
     {
         // Arrange
@@ -142,6 +150,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_IntProperty_ShouldWork()
     {
         // Arrange
@@ -159,6 +168,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_BoolProperty_ShouldWork()
     {
         // Arrange
@@ -175,6 +185,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_WithItIsAny_ShouldMatchAnyValue()
     {
         // Arrange
@@ -190,6 +201,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_WithItIs_ShouldMatchPredicate()
     {
         // Arrange
@@ -207,6 +219,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifyGetAndSet_SameProperty_ShouldTrackSeparately()
     {
         // Arrange
@@ -226,6 +239,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifyGet_MultipleProperties_ShouldTrackIndependently()
     {
         // Arrange
@@ -244,6 +258,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_MultipleProperties_ShouldTrackIndependently()
     {
         // Arrange
@@ -262,6 +277,7 @@ public class VerifyPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Verification")]
     public void VerifySet_WithVariable_ShouldWork()
     {
         // Arrange

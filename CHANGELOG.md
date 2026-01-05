@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Spectral-Inspired OpenAPI Linting** - Enhancement #10
+  - 16 linting rules for OpenAPI quality enforcement at build time
+  - Info section rules: info-contact, info-description, info-license
+  - Operation rules: operationId, tags, description, summary, success-response, parameters
+  - Path rules: path-parameters, no-identical-paths
+  - Tag rules: tag-description, openapi-tags
+  - Schema rules: typed-enum, schema-description
+  - Component rules: no-unused-components
+  - Configurable severity per rule via `LintingRules` attribute property
+  - Format: `"rule1:off,rule2:error,rule3:warn"`
+  - Diagnostics: SKUGGA_LINT_001 through SKUGGA_LINT_017
+  - AOT-compatible, zero runtime overhead
+  - 132 tests passing (5 skipped requiring generator harness)
+- **Incremental Generation Cache** - Enhancement #11  
+  - Automatic caching via IIncrementalGenerator (implemented in Enhancement #9)
+  - Cache invalidation on spec/interface changes
+  - < 1ms for cache hits, ~50-200ms for cache misses
+  - 70% memory reduction on first builds (150MB vs 500MB)
+  - 90% memory reduction on incremental builds (50MB vs 500MB)
+  - See [INCREMENTAL_PERFORMANCE.md](docs/INCREMENTAL_PERFORMANCE.md) for details
+- **Parallel Generation** - Enhancement #12
+  - Automatic parallel processing via IIncrementalGenerator (implemented in Enhancement #9)
+  - Multiple interfaces process concurrently
+  - Linear scaling with CPU cores (2x speedup with 2 cores, 4x with 4 cores)
+  - Thread-safe by design
+  - See [INCREMENTAL_PERFORMANCE.md](docs/INCREMENTAL_PERFORMANCE.md) for benchmarks
+
 ## [1.1.0] - 2026-01-03
 
 ### Added

@@ -41,6 +41,7 @@ public class MultipleInterfaceTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void As_TracksAdditionalInterface()
     {
         // Arrange
@@ -64,6 +65,7 @@ public class MultipleInterfaceTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void As_MultipleInterfaces_TracksAll()
     {
         // Arrange
@@ -82,6 +84,7 @@ public class MultipleInterfaceTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void As_NonInterfaceType_ThrowsArgumentException()
     {
         // Arrange
@@ -93,6 +96,7 @@ public class MultipleInterfaceTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void As_NonMockObject_ThrowsArgumentException()
     {
         // Arrange
@@ -104,6 +108,7 @@ public class MultipleInterfaceTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void As_ChainedCalls_TracksAllInterfaces()
     {
         // Arrange
@@ -126,6 +131,7 @@ public class MultipleInterfaceTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void As_SameInterfaceTwice_OnlyTracksOnce()
     {
         // Arrange

@@ -3,10 +3,13 @@
     <Project Path="src/Skugga.Core/Skugga.Core.csproj" />
     <Project Path="src/Skugga.Core.Generators/Skugga.Core.Generators.csproj" />
     <Project Path="src/Skugga.Generator/Skugga.Generator.csproj" />
+    <Project Path="src/Skugga.OpenApi.Generator/Skugga.OpenApi.Generator.csproj" />
+    <Project Path="src/Skugga.OpenApi.Tasks/Skugga.OpenApi.Tasks.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Skugga.Core.Tests/Skugga.Core.Tests.csproj" />
     <Project Path="tests/Skugga.Generator.Tests/Skugga.Generator.Tests.csproj" />
+    <Project Path="tests/Skugga.OpenApi.Tests/Skugga.OpenApi.Tests.csproj" />
     <Project Path="tests/Skugga.Benchmarks/Skugga.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/perf/">

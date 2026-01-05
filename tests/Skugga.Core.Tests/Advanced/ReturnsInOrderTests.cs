@@ -14,6 +14,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithThreeValues_ShouldReturnInSequence()
     {
         // Arrange
@@ -28,6 +29,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_CalledMoreThanSequenceLength_ShouldReturnLastValue()
     {
         // Arrange
@@ -44,6 +46,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithSingleValue_ShouldAlwaysReturnThatValue()
     {
         // Arrange
@@ -58,6 +61,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithNumbers_ShouldWorkCorrectly()
     {
         // Arrange
@@ -74,6 +78,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithIEnumerable_ShouldWork()
     {
         // Arrange
@@ -89,6 +94,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithArray_ShouldWork()
     {
         // Arrange
@@ -104,6 +110,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_MultipleSetups_ShouldWorkIndependently()
     {
         // Arrange
@@ -122,6 +129,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithMethodArguments_ShouldWork()
     {
         // Arrange
@@ -139,6 +147,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithNullValues_ShouldWork()
     {
         // Arrange
@@ -153,6 +162,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithCallback_ShouldExecuteCallbackEachTime()
     {
         // Arrange
@@ -173,6 +183,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithVerify_ShouldWork()
     {
         // Arrange
@@ -190,6 +201,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_OverridingReturns_ShouldUseSequentialValues()
     {
         // Arrange
@@ -205,6 +217,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_OverridingReturnsWithFunc_ShouldUseSequentialValues()
     {
         // Arrange
@@ -223,6 +236,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithStrictMock_ShouldWork()
     {
         // Arrange
@@ -236,6 +250,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_WithMixedTypes_ShouldWork()
     {
         // Arrange
@@ -256,6 +271,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_CallbackBeforeReturns_ShouldExecuteCallbackThenReturnSequential()
     {
         // Arrange
@@ -280,6 +296,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_EmptySequence_ShouldReturnNull()
     {
         // Arrange
@@ -295,6 +312,7 @@ public class ReturnsInOrderTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReturnsInOrder_CalledOnceOnly_ShouldReturnFirstValue()
     {
         // Arrange

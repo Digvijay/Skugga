@@ -1,0 +1,119 @@
+openapi: 3.0.3
+info:
+  title: Validation Test API
+  version: 1.0.0
+  description: Test API for contract validation
+
+paths:
+  /products/{id}:
+    get:
+      operationId: GetProduct
+      summary: Get product by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+
+  /products:
+    get:
+      operationId: ListProducts
+      summary: List all products
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+
+    post:
+      operationId: CreateProduct
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+components:
+  schemas:
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - price
+        - category
+      properties:
+        id:
+          type: integer
+          description: Product ID
+        name:
+          type: string
+          description: Product name
+        price:
+          type: number
+          minimum: 0
+          description: Product price
+        category:
+          type: string
+          enum: [Electronics, Clothing, Food, Books]
+          description: Product category
+        description:
+          type: string
+          description: Optional product description
+        tags:
+          type: array
+          items:
+            type: string
+          description: Product tags
+        email:
+          type: string
+          format: email
+          description: Contact email
+
+    ProductInput:
+      type: object
+      required:
+        - name
+        - price
+        - category
+      properties:
+        name:
+          type: string
+        price:
+          type: number
+          minimum: 0
+        category:
+          type: string
+          enum: [Electronics, Clothing, Food, Books]
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        email:
+          type: string
+          format: email

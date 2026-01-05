@@ -24,6 +24,7 @@ public interface IComplexEntity
 public class SetupAllPropertiesTests
 {
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_ShouldTrackAllInterfaceProperties()
     {
         // Arrange
@@ -44,6 +45,7 @@ public class SetupAllPropertiesTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_DefaultValues_ShouldBeTypeDefaults()
     {
         // Arrange
@@ -64,6 +66,7 @@ public class SetupAllPropertiesTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_MultipleUpdates_ShouldMaintainLatestValue()
     {
         // Arrange
@@ -84,6 +87,7 @@ public class SetupAllPropertiesTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_WithMixedPropertyAccess_ShouldWork()
     {
         // Arrange
@@ -104,6 +108,7 @@ public class SetupAllPropertiesTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_AllPropertiesIndependent_ShouldWork()
     {
         // Arrange
@@ -126,6 +131,7 @@ public class SetupAllPropertiesTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_CanBeCalledAfterIndividualSetupProperty()
     {
         // Arrange
@@ -144,6 +150,7 @@ public class SetupAllPropertiesTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_WithComplexPropertyInteraction_ShouldWork()
     {
         // Arrange
@@ -165,6 +172,7 @@ public class SetupAllPropertiesTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_CanCoexistWithSetup_ShouldWork()
     {
         // Arrange
@@ -184,6 +192,7 @@ public class SetupAllPropertiesTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_StringProperties_ShouldHandleEmptyAndNonEmpty()
     {
         // Arrange
@@ -203,6 +212,7 @@ public class SetupAllPropertiesTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupAllProperties_MultipleInterfaceInstances_ShouldBeIndependent()
     {
         // Arrange

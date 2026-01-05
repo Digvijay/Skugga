@@ -18,6 +18,7 @@ public class AsyncSupportTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public async Task ReturnsAsync_WithValue_ReturnsCompletedTask()
     {
         // Arrange
@@ -32,6 +33,7 @@ public class AsyncSupportTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public async Task ReturnsAsync_WithFunction_ReturnsComputedValue()
     {
         // Arrange
@@ -49,6 +51,7 @@ public class AsyncSupportTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public async Task ReturnsAsync_WithArgFunction_UsesArgumentValue()
     {
         // Arrange
@@ -63,6 +66,7 @@ public class AsyncSupportTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public async Task UnsetupTaskMethod_ReturnsCompletedTask()
     {
         // Arrange - Loose mode (default)
@@ -73,6 +77,7 @@ public class AsyncSupportTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public async Task UnsetupTaskOfT_ReturnsDefault()
     {
         // Arrange - Loose mode (default)
@@ -86,6 +91,7 @@ public class AsyncSupportTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public async Task UnsetupTaskOfList_ReturnsDefault()
     {
         // Arrange
@@ -99,6 +105,7 @@ public class AsyncSupportTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public async Task TraditionalReturnsWithTaskFromResult_StillWorks()
     {
         // Arrange - Ensure backwards compatibility
@@ -113,6 +120,7 @@ public class AsyncSupportTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Returns_WithFourArguments_WorksCorrectly()
     {
         // Arrange - Test extended overload support
@@ -128,6 +136,7 @@ public class AsyncSupportTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public async Task ReturnsAsync_WithFourArguments_WorksCorrectly()
     {
         // Arrange - Test extended async overload support

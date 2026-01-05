@@ -1,0 +1,91 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AllOf Test API",
+    "version": "1.0.0",
+    "description": "API for testing allOf schema composition"
+  },
+  "paths": {
+    "/products/{id}": {
+      "get": {
+        "summary": "Get a product by ID",
+        "operationId": "getProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                },
+                "examples": {
+                  "product": {
+                    "value": {
+                      "id": 123,
+                      "name": "Widget",
+                      "price": 29.99,
+                      "inStock": true,
+                      "createdAt": "2024-01-01T00:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BaseEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 123
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00Z"
+          }
+        }
+      },
+      "Product": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseEntity"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "example": "Widget"
+              },
+              "price": {
+                "type": "number",
+                "example": 29.99
+              },
+              "inStock": {
+                "type": "boolean",
+                "example": true
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

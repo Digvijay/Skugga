@@ -1,0 +1,87 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Example Sets Test API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/users/{id}": {
+      "get": {
+        "operationId": "getUserById",
+        "summary": "Get user by ID with multiple example sets",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Successful user fetch",
+                    "value": {
+                      "id": 123,
+                      "name": "Alice Success",
+                      "email": "alice@success.com",
+                      "status": "active"
+                    }
+                  },
+                  "new-user": {
+                    "summary": "Newly created user",
+                    "value": {
+                      "id": 456,
+                      "name": "Bob NewUser",
+                      "email": "bob@newuser.com",
+                      "status": "pending"
+                    }
+                  },
+                  "premium": {
+                    "summary": "Premium user account",
+                    "value": {
+                      "id": 789,
+                      "name": "Carol Premium",
+                      "email": "carol@premium.com",
+                      "status": "premium"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

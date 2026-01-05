@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsRoslynComponent>true</IsRoslynComponent>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Skugga.OpenApi.Generator</PackageId>
+    <Description>Roslyn source generator for creating mocks from OpenAPI specifications</Description>
+    <PackageTags>source-generator;roslyn;openapi;swagger;mocking</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Match Skugga.Generator's CodeAnalysis versions -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all" />
+    <!-- OpenApi.Readers 1.6.28: includes Microsoft.OpenApi 1.6.28 + SharpYaml 2.1.1 as dependencies -->
+    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.28" GeneratePathProperty="true" PrivateAssets="all" />
+    <!-- Override SharpYaml to latest 2.1.4 -->
+    <PackageReference Include="SharpYaml" Version="2.1.4" GeneratePathProperty="true" PrivateAssets="all" />
+    <!-- System packages: Latest compatible with netstandard2.0 -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Memory" Version="4.6.3" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Buffers" Version="4.6.1" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" GeneratePathProperty="true" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Include analyzer dependencies in output -->
+  <PropertyGroup>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GetDependencyTargetPaths">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGMicrosoft_OpenApi_Readers)\lib\netstandard2.0\Microsoft.OpenApi.Readers.dll" IncludeRuntimeDependency="false" />
+      <!-- Microsoft.OpenApi is a transitive dependency but we need to load it explicitly -->
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGMicrosoft_OpenApi_Readers)\..\..\microsoft.openapi\1.6.28\lib\netstandard2.0\Microsoft.OpenApi.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGSharpYaml)\lib\netstandard2.0\SharpYaml.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Text_Encodings_Web)\lib\netstandard2.0\System.Text.Encodings.Web.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Memory)\lib\netstandard2.0\System.Memory.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Buffers)\lib\netstandard2.0\System.Buffers.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Runtime_CompilerServices_Unsafe)\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+  </Target>
+
+</Project>

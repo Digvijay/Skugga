@@ -49,6 +49,7 @@ public class EventTests
     #region Raise - Manual Event Triggering
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Raise_StandardEvent_InvokesSubscribers()
     {
         // Arrange
@@ -73,6 +74,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Raise_GenericEvent_InvokesSubscribers()
     {
         // Arrange
@@ -99,6 +101,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Raise_PropertyChangedEvent_InvokesSubscribers()
     {
         // Arrange
@@ -123,6 +126,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Raise_CustomDelegateEvent_InvokesSubscribers()
     {
         // Arrange
@@ -145,6 +149,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Raise_MultipleSubscribers_InvokesAll()
     {
         // Arrange
@@ -163,6 +168,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Raise_NoSubscribers_DoesNotThrow()
     {
         // Arrange
@@ -177,6 +183,7 @@ public class EventTests
     #region Raises - Auto-Trigger Events on Method Calls
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Raises_TriggersEventWhenMethodCalled()
     {
         // Arrange
@@ -196,6 +203,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Raises_WithCustomArgs_PassesCorrectArgs()
     {
         // Arrange
@@ -218,6 +226,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Raises_MultipleCallsToMethod_RaisesEventEachTime()
     {
         // Arrange
@@ -243,6 +252,7 @@ public class EventTests
     #region VerifyAdd - Verify Event Subscription
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void VerifyAdd_SubscriptionOccurred_Passes()
     {
         // Arrange
@@ -257,6 +267,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void VerifyAdd_MultipleSubscriptions_CountsCorrectly()
     {
         // Arrange
@@ -275,6 +286,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void VerifyAdd_NoSubscription_ThrowsVerificationException()
     {
         // Arrange
@@ -288,6 +300,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void VerifyAdd_GenericEventHandler_TracksCorrectly()
     {
         // Arrange
@@ -306,6 +319,7 @@ public class EventTests
     #region VerifyRemove - Verify Event Unsubscription
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void VerifyRemove_UnsubscriptionOccurred_Passes()
     {
         // Arrange
@@ -321,6 +335,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void VerifyRemove_MultipleUnsubscriptions_CountsCorrectly()
     {
         // Arrange
@@ -339,6 +354,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void VerifyRemove_NoUnsubscription_ThrowsVerificationException()
     {
         // Arrange
@@ -358,6 +374,7 @@ public class EventTests
     #region Combined Scenarios
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Events_AddAndRemove_BothVerifiable()
     {
         // Arrange
@@ -374,6 +391,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Events_RaiseAfterSetup_WorksTogether()
     {
         // Arrange
@@ -397,6 +415,7 @@ public class EventTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Events_VerifyAddRemoveWithRaise_AllWorkTogether()
     {
         // Arrange

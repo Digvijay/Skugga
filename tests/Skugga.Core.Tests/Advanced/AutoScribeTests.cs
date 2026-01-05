@@ -4,9 +4,40 @@ using System.Reflection;
 namespace Skugga.Core.Tests;
 
 /// <summary>
-/// Tests for AutoScribe - self-writing test feature
-/// Now using compile-time generated recording proxies instead of reflection-based DispatchProxy
+/// Tests for AutoScribe - the self-writing test feature that generates mock setup code from real implementations.
+/// AutoScribe records method calls on actual objects and generates the equivalent Skugga mock setup code.
 /// </summary>
+/// <remarks>
+/// <para>
+/// AutoScribe is a powerful feature for:
+/// - Rapid prototyping of tests by capturing real behavior
+/// - Migrating from integration tests to unit tests with mocks
+/// - Learning Skugga's API by seeing generated examples
+/// - Creating accurate mocks based on actual implementation behavior
+/// </para>
+/// <para>
+/// How it works:
+/// 1. Wrap a real instance with AutoScribe.Capture&lt;T&gt;(realInstance)
+/// 2. Call methods on the wrapped instance normally
+/// 3. AutoScribe outputs the equivalent mock setup code to console
+/// 4. Copy and adapt the generated code for your tests
+/// </para>
+/// <para>
+/// Implementation details:
+/// - Uses compile-time generated recording proxies (not reflection-based DispatchProxy)
+/// - Delegates calls to the real instance for accurate behavior capture
+/// - Formats output as ready-to-use Skugga mock setup code
+/// - Handles complex scenarios: generics, async methods, out/ref parameters
+/// </para>
+/// <para>
+/// Test coverage:
+/// - Basic method recording and code generation
+/// - Methods with various argument types (primitives, objects, generics)
+/// - Async methods returning Task&lt;T&gt;
+/// - Complex scenarios (events, properties, multiple invocations)
+/// - Output format verification
+/// </para>
+/// </remarks>
 public class AutoScribeTests
 {
     public interface ICalculator
@@ -22,6 +53,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_ShouldWrapRealInstance()
     {
         // Arrange
@@ -36,6 +68,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_ShouldDelegateCallsToRealInstance()
     {
         // Arrange
@@ -50,6 +83,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_ShouldOutputRecordingToConsole()
     {
         // Arrange
@@ -73,6 +107,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithStringMethod_ShouldRecordStringParameter()
     {
         // Arrange
@@ -137,6 +172,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithGenericInterface_ShouldWork()
     {
         // Arrange
@@ -153,6 +189,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithGenericList_ShouldRecordCorrectly()
     {
         // Arrange
@@ -175,6 +212,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public async Task Capture_WithAsyncMethod_ShouldWork()
     {
         // Arrange
@@ -191,6 +229,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public async Task Capture_WithAsyncListMethod_ShouldWork()
     {
         // Arrange
@@ -206,6 +245,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithVoidMethod_ShouldRecord()
     {
         // Arrange
@@ -227,6 +267,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public async Task Capture_WithAsyncVoidMethod_ShouldRecord()
     {
         // Arrange
@@ -248,6 +289,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithNullableType_ShouldHandleNull()
     {
         // Arrange
@@ -270,6 +312,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithNullableType_ShouldHandleValue()
     {
         // Arrange
@@ -286,6 +329,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithComplexReturnType_ShouldWork()
     {
         // Arrange
@@ -302,6 +346,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithDictionaryReturnType_ShouldWork()
     {
         // Arrange
@@ -318,6 +363,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithTupleReturnType_ShouldWork()
     {
         // Arrange
@@ -333,6 +379,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithArrayParameter_ShouldWork()
     {
         // Arrange
@@ -354,6 +401,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithIEnumerableReturnType_ShouldWork()
     {
         // Arrange
@@ -369,6 +417,7 @@ public class AutoScribeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Capture_WithComplexParameter_ShouldSerialize()
     {
         // Arrange
@@ -391,6 +440,7 @@ public class AutoScribeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ExportToJson_ShouldFormatRecordingsProperly()
     {
         // Arrange
@@ -424,6 +474,7 @@ public class AutoScribeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ExportToCsv_ShouldFormatRecordingsProperly()
     {
         // Arrange
@@ -455,6 +506,7 @@ public class AutoScribeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReplayContext_ShouldVerifyCallSequence()
     {
         // Arrange
@@ -472,6 +524,7 @@ public class AutoScribeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReplayContext_GetNextExpectedCall_ShouldReturnInOrder()
     {
         // Arrange
@@ -491,6 +544,7 @@ public class AutoScribeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReplayContext_Reset_ShouldRestartSequence()
     {
         // Arrange
@@ -512,6 +566,7 @@ public class AutoScribeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void RecordedCall_ShouldIncludeTimestamp()
     {
         // Arrange & Act
@@ -528,6 +583,7 @@ public class AutoScribeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ReplayContext_Recordings_ShouldBeReadOnly()
     {
         // Arrange

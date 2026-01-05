@@ -8,6 +8,7 @@ namespace Skugga.Core.Tests;
 public class MockHandlerTests
 {
     [Fact]
+    [Trait("Category", "Core")]
     public void AddSetup_ShouldStoreConfiguration()
     {
         // Arrange
@@ -22,6 +23,7 @@ public class MockHandlerTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Invoke_WithoutSetup_InLooseMode_ShouldReturnNull()
     {
         // Arrange
@@ -35,6 +37,7 @@ public class MockHandlerTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Invoke_WithoutSetup_InStrictMode_ShouldThrowException()
     {
         // Arrange
@@ -50,6 +53,7 @@ public class MockHandlerTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Invoke_WithMatchingSetup_ShouldReturnConfiguredValue()
     {
         // Arrange
@@ -64,6 +68,7 @@ public class MockHandlerTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Invoke_WithNonMatchingParameters_ShouldReturnNull()
     {
         // Arrange
@@ -78,6 +83,7 @@ public class MockHandlerTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Invoke_WithMultipleSetups_ShouldReturnCorrectValue()
     {
         // Arrange
@@ -93,6 +99,7 @@ public class MockHandlerTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void AddSetup_WithNullParameter_ShouldMatchNull()
     {
         // Arrange
@@ -107,6 +114,7 @@ public class MockHandlerTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void AddSetup_WithEmptyParameters_ShouldMatch()
     {
         // Arrange
@@ -121,6 +129,7 @@ public class MockHandlerTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Behavior_DefaultValue_ShouldBeLoose()
     {
         // Arrange & Act
@@ -131,6 +140,7 @@ public class MockHandlerTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Behavior_CanBeChanged_FromLooseToStrict()
     {
         // Arrange
