@@ -7,33 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-01-05
+
 ### Added
-- **Spectral-Inspired OpenAPI Linting** - Enhancement #10
+- **Comprehensive Documentation Structure**
+  - Created docs hub (`docs/README.md`) with complete table of contents
+  - Added detailed feature guides:
+    - `docs/DOPPELGANGER.md` - OpenAPI mock generation (21K)
+    - `docs/AUTOSCRIBE.md` - Self-writing test code (11K)
+    - `docs/CHAOS_ENGINEERING.md` - Resilience testing (13K)
+    - `docs/ALLOCATION_TESTING.md` - Performance enforcement (15K)
+  - Enhanced root README with improved navigation and demo links
+  - Total: 60KB of new documentation across 4 feature guides
+
+- **Doppelgänger Demo Project** (`samples/DoppelgangerDemo/`)
+  - 3 working test scenarios demonstrating contract drift detection
+  - Comparison table showing Manual Mocks vs Doppelgänger
+  - ROI calculation ($23k-33k annual savings)
+  - Competitive analysis (vs OpenAPI Generator, NSwag, Moq)
+  - Example OpenAPI specs (v1 and v2 with breaking changes)
+
+- **Enhanced Demo Projects**
+  - Added comprehensive READMEs for all sample projects
+  - `samples/AutoScribeDemo/` - 9-dependency controller example
+  - `samples/ChaosEngineeringDemo/` - 4 resilience testing scenarios
+  - `samples/AllocationTestingDemo/` - 6 before/after optimization examples
+
+- **Spectral-Inspired OpenAPI Linting**
   - 16 linting rules for OpenAPI quality enforcement at build time
-  - Info section rules: info-contact, info-description, info-license
-  - Operation rules: operationId, tags, description, summary, success-response, parameters
-  - Path rules: path-parameters, no-identical-paths
-  - Tag rules: tag-description, openapi-tags
-  - Schema rules: typed-enum, schema-description
-  - Component rules: no-unused-components
   - Configurable severity per rule via `LintingRules` attribute property
   - Format: `"rule1:off,rule2:error,rule3:warn"`
   - Diagnostics: SKUGGA_LINT_001 through SKUGGA_LINT_017
   - AOT-compatible, zero runtime overhead
-  - 132 tests passing (5 skipped requiring generator harness)
-- **Incremental Generation Cache** - Enhancement #11  
-  - Automatic caching via IIncrementalGenerator (implemented in Enhancement #9)
-  - Cache invalidation on spec/interface changes
+
+- **Incremental Generation Cache**
+  - Automatic caching via IIncrementalGenerator
   - < 1ms for cache hits, ~50-200ms for cache misses
   - 70% memory reduction on first builds (150MB vs 500MB)
   - 90% memory reduction on incremental builds (50MB vs 500MB)
-  - See [INCREMENTAL_PERFORMANCE.md](docs/INCREMENTAL_PERFORMANCE.md) for details
-- **Parallel Generation** - Enhancement #12
-  - Automatic parallel processing via IIncrementalGenerator (implemented in Enhancement #9)
-  - Multiple interfaces process concurrently
+
+- **Parallel Generation**
+  - Automatic parallel processing via IIncrementalGenerator
   - Linear scaling with CPU cores (2x speedup with 2 cores, 4x with 4 cores)
   - Thread-safe by design
-  - See [INCREMENTAL_PERFORMANCE.md](docs/INCREMENTAL_PERFORMANCE.md) for benchmarks
+
+### Changed
+- Updated all documentation links from "See Live Demo" to "Demo and Example Code"
+- Updated navigation from "Live Demos" to "Example Code"
+- Updated footer to welcome contributions
+- Enhanced cross-linking between documentation and sample projects
+
+### Infrastructure
+- Added draft documentation files to .gitignore
+  - `docs/DOPPELGANGER_ROADMAP.md`
+  - `docs/V1.2.0_SUMMARY.md`
+  - `docs/INCREMENTAL_PERFORMANCE.md`
 
 ## [1.1.0] - 2026-01-03
 
