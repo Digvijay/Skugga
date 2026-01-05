@@ -65,9 +65,9 @@
   </ItemGroup>
 
   <!-- Import the MSBuild targets for URL downloading (at end so ItemGroup evaluation happens after) -->
-  <!-- Override task assembly path for local development -->
+  <!-- Override task assembly path for local development - use Release -->
   <PropertyGroup>
-    <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)..\..\src\Skugga.OpenApi.Tasks\bin\Debug\netstandard2.0\Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
+    <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)..\..\src\Skugga.OpenApi.Tasks\bin\Release\netstandard2.0\Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
   </PropertyGroup>
   <Import Project="..\..\src\Skugga.OpenApi.Tasks\build\Skugga.OpenApi.Tasks.targets" />
 
