@@ -1,38 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   
-  <!-- Ensure Configuration has a value -->
-  <PropertyGroup>
-    <SkuggaBuildConfiguration Condition="'$(Configuration)' != ''">$(Configuration)</SkuggaBuildConfiguration>
-    <SkuggaBuildConfiguration Condition="'$(Configuration)' == ''">Release</SkuggaBuildConfiguration>
-  </PropertyGroup>
-
   <!-- Define the task assembly location -->
   <Choose>
     <When Condition="'$(SkuggaOpenApiTasksAssembly)' != ''">
       <!-- Already set by consuming project -->
       <PropertyGroup />
     </When>
-    <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/$(SkuggaBuildConfiguration)/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
-      <!-- Local development - use current configuration -->
-      <PropertyGroup>
-        <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/$(SkuggaBuildConfiguration)/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
-      </PropertyGroup>
-    </When>
     <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/Release/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
-      <!-- Local development Release build fallback -->
+      <!-- Local development Release build -->
       <PropertyGroup>
         <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/Release/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
       </PropertyGroup>
     </When>
-    <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/Debug/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
-      <!-- Local development Debug build fallback -->
+    <When Condition="Exists('$(MSBuildThisFileDirectory)netstandard2.0/Skugga.OpenApi.Tasks.dll')">
+      <!-- Packaged usage in build folder (when packaged in build/netstandard2.0) -->
       <PropertyGroup>
-        <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/Debug/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
+        <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
       </PropertyGroup>
     </When>
     <Otherwise>
-      <!-- Packaged usage -->
+      <!-- Fallback: tasks folder (standard NuGet convention for MSBuild tasks) -->
       <PropertyGroup>
         <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../tasks/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
       </PropertyGroup>
