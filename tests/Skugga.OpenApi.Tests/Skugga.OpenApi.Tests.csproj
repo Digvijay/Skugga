@@ -6,6 +6,14 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    
+    <!-- Fix assembly version conflicts -->
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    
+    <!-- Suppress MSB3243 warnings - framework chooses correct version -->
+    <NoWarn>$(NoWarn);MSB3243</NoWarn>
+    
     <!-- Allow validation warnings for tests - we're testing these diagnostics -->
     <NoWarn>$(NoWarn);SKUGGA_OPENAPI_007;SKUGGA_OPENAPI_008;SKUGGA_OPENAPI_009</NoWarn>
     <!-- Suppress linting diagnostics - we're testing lint rules, not enforcing them -->
@@ -21,6 +29,11 @@
     </PackageReference>
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.28" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
+    
+    <!-- Explicit references to fix version conflicts -->
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -59,10 +72,12 @@
   </ItemGroup>
 
   <!-- Test URL downloading with USPTO API spec v3.0 (no schema collisions with local specs) -->
-  <!-- NOTE: Requires TWO builds - first downloads, second generates code -->
+  <!-- NOTE: Disabled in CI/CD - requires network access during build -->
+  <!-- Uncomment for local testing:
   <ItemGroup>
     <SkuggaOpenApiUrl Include="https://raw.githubusercontent.com/OAI/learn.openapis.org/refs/heads/main/examples/v3.0/uspto.json" />
   </ItemGroup>
+  -->
 
   <!-- Import the MSBuild targets for URL downloading (at end so ItemGroup evaluation happens after) -->
   <!-- Override task assembly path for local development - use Release -->

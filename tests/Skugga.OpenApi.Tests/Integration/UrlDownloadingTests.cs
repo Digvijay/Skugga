@@ -3,8 +3,10 @@ using Xunit;
 
 namespace Skugga.OpenApi.Tests
 {
+#if ENABLE_URL_DOWNLOAD_TESTS
     // This interface should be generated from the downloaded USPTO spec
     // NOTE: Must be top-level (not nested in class) for source generator to find it
+    // Disabled in CI/CD - enable locally by defining ENABLE_URL_DOWNLOAD_TESTS
     [SkuggaFromOpenApi("https://raw.githubusercontent.com/OAI/learn.openapis.org/refs/heads/main/examples/v3.0/uspto.json")]
     public partial interface IUsptoApi
     {
@@ -15,6 +17,7 @@ namespace Skugga.OpenApi.Tests
     /// Uses USPTO (US Patent and Trademark Office) API spec from OAI GitHub repository.
     /// NOTE: Requires TWO builds - first build downloads spec, second build generates code.
     /// This is by design due to MSBuild evaluation vs execution phase timing.
+    /// DISABLED IN CI/CD - requires network access during build.
     /// </summary>
     public class UrlDownloadingTests
     {
@@ -54,4 +57,5 @@ namespace Skugga.OpenApi.Tests
             Assert.NotNull(api);
         }
     }
+#endif
 }
