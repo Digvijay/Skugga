@@ -7,14 +7,20 @@
       <!-- Already set by consuming project -->
       <PropertyGroup />
     </When>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/$(Configuration)/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
+      <!-- Local development - use current configuration -->
+      <PropertyGroup>
+        <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/$(Configuration)/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
+      </PropertyGroup>
+    </When>
     <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/Debug/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
-      <!-- Local development Debug build -->
+      <!-- Local development Debug build fallback -->
       <PropertyGroup>
         <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/Debug/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
       </PropertyGroup>
     </When>
     <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/Release/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
-      <!-- Local development Release build -->
+      <!-- Local development Release build fallback -->
       <PropertyGroup>
         <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/Release/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
       </PropertyGroup>
