@@ -4,15 +4,19 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>Skugga.OpenApi.Generator</PackageId>
-    <Description>Roslyn source generator for creating mocks from OpenAPI specifications</Description>
-    <PackageTags>source-generator;roslyn;openapi;swagger;mocking</PackageTags>
+    <PackageId>Skugga.OpenApi</PackageId>
+    <Version>1.2.0</Version>
+    <Title>Skugga OpenAPI Source Generator</Title>
+    <Description>Roslyn source generator for creating mocks from OpenAPI specifications. Automatically generates type-safe mocks with contract validation and example data support.</Description>
+    <PackageTags>source-generator;roslyn;openapi;swagger;mocking;testing;skugga;aot</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,5 +53,33 @@
       <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Runtime_CompilerServices_Unsafe)\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>
+
+  <!-- Package the generator and its dependencies as analyzers, and include MSBuild tasks dependency -->
+  <ItemGroup>
+    <!-- Pack the generator DLL as an analyzer -->
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    
+    <!-- Pack all dependency DLLs -->
+    <None Include="$(PKGMicrosoft_OpenApi_Readers)\lib\netstandard2.0\Microsoft.OpenApi.Readers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PKGMicrosoft_OpenApi_Readers)\..\..\microsoft.openapi\1.6.28\lib\netstandard2.0\Microsoft.OpenApi.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PKGSharpYaml)\lib\netstandard2.0\SharpYaml.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PKGSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PKGSystem_Text_Encodings_Web)\lib\netstandard2.0\System.Text.Encodings.Web.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PKGSystem_Memory)\lib\netstandard2.0\System.Memory.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PKGSystem_Buffers)\lib\netstandard2.0\System.Buffers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PKGSystem_Runtime_CompilerServices_Unsafe)\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    
+    <!-- Include .props file for generator configuration -->
+    <None Include="build\Skugga.OpenApi.Generator.props" Pack="true" PackagePath="build" Visible="false" />
+    <None Include="build\Skugga.OpenApi.Generator.props" Pack="true" PackagePath="buildTransitive" Visible="false" />
+  </ItemGroup>
+
+  <!-- Add dependency on Skugga.OpenApi.Tasks -->
+  <ItemGroup>
+    <!-- For local development, use ProjectReference -->
+    <ProjectReference Include="..\Skugga.OpenApi.Tasks\Skugga.OpenApi.Tasks.csproj" PrivateAssets="all" Condition="Exists('..\Skugga.OpenApi.Tasks\Skugga.OpenApi.Tasks.csproj')" />
+  </ItemGroup>
+
+  <!-- Note: Users must install Skugga package separately as it's net8.0 and this is netstandard2.0 -->
 
 </Project>
