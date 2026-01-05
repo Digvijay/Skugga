@@ -3,40 +3,108 @@ using Skugga.Core;
 
 namespace Skugga.Core.Tests;
 
+/// <summary>
+/// Test interfaces for out and ref parameter testing scenarios.
+/// These interfaces represent common C# patterns that use out/ref parameters.
+/// </summary>
+
+/// <summary>
+/// Interface representing parser services that use out parameters for TryParse patterns.
+/// </summary>
 public interface IParser
 {
+    /// <summary>Attempts to parse a string to an integer.</summary>
     bool TryParse(string input, out int result);
+    
+    /// <summary>Attempts to parse a string to a double.</summary>
     bool TryParseDouble(string input, out double result);
+    
+    /// <summary>Gets multiple values via out parameters.</summary>
     void GetValues(out int x, out int y);
+    
+    /// <summary>Dictionary-style TryGet pattern.</summary>
     bool TryGetValue(string key, out string? value);
 }
 
+/// <summary>
+/// Interface demonstrating ref parameter patterns where values are modified in-place.
+/// </summary>
 public interface IRefService
 {
+    /// <summary>Modifies a value passed by reference.</summary>
     void ModifyValue(ref int value);
+    
+    /// <summary>Swaps two values passed by reference.</summary>
     void SwapValues(ref int a, ref int b);
+    
+    /// <summary>Processes a ref parameter and returns a value.</summary>
     int ProcessRef(ref string input);
 }
 
+/// <summary>
+/// Interface mixing normal parameters with ref and out parameters.
+/// </summary>
 public interface IMixedService
 {
+    /// <summary>Combines normal, ref, and out parameters in a single method.</summary>
     bool TryProcess(string input, ref int counter, out string result);
+    
+    /// <summary>Method with all parameter types: normal, ref, out.</summary>
     void MixedParameters(int normal, ref int refParam, out int outParam, string another);
 }
 
+/// <summary>
+/// Interface for methods with multiple out parameters of different types.
+/// </summary>
 public interface IMultiOutService
 {
+    /// <summary>Returns multiple output values of different types.</summary>
     void GetValues(int input, out int intResult, out string strResult);
 }
 
+/// <summary>
+/// Interface for void methods with out parameters.
+/// </summary>
 public interface IVoidOutService
 {
+    /// <summary>Processes input and provides output via out parameter.</summary>
     void ProcessValue(string input, out int result);
 }
 
+/// <summary>
+/// Tests for out and ref parameter support in Skugga mocks.
+/// Verifies that mocks can correctly handle C#'s out and ref parameter modifiers,
+/// which are commonly used in TryParse patterns, swap operations, and result tuples.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Out parameters are used when a method needs to return multiple values or follows
+/// the TryXxx pattern. Ref parameters allow methods to modify existing values.
+/// </para>
+/// <para>
+/// Skugga supports these scenarios through:
+/// - OutValue() extension method to configure out parameter values
+/// - RefValue() extension method to configure ref parameter values
+/// - It.IsAny&lt;T&gt;() matcher for ref parameters
+/// </para>
+/// <para>
+/// Test coverage includes:
+/// - Single and multiple out parameters
+/// - Primitive and reference type out parameters
+/// - Ref parameter modification
+/// - Mixed scenarios with normal, ref, and out parameters
+/// - Void and non-void methods with out/ref parameters
+/// </para>
+/// </remarks>
 public class OutRefTests
 {
+    #region Out Parameter Tests - Single Values
+    
+    /// <summary>
+    /// Verifies that a single out int parameter can be configured and returns the expected value.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_SingleInt_ReturnsConfiguredValue()
     {
         // Arrange
@@ -55,6 +123,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_FailureCase_ReturnsZero()
     {
         // Arrange
@@ -73,6 +142,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_Double_ReturnsConfiguredValue()
     {
         // Arrange
@@ -91,6 +161,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_MultipleOut_ReturnsAllValues()
     {
         // Arrange
@@ -109,6 +180,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_String_ReturnsConfiguredValue()
     {
         // Arrange
@@ -127,6 +199,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_NotFound_ReturnsNull()
     {
         // Arrange
@@ -145,6 +218,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void RefParameter_ModifiesValue()
     {
         // Arrange
@@ -162,6 +236,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void RefParameter_SwapValues()
     {
         // Arrange
@@ -182,6 +257,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void RefParameter_WithReturnValue()
     {
         // Arrange
@@ -201,6 +277,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void MixedParameters_OutAndRef_WorkTogether()
     {
         // Arrange
@@ -223,6 +300,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void MixedParameters_AllParameterTypes()
     {
         // Arrange
@@ -242,6 +320,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_Verification_TracksCall()
     {
         // Arrange
@@ -260,6 +339,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_WithCallback_CallbackExecutes()
     {
         // Arrange
@@ -281,6 +361,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_NoSetup_ReturnsDefault()
     {
         // Arrange
@@ -295,6 +376,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void RefParameter_NoSetup_KeepsOriginalValue()
     {
         // Arrange
@@ -309,6 +391,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_DifferentInputs_DifferentOutputs()
     {
         // Arrange
@@ -331,6 +414,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutParameter_InSequence_WorksCorrectly()
     {
         // Arrange
@@ -358,6 +442,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutValueFunc_ParsesInput_DynamicValue()
     {
         // Arrange
@@ -385,6 +470,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void RefValueFunc_DoublesInput_DynamicValue()
     {
         // Arrange
@@ -411,6 +497,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutValueFunc_WithMatcher_ComputesFromFirstArgument()
     {
         // Arrange
@@ -431,6 +518,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void RefValueFunc_WithMatcher_ModifiesBasedOnCondition()
     {
         // Arrange
@@ -456,6 +544,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutValueFunc_MixedWithStaticOutValue_FactoryTakesPrecedence()
     {
         // Arrange
@@ -475,6 +564,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutValueFunc_MultipleOutParameters_DifferentFactories()
     {
         // Arrange
@@ -495,6 +585,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void OutValueFunc_VoidMethod_WorksCorrectly()
     {
         // Arrange
@@ -519,6 +610,7 @@ public class OutRefTests
     public delegate void ModifyValueCallback(ref int value);
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void CallbackRefOut_WithOutParameter_ModifiesValue()
     {
         // Arrange
@@ -545,6 +637,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void CallbackRefOut_WithRefParameter_ModifiesValue()
     {
         // Arrange
@@ -570,6 +663,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void CallbackRefOut_VoidMethod_WithOutParameter()
     {
         // Arrange
@@ -592,6 +686,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void CallbackRefOut_CanCombineWithReturns()
     {
         // Arrange
@@ -617,6 +712,7 @@ public class OutRefTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void CallbackRefOut_WithOutValueFunc_CallbackTakesPrecedence()
     {
         // Arrange
@@ -637,5 +733,7 @@ public class OutRefTests
         // Assert
         Assert.Equal(222, result);  // Callback value, not OutValueFunc
     }
+    
+    #endregion
 }
 

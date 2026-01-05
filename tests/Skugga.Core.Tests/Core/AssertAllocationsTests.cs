@@ -8,6 +8,7 @@ namespace Skugga.Core.Tests;
 public class AssertAllocationsTests
 {
     [Fact]
+    [Trait("Category", "Core")]
     public void Zero_WithNoAllocations_ShouldNotThrow()
     {
         // Arrange & Act
@@ -24,6 +25,7 @@ public class AssertAllocationsTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Zero_WithHeapAllocation_ShouldThrowException()
     {
         // Arrange & Act
@@ -39,6 +41,7 @@ public class AssertAllocationsTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Zero_WithArrayAllocation_ShouldThrowException()
     {
         // Arrange & Act
@@ -54,6 +57,7 @@ public class AssertAllocationsTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Zero_WithValueTypeOperations_ShouldNotThrow()
     {
         // Arrange & Act
@@ -72,6 +76,7 @@ public class AssertAllocationsTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void AtMost_WithinThreshold_ShouldNotThrow()
     {
         // Arrange & Act
@@ -85,6 +90,7 @@ public class AssertAllocationsTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void AtMost_ExceedingThreshold_ShouldThrow()
     {
         // Arrange & Act
@@ -101,6 +107,7 @@ public class AssertAllocationsTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Measure_ShouldReturnDetailedReport()
     {
         // Arrange & Act
@@ -117,6 +124,7 @@ public class AssertAllocationsTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Measure_WithNoAllocation_ShouldReportZeroBytes()
     {
         // Arrange & Act
@@ -131,6 +139,7 @@ public class AssertAllocationsTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Threshold_ShouldCreateConfiguration()
     {
         // Arrange & Act
@@ -144,6 +153,7 @@ public class AssertAllocationsTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void MeetsThreshold_WithinLimits_ShouldNotThrow()
     {
         // Arrange
@@ -160,6 +170,7 @@ public class AssertAllocationsTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void MeetsThreshold_ExceedingBytes_ShouldThrow()
     {
         // Arrange
@@ -178,6 +189,7 @@ public class AssertAllocationsTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void MeetsThreshold_ExceedingTime_ShouldThrow()
     {
         // Arrange
@@ -194,6 +206,7 @@ public class AssertAllocationsTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void AllocationReport_ToString_ShouldFormatProperly()
     {
         // Arrange

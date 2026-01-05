@@ -1,0 +1,164 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Content Type Test API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/standard": {
+      "get": {
+        "operationId": "getStandard",
+        "summary": "Standard application/json",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentTypeUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vendor-json": {
+      "get": {
+        "operationId": "getVendorJson",
+        "summary": "Vendor-specific JSON",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/vnd.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentTypeUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hal-json": {
+      "get": {
+        "operationId": "getHalJson",
+        "summary": "HAL JSON format",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/hal+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentTypeUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/text-json": {
+      "get": {
+        "operationId": "getTextJson",
+        "summary": "Legacy text/json",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentTypeUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mixed-priority": {
+      "get": {
+        "operationId": "getMixedPriority",
+        "summary": "Multiple content types - should prefer application/json",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentTypeUser"
+                }
+              },
+              "application/vnd.custom+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentTypeUser"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentTypeUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generic-json": {
+      "get": {
+        "operationId": "getGenericJson",
+        "summary": "Generic json in content type",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "something/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentTypeUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fallback": {
+      "get": {
+        "operationId": "getFallback",
+        "summary": "Fallback to first with schema",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentTypeUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ContentTypeUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

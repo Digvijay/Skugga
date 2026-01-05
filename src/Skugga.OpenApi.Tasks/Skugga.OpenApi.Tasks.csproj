@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    
+    <!-- Package metadata -->
+    <PackageId>Skugga.OpenApi.Tasks</PackageId>
+    <Title>Skugga OpenAPI MSBuild Tasks</Title>
+    <Description>MSBuild tasks for downloading OpenAPI specifications from URLs before source generation</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- MSBuild SDK for writing tasks -->
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" PrivateAssets="all" />
+    
+    <!-- For async HTTP downloads -->
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
+
+  <!-- Pack the task DLL and .targets file into the package -->
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="tasks\$(TargetFramework)" />
+    <None Include="build\Skugga.OpenApi.Tasks.targets" Pack="true" PackagePath="build" />
+    <None Include="buildTransitive\Skugga.OpenApi.Tasks.targets" Pack="true" PackagePath="buildTransitive" />
+  </ItemGroup>
+
+</Project>

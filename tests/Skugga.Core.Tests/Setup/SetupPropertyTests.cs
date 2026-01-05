@@ -22,6 +22,7 @@ public interface IConfiguration
 public class SetupPropertyTests
 {
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_SingleProperty_ShouldTrackGetAndSet()
     {
         // Arrange
@@ -37,6 +38,7 @@ public class SetupPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_WithDefaultValue_ShouldReturnDefault()
     {
         // Arrange
@@ -51,6 +53,7 @@ public class SetupPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_MultipleProperties_ShouldTrackIndependently()
     {
         // Arrange
@@ -68,6 +71,7 @@ public class SetupPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_SetMultipleTimes_ShouldReturnLatestValue()
     {
         // Arrange
@@ -85,6 +89,7 @@ public class SetupPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_WithoutDefaultValue_ShouldReturnDefaultForType()
     {
         // Arrange
@@ -102,6 +107,7 @@ public class SetupPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_BoolProperty_ShouldWork()
     {
         // Arrange
@@ -119,6 +125,7 @@ public class SetupPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_DifferentInterfaces_ShouldWork()
     {
         // Arrange
@@ -137,6 +144,7 @@ public class SetupPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_GetBeforeSet_ShouldReturnDefaultValue()
     {
         // Arrange
@@ -151,6 +159,7 @@ public class SetupPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_ComplexScenario_ShouldMaintainState()
     {
         // Arrange
@@ -178,6 +187,7 @@ public class SetupPropertyTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void SetupProperty_CanCoexistWithSetupReturns()
     {
         // Arrange

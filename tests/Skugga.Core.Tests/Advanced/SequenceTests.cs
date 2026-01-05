@@ -21,6 +21,7 @@ public interface IAnotherService
 public class SequenceTests
 {
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_CallsInOrder_Succeeds()
     {
         // Arrange
@@ -41,6 +42,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_CallsOutOfOrder_ThrowsException()
     {
         // Arrange
@@ -60,6 +62,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_WithReturnValues_WorksCorrectly()
     {
         // Arrange
@@ -83,6 +86,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_CrossMock_TracksOrder()
     {
         // Arrange
@@ -106,6 +110,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_CrossMock_WrongOrder_Throws()
     {
         // Arrange
@@ -126,6 +131,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_MultipleSequences_Independent()
     {
         // Arrange
@@ -151,6 +157,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_WithCallback_CallbackExecutesInOrder()
     {
         // Arrange
@@ -178,6 +185,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_RepeatedCalls_FollowsSequenceOnce()
     {
         // Arrange
@@ -197,6 +205,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_WithParameters_MatchesCorrectly()
     {
         // Arrange
@@ -219,6 +228,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_SkipToLater_ThrowsWithStepInfo()
     {
         // Arrange
@@ -237,6 +247,7 @@ public class SequenceTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void InSequence_EmptySequence_NoSetups_NoError()
     {
         // Arrange

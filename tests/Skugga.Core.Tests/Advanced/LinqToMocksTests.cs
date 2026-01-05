@@ -34,6 +34,7 @@ public class LinqToMocksTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Get_WithMockCreate_ReturnsSetup()
     {
         // Arrange
@@ -48,6 +49,7 @@ public class LinqToMocksTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Get_AllowsVerification()
     {
         // Arrange
@@ -64,6 +66,7 @@ public class LinqToMocksTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Get_AllowsAdditionalSetup()
     {
         // Arrange
@@ -81,6 +84,7 @@ public class LinqToMocksTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Get_WithNonMock_ThrowsArgumentException()
     {
         // Arrange
@@ -92,6 +96,7 @@ public class LinqToMocksTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Get_ReturnsSameInterfaceAsIMockSetup()
     {
         // Arrange
@@ -106,6 +111,7 @@ public class LinqToMocksTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Workaround_CreateWithExplicitSetup_WorksLikeMockOf()
     {
         // Arrange & Act - this is the Skugga way instead of Mock.Of
@@ -121,6 +127,7 @@ public class LinqToMocksTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Get_IntegrationTest_CreateSetupGetVerify()
     {
         // This test demonstrates the complete workflow that replaces Mock.Of usage
@@ -155,6 +162,7 @@ public class LinqToMocksTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Get_WithMultipleMocks_TracksIndependently()
     {
         // Arrange

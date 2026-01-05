@@ -29,6 +29,7 @@ public class ProtectedMembersTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Protected_Setup_ProtectedMethod_Returns()
     {
         // Arrange
@@ -46,6 +47,7 @@ public class ProtectedMembersTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Protected_Setup_WithSpecificArgument_Returns()
     {
         // Arrange
@@ -61,6 +63,7 @@ public class ProtectedMembersTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Protected_Setup_VoidMethod_Callback()
     {
         // Arrange
@@ -77,6 +80,7 @@ public class ProtectedMembersTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Protected_SetupGet_Property_Returns()
     {
         // Arrange
@@ -92,6 +96,7 @@ public class ProtectedMembersTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Protected_MultipleSetups_Independent()
     {
         // Arrange
@@ -115,6 +120,7 @@ public class ProtectedMembersTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Protected_WithCallback_ExecutesCallback()
     {
         // Arrange
@@ -133,6 +139,7 @@ public class ProtectedMembersTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Protected_OnNonMock_ThrowsArgumentException()
     {
         // Arrange
@@ -144,6 +151,7 @@ public class ProtectedMembersTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Protected_IntegrationWithRegularSetup_BothWork()
     {
         // Arrange
@@ -162,6 +170,7 @@ public class ProtectedMembersTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void ProtectedMockSetup_ReturnsCorrectInterface()
     {
         // Arrange

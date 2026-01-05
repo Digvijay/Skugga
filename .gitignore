@@ -4,6 +4,11 @@
 # Project-specific files
 ROADMAP.md
 
+# Documentation drafts (never commit these)
+docs/DOPPELGANGER_ROADMAP.md
+docs/V1.2.0_SUMMARY.md
+docs/INCREMENTAL_PERFORMANCE.md
+
 # User-specific files
 *.rsuser
 *.suo
@@ -32,6 +37,9 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+
+# Skugga OpenAPI cache
+skugga-openapi-cache/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

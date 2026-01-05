@@ -13,6 +13,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_MethodCalledOnce_ShouldPass()
     {
         // Arrange
@@ -26,6 +27,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_MethodNeverCalled_ShouldPass()
     {
         // Arrange
@@ -36,6 +38,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_MethodCalledNever_ButWasCalled_ShouldThrow()
     {
         // Arrange
@@ -51,6 +54,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_MethodNotCalled_ButExpectedOnce_ShouldThrow()
     {
         // Arrange
@@ -65,6 +69,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_MethodCalledMultipleTimes_Exactly_ShouldPass()
     {
         // Arrange
@@ -80,6 +85,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_MethodWithArguments_ShouldVerifyCorrectCall()
     {
         // Arrange
@@ -96,6 +102,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_AtLeast_ShouldPassWhenConditionMet()
     {
         // Arrange
@@ -112,6 +119,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_AtLeast_ShouldFailWhenConditionNotMet()
     {
         // Arrange
@@ -126,6 +134,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_AtMost_ShouldPassWhenConditionMet()
     {
         // Arrange
@@ -141,6 +150,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_AtMost_ShouldFailWhenConditionNotMet()
     {
         // Arrange
@@ -157,6 +167,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_Between_ShouldPassWhenInRange()
     {
         // Arrange
@@ -173,6 +184,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_Between_ShouldFailWhenOutOfRange()
     {
         // Arrange
@@ -187,6 +199,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_MethodWithReturnValue_ShouldVerify()
     {
         // Arrange
@@ -204,6 +217,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_MethodWithMultipleArguments_ShouldVerifyExactMatch()
     {
         // Arrange
@@ -222,6 +236,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_MultipleMethodsIndependently_ShouldVerifyEachSeparately()
     {
         // Arrange
@@ -239,6 +254,7 @@ public class VerifyTests
     }
 
     [Fact]
+    [Trait("Category", "Verification")]
     public void Verify_AfterReset_ShouldNotSeePreviousCalls()
     {
         // Arrange

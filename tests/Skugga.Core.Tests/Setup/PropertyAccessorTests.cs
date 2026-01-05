@@ -24,6 +24,7 @@ public interface IMixedAccessors
 public class PropertyAccessorTests
 {
     [Fact]
+    [Trait("Category", "Setup")]
     public void ReadOnlyProperty_CanRead_CannotWrite()
     {
         // Arrange
@@ -38,6 +39,7 @@ public class PropertyAccessorTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void ReadOnlyProperty_WithSetupProperty_ShouldWork()
     {
         // Arrange
@@ -55,6 +57,7 @@ public class PropertyAccessorTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void ReadOnlyProperty_VerifyGet_ShouldWork()
     {
         // Arrange
@@ -70,6 +73,7 @@ public class PropertyAccessorTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void MixedAccessors_ReadOnlyProperty_ShouldOnlyHaveGetter()
     {
         // Arrange
@@ -88,6 +92,7 @@ public class PropertyAccessorTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void MixedAccessors_ReadWriteProperty_ShouldHaveBoth()
     {
         // Arrange
@@ -103,6 +108,7 @@ public class PropertyAccessorTests
     }
     
     [Fact]
+    [Trait("Category", "Setup")]
     public void MixedAccessors_VerifyBothProperties()
     {
         // Arrange

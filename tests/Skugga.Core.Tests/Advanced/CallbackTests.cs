@@ -2,6 +2,33 @@ using Skugga.Core;
 
 namespace Skugga.Core.Tests;
 
+/// <summary>
+/// Tests for callback functionality in Skugga mocks.
+/// Verifies that callbacks can be configured to execute custom logic when mocked methods are invoked.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Callbacks are essential for testing scenarios where you need to:
+/// - Track method invocations and their arguments
+/// - Execute side effects during tests (e.g., updating state, triggering events)
+/// - Validate argument values dynamically
+/// - Simulate complex behavior that depends on input parameters
+/// </para>
+/// <para>
+/// Skugga supports callbacks through the Callback() extension method, with overloads for:
+/// - Parameterless callbacks: Action callbacks
+/// - Callbacks with 1-8 arguments: Action&lt;T1, ...&gt; callbacks with strongly-typed arguments
+/// - Callbacks on both void and non-void methods
+/// </para>
+/// <para>
+/// Test coverage includes:
+/// - Simple callbacks without arguments
+/// - Callbacks with access to method arguments (1-8 parameters)
+/// - Callbacks combined with Returns for non-void methods
+/// - Multiple callback invocations
+/// - Callback execution order and timing
+/// </para>
+/// </remarks>
 public class CallbackTests
 {
     public interface ITestService
@@ -22,6 +49,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithAction_ShouldExecuteOnMethodCall()
     {
         // Arrange
@@ -39,6 +67,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_ShouldExecuteBeforeReturningValue()
     {
         // Arrange
@@ -60,6 +89,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithSingleArgument_ShouldReceiveArgumentValue()
     {
         // Arrange
@@ -77,6 +107,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithTwoArguments_ShouldReceiveBothValues()
     {
         // Arrange
@@ -101,6 +132,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithThreeArguments_ShouldReceiveAllValues()
     {
         // Arrange
@@ -123,6 +155,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_CalledMultipleTimes_ShouldExecuteEachTime()
     {
         // Arrange
@@ -142,6 +175,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithReturns_ShouldChainFluently()
     {
         // Arrange
@@ -161,6 +195,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_ReturnsFirst_ThenCallback_ShouldWork()
     {
         // Arrange
@@ -180,6 +215,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithException_ShouldThrowException()
     {
         // Arrange
@@ -194,6 +230,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithArgumentValidation_ShouldValidateArguments()
     {
         // Arrange
@@ -211,6 +248,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_MultipleCallbacks_OnDifferentMethods_ShouldExecuteIndependently()
     {
         // Arrange
@@ -239,6 +277,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithSideEffects_ShouldModifyExternalState()
     {
         // Arrange
@@ -263,6 +302,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithComplexLogic_ShouldExecuteCorrectly()
     {
         // Arrange
@@ -289,6 +329,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithVerify_ShouldBothWork()
     {
         // Arrange
@@ -308,6 +349,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithStrictMock_ShouldStillExecute()
     {
         // Arrange
@@ -325,6 +367,7 @@ public class CallbackTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_OnMethodWithoutSetup_ShouldNotExecute()
     {
         // Arrange
@@ -344,6 +387,7 @@ public class CallbackTests
     // Tests for typed callbacks with 4-8 arguments
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithFourArguments_ShouldReceiveAllValues()
     {
         // Arrange
@@ -371,6 +415,7 @@ public class CallbackTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithFiveArguments_ShouldReceiveAllValues()
     {
         // Arrange
@@ -401,6 +446,7 @@ public class CallbackTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithSixArguments_ShouldReceiveAllValues()
     {
         // Arrange
@@ -433,6 +479,7 @@ public class CallbackTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithSevenArguments_ShouldReceiveAllValues()
     {
         // Arrange
@@ -467,6 +514,7 @@ public class CallbackTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Callback_WithEightArguments_ShouldReceiveAllValues()
     {
         // Arrange

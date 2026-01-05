@@ -14,6 +14,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Setup_WithLocalVariable_ShouldWork()
     {
         // Arrange
@@ -29,6 +30,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Setup_WithFieldValue_ShouldWork()
     {
         // Arrange
@@ -44,6 +46,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Setup_WithCalculation_ShouldWork()
     {
         // Arrange
@@ -59,6 +62,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Setup_WithStringVariable_ShouldWork()
     {
         // Arrange
@@ -74,6 +78,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Verify_WithVariable_ShouldWork()
     {
         // Arrange
@@ -88,6 +93,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Setup_VoidMethod_WithVariable_ShouldWork()
     {
         // Arrange
@@ -104,6 +110,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Setup_WithMixedConstantAndVariable_ShouldWork()
     {
         // Arrange
@@ -119,6 +126,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Setup_WithTernaryExpression_ShouldWork()
     {
         // Arrange
@@ -134,6 +142,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Setup_WithArrayAccess_ShouldWork()
     {
         // Arrange
@@ -149,6 +158,7 @@ public class VariableExpressionTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Setup_WithComplexExpression_ShouldWork()
     {
         // Arrange

@@ -1,0 +1,227 @@
+openapi: 3.0.0
+info:
+  title: Authentication Test API
+  version: 1.0.0
+  description: API for testing authentication mocking with various security schemes
+
+servers:
+  - url: https://api.example.com/v1
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authentication
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key authentication
+    
+    OAuth2Auth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.com/oauth/authorize
+          tokenUrl: https://auth.example.com/oauth/token
+          scopes:
+            read: Read access
+            write: Write access
+    
+    BasicAuth:
+      type: http
+      scheme: basic
+      description: HTTP Basic authentication
+
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - username
+        - email
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        role:
+          type: string
+          enum: ["admin", "user", "guest"]
+          example: "user"
+    
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - price
+      properties:
+        id:
+          type: integer
+          example: 101
+        name:
+          type: string
+          example: "Widget"
+        price:
+          type: number
+          format: double
+          example: 29.99
+        description:
+          type: string
+          example: "A useful widget"
+
+paths:
+  /public/health:
+    get:
+      summary: Public health check (no auth required)
+      operationId: getHealth
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+
+  /users/me:
+    get:
+      summary: Get current user profile (Bearer JWT)
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized - invalid or expired token
+
+  /products:
+    get:
+      summary: List products (API Key)
+      operationId: listProducts
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized - invalid API key
+  
+  /products/{id}:
+    get:
+      summary: Get product by ID (OAuth2)
+      operationId: getProduct
+      security:
+        - OAuth2Auth: [read]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Product not found
+    
+    put:
+      summary: Update product (OAuth2 with write scope)
+      operationId: updateProduct
+      security:
+        - OAuth2Auth: [write]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - insufficient permissions
+
+  /admin/users:
+    get:
+      summary: List all users (Basic Auth)
+      operationId: listAllUsers
+      security:
+        - BasicAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /mixed/resource:
+    get:
+      summary: Resource with multiple auth options
+      operationId: getMixedResource
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Resource data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 42
+                  data:
+                    type: string
+                    example: "sensitive data"

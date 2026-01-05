@@ -1,0 +1,361 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Advanced Features API",
+    "version": "1.0.0",
+    "description": "API spec demonstrating request bodies, multiple status codes, and advanced schema features"
+  },
+  "paths": {
+    "/products": {
+      "post": {
+        "summary": "Create a new product",
+        "operationId": "createProduct",
+        "requestBody": {
+          "required": true,
+          "description": "Product object to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewProduct"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                },
+                "examples": {
+                  "created": {
+                    "value": {
+                      "id": 1,
+                      "name": "Widget",
+                      "category": "gadgets",
+                      "price": 29.99
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{productId}": {
+      "put": {
+        "summary": "Update an existing product",
+        "operationId": "updateProduct",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Product"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update a product",
+        "operationId": "patchProduct",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Update accepted for processing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a product",
+        "operationId": "deleteProduct",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Product deleted successfully (no content)"
+          }
+        }
+      }
+    },
+    "/animals": {
+      "get": {
+        "summary": "List all animals (polymorphic with discriminator)",
+        "operationId": "listAnimals",
+        "responses": {
+          "200": {
+            "description": "Array of animals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Animal"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles": {
+      "get": {
+        "summary": "List vehicles (anyOf without discriminator)",
+        "operationId": "listVehicles",
+        "responses": {
+          "200": {
+            "description": "Array of vehicles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Vehicle"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NewProduct": {
+        "type": "object",
+        "required": ["name", "category"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Widget"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["electronics", "gadgets", "tools"],
+            "example": "gadgets"
+          },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "example": 29.99
+          }
+        }
+      },
+      "Product": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/NewProduct"
+          },
+          {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64",
+                "example": 123
+              }
+            }
+          }
+        ]
+      },
+      "ProductPatch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "nullable": true
+          }
+        }
+      },
+      "Animal": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Dog"
+          },
+          {
+            "$ref": "#/components/schemas/Cat"
+          },
+          {
+            "$ref": "#/components/schemas/Bird"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "animalType",
+          "mapping": {
+            "dog": "#/components/schemas/Dog",
+            "cat": "#/components/schemas/Cat",
+            "bird": "#/components/schemas/Bird"
+          }
+        }
+      },
+      "Dog": {
+        "type": "object",
+        "required": ["animalType", "name", "breed"],
+        "properties": {
+          "animalType": {
+            "type": "string",
+            "enum": ["dog"]
+          },
+          "name": {
+            "type": "string",
+            "example": "Max"
+          },
+          "breed": {
+            "type": "string",
+            "example": "Golden Retriever"
+          }
+        }
+      },
+      "Cat": {
+        "type": "object",
+        "required": ["animalType", "name", "indoor"],
+        "properties": {
+          "animalType": {
+            "type": "string",
+            "enum": ["cat"]
+          },
+          "name": {
+            "type": "string",
+            "example": "Whiskers"
+          },
+          "indoor": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Bird": {
+        "type": "object",
+        "required": ["animalType", "name", "canFly"],
+        "properties": {
+          "animalType": {
+            "type": "string",
+            "enum": ["bird"]
+          },
+          "name": {
+            "type": "string",
+            "example": "Tweety"
+          },
+          "canFly": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Vehicle": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Car"
+          },
+          {
+            "$ref": "#/components/schemas/Motorcycle"
+          }
+        ]
+      },
+      "Car": {
+        "type": "object",
+        "required": ["make", "model", "doors"],
+        "properties": {
+          "make": {
+            "type": "string",
+            "example": "Toyota"
+          },
+          "model": {
+            "type": "string",
+            "example": "Camry"
+          },
+          "doors": {
+            "type": "integer",
+            "example": 4
+          }
+        }
+      },
+      "Motorcycle": {
+        "type": "object",
+        "required": ["make", "model", "cc"],
+        "properties": {
+          "make": {
+            "type": "string",
+            "example": "Harley-Davidson"
+          },
+          "model": {
+            "type": "string",
+            "example": "Street 750"
+          },
+          "cc": {
+            "type": "integer",
+            "example": 750
+          }
+        }
+      }
+    }
+  }
+}

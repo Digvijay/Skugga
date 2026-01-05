@@ -17,6 +17,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsAny_MatchesAnyValue()
     {
         // Arrange
@@ -31,6 +32,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsAnyString_MatchesAnyStringValue()
     {
         // Arrange
@@ -44,6 +46,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsAnyInMultipleArgs_MatchesAllCombinations()
     {
         // Arrange
@@ -57,6 +60,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithMixedItIsAnyAndSpecificValue_MatchesCorrectly()
     {
         // Arrange
@@ -72,6 +76,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsAnyThreeArgs_MatchesCorrectly()
     {
         // Arrange
@@ -85,6 +90,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithItIsAny_MatchesAnyValue()
     {
         // Arrange
@@ -100,6 +106,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithItIsAny_FailsWhenNotCalled()
     {
         // Arrange
@@ -116,6 +123,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithItIsAnyMultipleArgs_MatchesCorrectly()
     {
         // Arrange
@@ -130,6 +138,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithMixedItIsAnyAndSpecificValue_MatchesCorrectly()
     {
         // Arrange
@@ -146,6 +155,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsAnyAndReturnsFunc_WorksTogether()
     {
         // Arrange
@@ -160,6 +170,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsAnyAndCallback_WorksTogether()
     {
         // Arrange
@@ -176,6 +187,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsAnyAndReturnsInOrder_WorksTogether()
     {
         // Arrange
@@ -191,6 +203,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_MultipleSetupsWithItIsAny_FirstMatchWins()
     {
         // Arrange
@@ -205,6 +218,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_SpecificValueThenItIsAny_SpecificMatchesFirst()
     {
         // Arrange
@@ -219,6 +233,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void StrictMock_WithItIsAny_AllowsAnyMatchingValue()
     {
         // Arrange
@@ -234,6 +249,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Verify_WithItIsAnyForVoidMethod_WorksCorrectly()
     {
         // Arrange
@@ -249,6 +265,7 @@ public class ItIsAnyTests
     }
 
     [Fact]
+    [Trait("Category", "Matchers")]
     public void Setup_WithItIsAnyForDifferentTypes_WorksIndependently()
     {
         // Arrange

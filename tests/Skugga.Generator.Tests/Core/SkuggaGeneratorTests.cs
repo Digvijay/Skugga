@@ -4,8 +4,46 @@ using Skugga.Generator;
 
 namespace Skugga.Generator.Tests;
 
+/// <summary>
+/// Tests for the Skugga source generator (SkuggaGenerator).
+/// Verifies that the generator correctly produces mock classes and interceptors at compile-time.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Skugga uses Roslyn source generators to analyze code at compile-time and generate mock implementations.
+/// This is a key advantage over reflection-based mocking frameworks, enabling Native AOT support and
+/// better performance.
+/// </para>
+/// <para>
+/// The generator performs several operations:
+/// 1. Detects calls to Mock.Create&lt;T&gt;() in user code
+/// 2. Generates concrete mock classes implementing the target interfaces
+/// 3. Creates interceptor methods that redirect Mock.Create calls to generated mocks
+/// 4. Supports Harness.Create&lt;T&gt;() for automatic dependency injection in tests
+/// </para>
+/// <para>
+/// Generated code includes:
+/// - Mock classes with MockHandler integration for setup/verification
+/// - Properties and methods matching the interface
+/// - Interceptor attributes for compile-time method redirection
+/// - TestHarness subclasses with automatic mock creation
+/// </para>
+/// <para>
+/// Test methodology:
+/// - Uses CSharpCompilation to simulate compile-time environment
+/// - Provides mock Skugga.Core definitions for isolated testing
+/// - Verifies generated source contains expected patterns
+/// - Checks for proper fully-qualified type names and namespace handling
+/// </para>
+/// </remarks>
 public class SkuggaGeneratorTests
 {
+    #region Mock Skugga.Core Assembly
+    
+    /// <summary>
+    /// Mock definitions of core Skugga types for testing the generator in isolation.
+    /// This simulates the Skugga.Core assembly without requiring actual project references.
+    /// </summary>
     private const string CoreAssembly = @"
         namespace Skugga.Core
         {
@@ -40,8 +78,17 @@ public class SkuggaGeneratorTests
             }
         }
         ";
+    
+    #endregion
+    
+    #region Basic Mock Generation Tests
 
+    /// <summary>
+    /// Verifies that the generator creates a mock class for a simple interface.
+    /// This is the fundamental test ensuring basic code generation works.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldGenerateMockClass_ForInterface()
     {
         var source = """
@@ -75,7 +122,12 @@ public class SkuggaGeneratorTests
         });
     }
 
+    /// <summary>
+    /// Verifies that the generator creates interceptor methods with InterceptsLocationAttribute.
+    /// Interceptors redirect Mock.Create calls to generated mock constructors at compile-time.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldGenerateInterceptor_ForMockCreate()
     {
         var source = """
@@ -107,7 +159,12 @@ public class SkuggaGeneratorTests
         });
     }
 
+    /// <summary>
+    /// Verifies that generated mock classes include all interface methods (void and non-void).
+    /// Tests method signature generation with parameters and return types.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldGenerateMockWithMethods_ForInterface()
     {
         var source = """
@@ -140,7 +197,12 @@ public class SkuggaGeneratorTests
         });
     }
 
+    /// <summary>
+    /// Verifies that generated mock classes include properties (get-only and get/set).
+    /// Tests property generation with different accessor combinations.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldGenerateMockWithProperties_ForInterface()
     {
         var source = """
@@ -172,8 +234,17 @@ public class SkuggaGeneratorTests
             mockClass.Should().Contain("public int Count", "should generate Count property");
         });
     }
+    
+    #endregion
+    
+    #region Advanced Generation Tests
 
+    /// <summary>
+    /// Verifies that the generator handles Mock.Create calls with MockBehavior parameter.
+    /// Tests that generated interceptors accept and pass through behavior settings.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldHandleMockBehaviorParameter()
     {
         var source = """
@@ -204,7 +275,12 @@ public class SkuggaGeneratorTests
         });
     }
 
+    /// <summary>
+    /// Verifies that the generator creates TestHarness subclasses for Harness.Create calls.
+    /// Harness classes automatically create mocks for constructor dependencies.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldGenerateHarnessClass_ForHarnessCreate()
     {
         var source = """
@@ -242,7 +318,12 @@ public class SkuggaGeneratorTests
         });
     }
 
+    /// <summary>
+    /// Verifies that the generator produces only one mock class per interface type,
+    /// even when multiple Mock.Create calls exist for the same interface.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldNotGenerateDuplicateMockClasses()
     {
         var source = """
@@ -273,7 +354,12 @@ public class SkuggaGeneratorTests
         });
     }
 
+    /// <summary>
+    /// Verifies that the generator handles multiple different interfaces in the same compilation.
+    /// Tests that each interface gets its own mock class.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldHandleMultipleInterfaces()
     {
         var source = """
@@ -302,7 +388,12 @@ public class SkuggaGeneratorTests
         });
     }
 
+    /// <summary>
+    /// Verifies that the generator correctly handles generic return types like Task&lt;T&gt;.
+    /// Tests async method signature generation.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldHandleGenericReturnTypes()
     {
         var source = """
@@ -334,7 +425,12 @@ public class SkuggaGeneratorTests
         });
     }
 
+    /// <summary>
+    /// Verifies that generated code uses fully qualified type names to avoid namespace conflicts.
+    /// Tests that both Skugga.Core types and user interface types are properly qualified.
+    /// </summary>
     [Fact]
+    [Trait("Category", "Generator")]
     public async Task Generator_ShouldUseFullyQualifiedNames()
     {
         var source = """
@@ -365,7 +461,25 @@ public class SkuggaGeneratorTests
             mockClass.Should().Contain("global::TestNamespace.IService", "should use fully qualified name for interface");
         });
     }
+    
+    #endregion
+    
+    #region Test Infrastructure
 
+    /// <summary>
+    /// Helper method to verify source generator output.
+    /// Creates a test compilation, runs the generator, and validates generated sources.
+    /// </summary>
+    /// <param name="source">User source code to compile</param>
+    /// <param name="assertions">Callback to assert on generated source strings</param>
+    /// <remarks>
+    /// This method simulates the compile-time environment by:
+    /// 1. Parsing user source code and mock Skugga.Core assembly
+    /// 2. Creating a CSharpCompilation with all necessary references
+    /// 3. Running the SkuggaGenerator through CSharpGeneratorDriver
+    /// 4. Extracting generated source trees and passing them to assertions
+    /// 5. Verifying no compilation errors were produced
+    /// </remarks>
     private static async Task VerifyGeneratorAsync(string source, Action<List<string>> assertions)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
@@ -397,4 +511,6 @@ public class SkuggaGeneratorTests
 
         await Task.CompletedTask;
     }
+    
+    #endregion
 }

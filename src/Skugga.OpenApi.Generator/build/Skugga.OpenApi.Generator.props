@@ -1,0 +1,46 @@
+<Project>
+  
+  <!-- 
+    MSBuild integration for Skugga OpenAPI Generator
+    
+    This file is automatically imported when referencing Skugga.OpenApi.Generator.
+    It handles:
+    1. Downloading OpenAPI specs from URLs and caching them
+    2. Adding local OpenAPI specs to AdditionalFiles
+    3. Cleaning up cached specs on 'dotnet clean'
+  -->
+
+  <PropertyGroup>
+    <!-- Default cache directory for downloaded OpenAPI specs -->
+    <SkuggaOpenApiCacheDir Condition="'$(SkuggaOpenApiCacheDir)' == ''">$(IntermediateOutputPath)skugga-openapi-cache</SkuggaOpenApiCacheDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Define the item type for OpenAPI URLs -->
+    <!-- Usage: <SkuggaOpenApiUrl Include="https://api.example.com/spec.json" /> -->
+  </ItemGroup>
+
+  <!-- 
+    Target: Download OpenAPI specs from URLs before compilation
+    This runs before CoreCompile to ensure specs are available for the generator
+  -->
+  <Target Name="SkuggaDownloadOpenApiSpecs" BeforeTargets="CoreCompile" Condition="'@(SkuggaOpenApiUrl)' != ''">
+    <Message Text="Skugga: Downloading OpenAPI specifications..." Importance="high" />
+    
+    <!-- Create cache directory if it doesn't exist -->
+    <MakeDir Directories="$(SkuggaOpenApiCacheDir)" />
+    
+    <!-- TODO Phase 2: Implement actual download logic via MSBuild task or inline script -->
+    <!-- For now, we'll document how users should add AdditionalFiles manually -->
+    
+    <Warning Text="Skugga OpenAPI: URL downloading not yet implemented in Phase 1. Please download specs manually and add to AdditionalFiles." />
+  </Target>
+
+  <!--
+    Target: Clean up cached OpenAPI specs
+  -->
+  <Target Name="SkuggaCleanOpenApiCache" AfterTargets="Clean">
+    <RemoveDir Directories="$(SkuggaOpenApiCacheDir)" Condition="Exists('$(SkuggaOpenApiCacheDir)')" />
+  </Target>
+
+</Project>

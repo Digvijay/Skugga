@@ -3,13 +3,18 @@
 [![Skugga CI](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml/badge.svg)](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Skugga.svg)](https://www.nuget.org/packages/Skugga/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-937%20passing-brightgreen)](https://github.com/Digvijay/Skugga)
+[![Tests](https://img.shields.io/badge/tests-1018%20passing-brightgreen)](https://github.com/Digvijay/Skugga)
+[![Docs](https://img.shields.io/badge/docs-comprehensive-blue)](docs/)
 
 ![Skugga Banner](docs/images/skugga_banner_small.png)
 
 > **"Mocking at the Speed of Compilation."**
 
 **Skugga** (Swedish for *Shadow*) is a mocking library engineered specifically for **Native AOT** and Cloud-Native .NET.
+
+**[📚 Complete Documentation →](docs/)** | **[🚀 Quick Start](#installation)** | **[🎯 Example Code](samples/)**
+
+---
 
 Legacy tools like Moq rely on runtime reflection, which is slow, memory-intensive, and incompatible with Native AOT. Skugga takes a different approach: it moves the mocking logic to **Compile-Time**. The result is a library that is 100% AOT-compatible, uses zero reflection, and enables "Distroless" container deployments.
 
@@ -44,59 +49,308 @@ graph TB
 
 -----
 ## 🔥 Key Features
-1. Auto-Scribe (Self-Writing Tests) ✍️
-Tired of manually writing mock.Setup() lines? Skugga can record real interactions and generate the test code for you.
 
-```C#
+> **Industry-First Features:** Skugga is the **only .NET mocking library** offering built-in [Chaos Engineering](#chaos-engineering-🔥) and [Zero-Allocation Testing](#zero-allocation-testing-⚡). While resilience libraries like [Polly](https://github.com/App-vNext/Polly) + [Simmy](https://github.com/Polly-Contrib/Simmy) provide chaos testing for production code, Skugga uniquely integrates chaos directly into your mocks for test-time resilience validation.
 
-// 1. Wrap your real service
-var recorder = AutoScribe.Capture<IRepo>(new RealRepo());
+### 1. Doppelgänger (OpenAPI Mock Generation) 🤖 **[NEW in v1.2.0]**
 
-// 2. Run your app manually
-recorder.GetData(101);
+> **"Your tests should fail when APIs change, not your production."**
 
-// 3. Skugga prints the code to your console:
-// [AutoScribe] mock.Setup(x => x.GetData(101)).Returns("Real_Data_101");
+**The Problem: "Contract Drift"**
+
+You mock `IPaymentGateway` manually in your tests. Meanwhile, the platform team updates the actual Payment API OpenAPI definition. **Your tests pass** (because the mock is outdated), **but production crashes**.
+
+This is contract drift - your mocks lie to you.
+
+**The Skugga Solution: Build-Time Contract Validation**
+
+Doppelgänger generates mocks from OpenAPI specs at compile time. When the API changes:
+- ❌ **Manual Mocks**: Tests pass ✓ → Production crashes 💥
+- ✅ **Doppelgänger**: Build fails ❌ → Fix before deploy ✅
+
+**[👉 Demo and Example Code](samples/DoppelgangerDemo)** - Shows contract drift detection with real examples
+
+**Never mock blindly. Mock against the spec.**
+
+```csharp
+// "God Mode" Attribute - generates interface + mock from spec
+[SkuggaFromOpenApi("https://api.stripe.com/v1/swagger.json")]
+public partial interface IStripeClient { }
+
+// In your test:
+var mock = Mock.Create<IStripeClient>();
+var invoice = mock.GetInvoice("inv_123"); 
+// Returns realistic Invoice with dummy data from spec examples
+
+// When Stripe updates their API:
+// ❌ Old way: Tests pass, production crashes
+// ✅ Skugga: Build fails with clear error, fix before deploy
 ```
-2. Chaos Mode (Resilience Testing) 💥
-Test how your application handles failure. Skugga can inject random faults (latency, exceptions, timeouts) into your mocks without changing your test logic.
+
+#### What Makes Doppelgänger Unique?
+
+**vs OpenAPI Generator**: Generates production clients, not test mocks  
+**vs NSwag**: Generates clients + Swagger UI, not test mocks  
+**vs Manual Mocks (Moq)**: No OpenAPI integration, contracts drift  
+**Doppelgänger**: Only tool for test mocks with build-time contract validation
+
+**ROI**: Save $23k-33k per year preventing contract drift incidents ([see calculation](samples/DoppelgangerDemo#demo-2-feature-comparison))
+
+#### Quick Start
+
+```csharp
+// One attribute - generates interface + mock from OpenAPI spec
+[SkuggaFromOpenApi("petstore.json")]
+public partial interface IPetStoreApi { }
+
+// Use in tests
+var mock = Mock.Create<IPetStoreApi>();
+var pet = mock.GetPet("123"); // Returns realistic data from spec
+```
+
+**When the API changes, your build fails with clear errors:**
+```
+error CS0117: 'IPetStoreApi' does not contain definition for 'GetPet'
+error CS0029: Cannot convert type 'decimal' to 'int'
+```
+
+#### Core Features
+
+**✨ Automatic Interface Generation** - No manual coding required  
+**🔄 Async/Sync Configuration** - Control method signatures  
+**🎯 Realistic Test Data** - Uses examples from OpenAPI spec  
+**🔐 Auth Mocking** - OAuth2/JWT token generation built-in  
+**🗄️ Stateful Behavior** - In-memory CRUD for integration tests  
+**✅ Schema Validation** - Runtime validation against OpenAPI schemas  
+**⚡ Native AOT Compatible** - 100% compile-time generation
+
+**[📖 Read the full Doppelgänger guide →](docs/DOPPELGANGER.md)** | **[🎯 Demo and example code →](samples/DoppelgangerDemo)**
+
+---
+
+**📋 Response Headers Support** - Access headers alongside response bodies
+```csharp
+[SkuggaFromOpenApi("api-with-headers.json")]
+public partial interface IApiWithHeaders { }
+
+var mock = Mock.Create<IApiWithHeaders>();
+var response = mock.GetUser(123); // Returns ApiResponse<User>
+var user = response.Body;          // Access the user data
+var rateLimit = response.Headers["X-RateLimit-Limit"]; // Access headers
+```
+
+**🎯 Example Set Selection** - Choose specific test scenarios
+```csharp
+// Use "success" example set for happy path testing
+[SkuggaFromOpenApi("users.json", UseExampleSet = "success")]
+public partial interface IUserApiSuccess { }
+
+// Use "error" example set for error handling tests
+[SkuggaFromOpenApi("users.json", UseExampleSet = "error")]
+public partial interface IUserApiError { }
+```
+
+**🔐 Authentication Mocking** - Test security scenarios
+```csharp
+[SkuggaFromOpenApi("secure-api.json")]
+public partial interface ISecureApi { }
+
+var mock = new ISecureApiMock();
+mock.ConfigureSecurity(
+    tokenExpired: true,       // Simulate expired token
+    tokenInvalid: false,      // Valid token format
+    credentialsRevoked: false // Active credentials
+);
+// Operations will return 401 Unauthorized when called
+```
+
+**📊 Stateful Mocking** - In-memory entity tracking for CRUD testing
+```csharp
+[SkuggaFromOpenApi("users.json")]
+public partial interface IUserApi { }
+
+var mock = new IUserApiMock();
+var user = mock.CreateUser(new User { Name = "Alice" }); // Stored in-memory
+var retrieved = mock.GetUser(user.Id);                   // Retrieves from store
+Assert.Equal("Alice", retrieved.Name);
+```
+
+**✅ Contract Validation** - Runtime schema validation
+```csharp
+[SkuggaFromOpenApi("products.json", ValidateSchemas = true)]
+public partial interface IValidatedApi { }
+
+var mock = new IValidatedApiMock();
+// Mock validates all responses against OpenAPI schemas
+// Throws ContractViolationException if schema doesn't match
+```
+
+**🌐 URL & Local File Support** - Flexible spec sources
+```csharp
+// Remote URL (cached locally)
+[SkuggaFromOpenApi("https://api.example.com/openapi.json")]
+public partial interface IRemoteApi { }
+
+// Local file path
+[SkuggaFromOpenApi("../specs/api.json")]
+public partial interface ILocalApi { }
+```
+
+**🔍 OpenAPI Quality Linting** - Enforce best practices at build time
+```csharp
+// Customize linting rules
+[SkuggaFromOpenApi("api.json", LintingRules = "operation-tags:error,info-license:off")]
+public partial interface IMyApi { }
+// Build fails if operations missing tags, ignores missing license
+```
+
+#### Benefits
+
+- ✅ Zero manual interface maintenance
+- ✅ Realistic defaults from OpenAPI examples
+- ✅ Compile-time contract validation
+- ✅ Works with URLs or local paths
+- ✅ Smart caching with offline support
+- ✅ Configurable async/sync generation
+- ✅ Response headers automatically populated
+- ✅ Authentication & security testing
+- ✅ Stateful CRUD operations
+- ✅ Runtime schema validation
+- ✅ OpenAPI quality linting
+- ✅ 100% Native AOT compatible
+
+**[📖 Read the full Doppelgänger guide →](docs/DOPPELGANGER.md)**  
+**[🎓 Step-by-step tutorial with examples →](docs/API_REFERENCE.md#doppelgänger-openapi-mock-generation)**
+
+### 2. Auto-Scribe (Self-Writing Tests) ✍️
+
+Stop manually writing mock setup code. AutoScribe **records real interactions** and generates the test code for you—turning 15 minutes of tedious mock setup into 30 seconds.
+
+**[▶️ Demo and Example Code](samples/AutoScribeDemo)** - Complex 9-dependency controller example with side-by-side comparison.
 
 ```C#
+// 1. Wrap your real service with AutoScribe
+var recorder = AutoScribe.Capture<IOrderRepository>(new RealOrderRepository());
 
+// 2. Exercise your code manually or run your app
+var order = recorder.GetOrder(12345);
+recorder.UpdateStatus(12345, "Shipped");
+
+// 3. AutoScribe generates the mock setup code:
+// [AutoScribe] mock.Setup(x => x.GetOrder(12345)).Returns(new Order { Id = 12345, Status = "Pending" });
+// [AutoScribe] mock.Setup(x => x.UpdateStatus(12345, "Shipped")).Returns(true);
+
+// 4. Copy/paste into your test - done!
+```
+
+**Real Impact:**
+- **Manual approach**: 15 minutes to setup 9 mock dependencies (50+ lines)
+- **AutoScribe approach**: 30 seconds to generate the same setup
+- **Accuracy**: Captures real return values, not guesses
+
+**Key Features:**
+- Records method calls and return values
+- Generates copy/paste ready mock.Setup() code
+- Handles complex objects and collections
+- Works with async methods
+- Perfect for testing with real database/API interactions
+
+**[📖 Read the full AutoScribe guide →](docs/AUTOSCRIBE.md)** | **[🎯 Demo and example code →](samples/AutoScribeDemo)**
+
+---
+
+### 3. Chaos Engineering 🔥
+
+> **Industry First:** Skugga is the **only .NET mocking library** with built-in chaos engineering for testing resilience patterns directly in your mocks. While [Polly](https://github.com/App-vNext/Polly) + [Simmy](https://github.com/Polly-Contrib/Simmy) provide chaos for production code, Skugga brings chaos to test time.
+
+Test how your application handles failure. Inject random faults (latency, exceptions, timeouts) into mocks to **prove** your retry logic works.
+
+**[▶️ Demo and Example Code](samples/ChaosEngineeringDemo)** - 4 scenarios showing resilience testing with retry policies and circuit breakers.
+
+```C#
 mock.Chaos(policy => {
-    policy.FailureRate = 0.5; // 50% chance of failure
-    policy.PossibleExceptions = new [] { new TimeoutException() };
+    policy.FailureRate = 0.3; // 30% of calls fail
+    policy.PossibleExceptions = new[] { 
+        new TimeoutException(),
+        new HttpRequestException("503")
+    };
+    policy.Seed = 42; // Reproducible chaos
 });
 
-// Now, 50% of calls to this mock will throw a TimeoutException!
+// Test retry logic survives!
+for (int i = 0; i < 100; i++) {
+    await RetryPolicy.ExecuteAsync(() => mock.CallAsync());
+}
 
+// Verify chaos was injected
+var stats = mock.GetChaosStatistics();
+Console.WriteLine($"Chaos triggered {stats.ChaosTriggeredCount} times");
 ```
 
-3. Zero-Alloc Guard (Performance Enforcement) 📉
-Ensure your "hot paths" remain allocation-free. Skugga integrates directly with the GC to fail tests if they allocate memory on the heap.
+**Key Features:**
+- Random failure injection with configurable rates
+- Delay simulation for timeout testing  
+- Reproducible chaos with seeds
+- Detailed statistics tracking
+- Works with async methods
+
+**[📖 Read the full Chaos Engineering guide →](docs/CHAOS_ENGINEERING.md)** | **[🎯 Demo and example code →](samples/ChaosEngineeringDemo)**
+
+---
+
+### 4. Zero-Allocation Testing ⚡
+
+> **Industry First:** Skugga is the **only .NET mocking library** providing allocation assertions to **prove** your hot paths are truly zero-allocation. No other mocking framework (Moq, NSubstitute, FakeItEasy) offers this capability.
+
+Ensure your "hot paths" remain allocation-free with precise GC-level measurements. Catch performance regressions before they hit production.
+
+**[▶️ Demo and Example Code](samples/AllocationTestingDemo)** - 6 scenarios showing before/after comparisons (50MB → 0 bytes).
 
 ```C#
-
+// Enforce zero allocations
 AssertAllocations.Zero(() => {
-    // This block MUST NOT allocate heap memory.
-    // If it does (e.g., 'new List<int>()'), the test fails immediately.
-    processor.ProcessHighVolumeData(); 
+    cache.Lookup(key); // Must not allocate!
 });
 
+// Set allocation budgets
+AssertAllocations.AtMost(() => {
+    ProcessRequest(data);
+}, maxBytes: 1024); // Fail if > 1KB
+
+// Measure and compare
+var report = AssertAllocations.Measure(() => {
+    for (int i = 0; i < 1000; i++) {
+        GetCacheKey(i); // String concat allocates!
+    }
+}, "String concat (1000x)");
+
+Console.WriteLine($"Allocated: {report.BytesAllocated:N0} bytes");
+// Output: Allocated: 50,000 bytes
 ```
-4. Strict Mocks (Verify All) 🔒
+
+**Key Features:**
+- Precise GC-level allocation tracking
+- Zero-allocation enforcement for hot paths
+- Allocation budgets for controlled memory use
+- Before/after comparison reports
+- Catch regressions in CI/CD
+
+**[📖 Read the full Allocation Testing guide →](docs/ALLOCATION_TESTING.md)** | **[🎯 Demo and example code →](samples/AllocationTestingDemo)**
+
+---
+
+### 5. Strict Mocks (Verify All) 🔒
 Ensure no interaction goes unnoticed. By enabling "Strict Mode", Skugga will throw an exception if any method is called that wasn't explicitly setup.
 
 ```C#
-
 // Strict: Throws if ANY un-setup member is accessed
 var mock = Mock.Create<IEmailService>(MockBehavior.Strict); 
 
 // Loose (Default): Returns null/default for un-setup members
 var mock = Mock.Create<IEmailService>();
-
 ```
-5. Argument Matchers (Flexible Matching) 🎯
+
+### 6. Argument Matchers (Flexible Matching) 🎯
 Match method arguments with flexible predicates, value sets, null checks, and regex patterns.
 
 ```C#

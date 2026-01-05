@@ -13,6 +13,937 @@ Complete API documentation for Skugga mocking library.
 - [AutoScribe](#autoscribe)
 - [Chaos Mode](#chaos-mode)
 - [Performance Testing](#performance-testing)
+- [Doppelgänger (OpenAPI Mock Generation)](#doppelgänger-openapi-mock-generation)
+
+---
+
+## Doppelgänger (OpenAPI Mock Generation)
+
+**Doppelgänger** brings **Consumer-Driven Contracts to the unit testing level** - eliminating "contract drift" by generating mocks directly from OpenAPI specifications at build time.
+
+### The Pain Point: Contract Drift
+
+**You mock blindly. Your tests pass. Production crashes.**
+
+Traditional mocking creates a dangerous illusion:
+
+```csharp
+// You manually create this interface
+public interface IPaymentGateway
+{
+    Invoice GetInvoice(string id);
+}
+
+// You manually mock it
+var mock = new Mock<IPaymentGateway>();
+mock.Setup(x => x.GetInvoice(It.IsAny<string>()))
+    .Returns(new Invoice { Id = "fake", Amount = 100 });
+
+// ✅ Tests pass!
+```
+
+**Meanwhile...** the platform team updates the Payment API:
+- Renames `GetInvoice` → `RetrieveInvoice`  
+- Changes `Amount` from `int` to `decimal`
+- Adds required `Currency` field
+
+**Result:**
+- ✅ Tests still pass (outdated mock doesn't match API)
+- ❌ Production crashes (real API has changed)
+
+This is **contract drift** - your mocks lie to you.
+
+### The Skugga Solution: Never Mock Blindly
+
+Doppelgänger reads the OpenAPI spec at build time and generates mocks that **must** match the contract:
+
+```csharp
+using Skugga.Core;
+
+// "God Mode" Attribute - generates interface + mock from spec
+[SkuggaFromOpenApi("https://api.stripe.com/v1/swagger.json")]
+public partial interface IStripeClient { }
+
+// In your test:
+var mock = Mock.Create<IStripeClient>();
+var invoice = mock.GetInvoice("inv_123");
+// Returns realistic Invoice from spec examples
+
+// When the API changes:
+// ❌ Old way: Tests pass, production crashes
+// ✅ Skugga: Build fails, fix before deploy
+```
+
+**Consumer-Driven Contracts at Unit Test Level** - when the spec changes, your code breaks at compile time, not at runtime.
+
+### Quick Start
+
+```csharp
+using Skugga.Core;
+using Xunit;
+
+// 1. Define interface with OpenAPI spec
+[SkuggaFromOpenApi("https://petstore3.swagger.io/api/v3/openapi.json")]
+public partial interface IPetStoreApi { }
+
+// 2. Create mock and test
+[Fact]
+public async Task Can_Get_Pet()
+{
+    var api = Mock.Create<IPetStoreApi>();
+    var pet = await api.GetPetById(123);
+    Assert.NotNull(pet);
+}
+```
+
+### Feature 1: Automatic Interface Generation
+
+**What it does:** Generates complete interface definitions from OpenAPI operations - no manual coding required.
+
+**Use Case:** You're integrating with a third-party API and need a typed interface for testing.
+
+**Example:**
+```csharp
+// Before: Manual interface creation (tedious and error-prone)
+public interface IStripeClient
+{
+    Task<Invoice> GetInvoice(string id);
+    Task<Customer> CreateCustomer(CustomerRequest request);
+    // ... 50+ more methods to maintain manually
+}
+
+// After: Auto-generated from OpenAPI spec
+[SkuggaFromOpenApi("https://api.stripe.com/v1/openapi.json")]
+public partial interface IStripeClient { }
+// All methods generated automatically!
+```
+
+**Testing with generated interface:**
+```csharp
+[Fact]
+public async Task Invoice_Retrieval_Returns_Valid_Data()
+{
+    // Arrange
+    var stripe = Mock.Create<IStripeClient>();
+    
+    // Act - method exists because it's in the OpenAPI spec
+    var invoice = await stripe.GetInvoice("inv_123");
+    
+    // Assert - realistic defaults from spec examples
+    Assert.NotNull(invoice);
+    Assert.NotNull(invoice.Id);
+    Assert.True(invoice.Total > 0);
+}
+```
+
+**Reference Tests:**
+- [`BasicGeneratorTests.cs`](../../tests/Skugga.OpenApi.Tests/Core/BasicGeneratorTests.cs) - Interface generation validation
+- [`AdvancedFeaturesTests.cs`](../../tests/Skugga.OpenApi.Tests/Generation/AdvancedFeaturesTests.cs) - Complex schema handling
+
+---
+
+### Feature 2: Async/Sync Method Generation
+
+**What it does:** Controls whether generated methods use `async Task<T>` or synchronous return types.
+
+**Use Case:** You're wrapping a synchronous API or need to match your existing codebase patterns.
+
+**Async Example (Default):**
+```csharp
+[SkuggaFromOpenApi("users.json")]
+public partial interface IUserApiAsync { }
+
+// Generated methods:
+// Task<User[]> GetUsers();
+// Task<User> GetUser(int id);
+// Task DeleteUser(int id);
+
+[Fact]
+public async Task Async_Methods_Work_With_Await()
+{
+    var api = Mock.Create<IUserApiAsync>();
+    
+    var users = await api.GetUsers();
+    Assert.NotNull(users);
+    
+    var user = await api.GetUser(1);
+    Assert.NotNull(user);
+}
+```
+
+**Sync Example:**
+```csharp
+[SkuggaFromOpenApi("users.json", GenerateAsync = false)]
+public partial interface IUserApiSync { }
+
+// Generated methods:
+// User[] GetUsers();
+// User GetUser(int id);
+// void DeleteUser(int id);
+
+[Fact]
+public void Sync_Methods_Work_Without_Await()
+{
+    var api = Mock.Create<IUserApiSync>();
+    
+    var users = api.GetUsers();  // No await needed
+    Assert.NotNull(users);
+    
+    var user = api.GetUser(1);
+    Assert.NotNull(user);
+}
+```
+
+**When to use sync mode:**
+- Legacy APIs that don't support async operations
+- Performance-critical code where Task allocation overhead matters
+- Testing synchronous business logic
+- Compatibility with frameworks that don't support async
+
+**Reference Tests:**
+- [`GenerateAsyncConfigurationTests.cs`](../../tests/Skugga.OpenApi.Tests/Integration/GenerateAsyncConfigurationTests.cs) - Async vs sync generation
+
+---
+
+### Feature 3: Response Headers Support
+
+**What it does:** Wraps response bodies with headers when OpenAPI operations define response headers.
+
+**Use Case:** Testing APIs that return important metadata in headers (rate limits, ETags, pagination).
+
+**Example:**
+```csharp
+[SkuggaFromOpenApi("api-with-headers.json")]
+public partial interface IGitHubApi { }
+
+[Fact]
+public async Task Can_Access_RateLimit_Headers()
+{
+    // Arrange
+    var api = Mock.Create<IGitHubApi>();
+    
+    // Act
+    var response = await api.ListRepositories("microsoft");
+    
+    // Assert - access response body
+    Assert.NotNull(response.Body);
+    Assert.True(response.Body.Length > 0);
+    
+    // Assert - access headers
+    Assert.NotNull(response.Headers);
+    Assert.Contains("X-RateLimit-Limit", response.Headers.Keys);
+    Assert.Contains("X-RateLimit-Remaining", response.Headers.Keys);
+    
+    // Parse header values
+    var limit = int.Parse(response.Headers["X-RateLimit-Limit"]);
+    Assert.True(limit > 0);
+}
+
+[Fact]
+public async Task Can_Test_Pagination_With_LinkHeader()
+{
+    var api = Mock.Create<IGitHubApi>();
+    
+    var response = await api.ListUsers(page: 1);
+    
+    // Check pagination headers
+    if (response.Headers.ContainsKey("Link"))
+    {
+        var linkHeader = response.Headers["Link"];
+        Assert.Contains("rel=\"next\"", linkHeader);
+    }
+}
+```
+
+**OpenAPI Spec Example:**
+```json
+{
+  "/users/{id}": {
+    "get": {
+      "responses": {
+        "200": {
+          "headers": {
+            "X-RateLimit-Limit": {
+              "schema": { "type": "integer" },
+              "example": 5000
+            },
+            "ETag": {
+              "schema": { "type": "string" },
+              "example": "\"686897696a7c876b7e\""
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Reference Tests:**
+- [`ResponseHeadersTests.cs`](../../tests/Skugga.OpenApi.Tests/Generation/ResponseHeadersTests.cs) - Header access and validation
+
+---
+
+### Feature 4: Example Set Selection
+
+**What it does:** Selects specific named example sets from OpenAPI specs for different test scenarios.
+
+**Use Case:** Your API spec defines multiple examples (success, error, edge cases) and you want to test each scenario.
+
+**Example:**
+```csharp
+// Success case testing
+[SkuggaFromOpenApi("users.json", UseExampleSet = "success")]
+public partial interface IUserApiSuccess { }
+
+// Error case testing
+[SkuggaFromOpenApi("users.json", UseExampleSet = "notfound")]
+public partial interface IUserApiNotFound { }
+
+// Edge case testing
+[SkuggaFromOpenApi("users.json", UseExampleSet = "suspended")]
+public partial interface IUserApiSuspended { }
+
+[Fact]
+public async Task Success_Example_Returns_Active_User()
+{
+    var api = Mock.Create<IUserApiSuccess>();
+    var user = await api.GetUser(1);
+    
+    Assert.NotNull(user);
+    Assert.Equal("active", user.Status);
+    Assert.NotNull(user.Email);
+}
+
+[Fact]
+public async Task NotFound_Example_Returns_Null()
+{
+    var api = Mock.Create<IUserApiNotFound>();
+    var user = await api.GetUser(999);
+    
+    Assert.Null(user);  // Not found example returns null
+}
+
+[Fact]
+public async Task Suspended_Example_Returns_Suspended_User()
+{
+    var api = Mock.Create<IUserApiSuspended>();
+    var user = await api.GetUser(1);
+    
+    Assert.NotNull(user);
+    Assert.Equal("suspended", user.Status);
+    Assert.Null(user.Email);  // Suspended users have no email
+}
+```
+
+**OpenAPI Spec Example:**
+```json
+{
+  "/users/{id}": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "success": {
+                  "value": {
+                    "id": 123,
+                    "name": "Alice",
+                    "status": "active",
+                    "email": "alice@example.com"
+                  }
+                },
+                "suspended": {
+                  "value": {
+                    "id": 456,
+                    "name": "Bob",
+                    "status": "suspended",
+                    "email": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Reference Tests:**
+- [`ExampleSetTests.cs`](../../tests/Skugga.OpenApi.Tests/Generation/ExampleSetTests.cs) - Multiple example selection
+
+---
+
+### Feature 5: Authentication & Security Testing
+
+**What it does:** Generates methods to configure security scenarios (expired tokens, invalid credentials, etc.).
+
+**Use Case:** Testing how your application handles various authentication failures.
+
+**Example:**
+```csharp
+[SkuggaFromOpenApi("secure-api.json")]
+public partial interface ISecureApi { }
+
+[Fact]
+public async Task ExpiredToken_Returns_401()
+{
+    // Arrange
+    var api = new ISecureApiMock();
+    api.ConfigureSecurity(
+        tokenExpired: true,
+        tokenInvalid: false,
+        credentialsRevoked: false
+    );
+    
+    // Act
+    var result = await api.GetProtectedResource();
+    
+    // Assert - Mock returns 401 response
+    Assert.Null(result);  // Or throws UnauthorizedException depending on spec
+}
+
+[Fact]
+public async Task InvalidToken_Returns_401()
+{
+    var api = new ISecureApiMock();
+    api.ConfigureSecurity(tokenInvalid: true);
+    
+    var result = await api.GetProtectedResource();
+    Assert.Null(result);
+}
+
+[Fact]
+public async Task RevokedCredentials_Returns_403()
+{
+    var api = new ISecureApiMock();
+    api.ConfigureSecurity(credentialsRevoked: true);
+    
+    var result = await api.GetProtectedResource();
+    Assert.Null(result);  // Or throws ForbiddenException
+}
+
+[Fact]
+public async Task ValidAuthentication_Returns_Data()
+{
+    var api = new ISecureApiMock();
+    api.ConfigureSecurity(
+        tokenExpired: false,
+        tokenInvalid: false,
+        credentialsRevoked: false
+    );
+    
+    var result = await api.GetProtectedResource();
+    Assert.NotNull(result);  // Success case
+}
+
+[Fact]
+public async Task Can_Generate_AccessToken()
+{
+    var api = new ISecureApiMock();
+    
+    var token = api.GenerateAccessToken(
+        clientId: "test-client",
+        scopes: new[] { "read", "write" }
+    );
+    
+    Assert.NotNull(token);
+    Assert.Contains("Bearer", token);
+}
+```
+
+**Reference Tests:**
+- [`AuthenticationMockingTests.cs`](../../tests/Skugga.OpenApi.Tests/Generation/AuthenticationMockingTests.cs) - Security testing scenarios
+
+---
+
+### Feature 6: Stateful Mocking (CRUD Operations)
+
+**What it does:** Tracks created/updated/deleted entities in-memory for realistic CRUD testing.
+
+**Use Case:** Testing application logic that performs multiple CRUD operations.
+
+**Example:**
+```csharp
+[SkuggaFromOpenApi("users.json")]
+public partial interface IUserApi { }
+
+[Fact]
+public async Task Can_Create_And_Retrieve_User()
+{
+    // Arrange
+    var api = new IUserApiMock();  // Use concrete mock class for stateful behavior
+    
+    // Act - Create user
+    var created = await api.CreateUser(new User 
+    { 
+        Name = "Alice",
+        Email = "alice@example.com"
+    });
+    
+    // Assert - User was created with ID
+    Assert.NotNull(created);
+    Assert.True(created.Id > 0);
+    
+    // Act - Retrieve the same user
+    var retrieved = await api.GetUser(created.Id);
+    
+    // Assert - Retrieved user matches created user
+    Assert.NotNull(retrieved);
+    Assert.Equal("Alice", retrieved.Name);
+    Assert.Equal("alice@example.com", retrieved.Email);
+}
+
+[Fact]
+public async Task Can_Update_Existing_User()
+{
+    var api = new IUserApiMock();
+    
+    // Create initial user
+    var user = await api.CreateUser(new User { Name = "Bob" });
+    
+    // Update user
+    user.Name = "Bob Updated";
+    var updated = await api.UpdateUser(user.Id, user);
+    
+    // Verify update persisted
+    var retrieved = await api.GetUser(user.Id);
+    Assert.Equal("Bob Updated", retrieved.Name);
+}
+
+[Fact]
+public async Task Can_Delete_User()
+{
+    var api = new IUserApiMock();
+    
+    // Create user
+    var user = await api.CreateUser(new User { Name = "Charlie" });
+    
+    // Delete user
+    await api.DeleteUser(user.Id);
+    
+    // Verify user no longer exists
+    var retrieved = await api.GetUser(user.Id);
+    Assert.Null(retrieved);
+}
+
+[Fact]
+public async Task Can_List_Multiple_Users()
+{
+    var api = new IUserApiMock();
+    
+    // Create multiple users
+    await api.CreateUser(new User { Name = "Alice" });
+    await api.CreateUser(new User { Name = "Bob" });
+    await api.CreateUser(new User { Name = "Charlie" });
+    
+    // List all users
+    var users = await api.ListUsers();
+    
+    Assert.NotNull(users);
+    Assert.Equal(3, users.Length);
+}
+```
+
+**Reference Tests:**
+- [`StatefulMockingTests.cs`](../../tests/Skugga.OpenApi.Tests/Generation/StatefulMockingTests.cs) - In-memory entity tracking
+
+---
+
+### Feature 7: Contract Validation
+
+**What it does:** Validates mock responses against OpenAPI schemas at runtime to catch contract violations.
+
+**Use Case:** Ensuring your mocks stay compliant with the API contract, catching breaking changes early.
+
+**Example:**
+```csharp
+[SkuggaFromOpenApi("products.json", ValidateSchemas = true)]
+public partial interface IValidatedProductApi { }
+
+[Fact]
+public async Task ValidResponse_PassesValidation()
+{
+    // Arrange
+    var api = new IValidatedProductApiMock();
+    
+    // Act - Mock generates valid response
+    var product = await api.GetProduct(123);
+    
+    // Assert - No exception thrown, response is valid
+    Assert.NotNull(product);
+    Assert.NotNull(product.Name);
+    Assert.True(product.Price > 0);
+}
+
+[Fact]
+public async Task InvalidResponse_ThrowsContractViolation()
+{
+    var api = Mock.Create<IValidatedProductApi>();
+    
+    // Setup invalid response (missing required field)
+    api.Setup(m => m.GetProduct(It.IsAny<long>()))
+       .Returns(Task.FromResult(new Product 
+       { 
+           Id = 123,
+           // Name is required but missing!
+           Price = 99.99m
+       }));
+    
+    // Act & Assert - Validation throws exception
+    await Assert.ThrowsAsync<ContractViolationException>(
+        async () => await api.GetProduct(123)
+    );
+}
+
+[Fact]
+public async Task Validation_ChecksRequiredFields()
+{
+    var api = new IValidatedProductApiMock();
+    
+    // Generated mock ensures all required fields are present
+    var product = await api.GetProduct(1);
+    
+    Assert.NotNull(product.Id);    // Required
+    Assert.NotNull(product.Name);  // Required
+    Assert.NotNull(product.Price); // Required
+    // Optional fields can be null
+}
+```
+
+**Reference Tests:**
+- [`ContractValidationTests.cs`](../../tests/Skugga.OpenApi.Tests/Generation/ContractValidationTests.cs) - Schema validation
+
+---
+
+### Feature 8: URL & Local File Support
+
+**What it does:** Load OpenAPI specs from remote URLs (with caching) or local file paths.
+
+**Use Case:** Using publicly available API specs or sharing specs across team members.
+
+**URL Example:**
+```csharp
+// Remote spec with automatic caching
+[SkuggaFromOpenApi("https://petstore3.swagger.io/api/v3/openapi.json")]
+public partial interface IPetStoreApi { }
+
+[Fact]
+public async Task RemoteSpec_GeneratesWorkingMock()
+{
+    var api = Mock.Create<IPetStoreApi>();
+    var pet = await api.GetPetById(1);
+    Assert.NotNull(pet);
+}
+```
+
+**Local File Example:**
+```csharp
+// Relative path from project directory
+[SkuggaFromOpenApi("../specs/internal-api.json")]
+public partial interface IInternalApi { }
+
+// Absolute path
+[SkuggaFromOpenApi("/path/to/specs/api.json")]
+public partial interface IMyApi { }
+
+[Fact]
+public async Task LocalSpec_GeneratesWorkingMock()
+{
+    var api = Mock.Create<IInternalApi>();
+    var data = await api.GetData();
+    Assert.NotNull(data);
+}
+```
+
+**Cache Behavior:**
+```csharp
+// First build: Downloads spec
+// obj/skugga-openapi-cache/abc123.json (created)
+
+// Second build: Uses cache
+// obj/skugga-openapi-cache/abc123.json (reused)
+
+// Changed spec: Auto-redownload via ETag
+// obj/skugga-openapi-cache/abc123.json (updated)
+```
+
+**Reference Tests:**
+- [`UrlDownloadingTests.cs`](../../tests/Skugga.OpenApi.Tests/Integration/UrlDownloadingTests.cs) - URL caching and loading
+
+---
+
+### Feature 9: OpenAPI Quality Linting
+
+**What it does:** Enforces OpenAPI best practices at build time with customizable rules.
+
+**Use Case:** Maintaining high-quality API documentation and catching common mistakes.
+
+**Example:**
+```csharp
+// Strict linting - all rules enabled
+[SkuggaFromOpenApi("api.json")]
+public partial interface IStrictApi { }
+// Build shows warnings for:
+// - Missing operation tags
+// - Missing descriptions
+// - Missing license info
+// - Undefined tags
+// etc.
+
+// Custom linting configuration
+[SkuggaFromOpenApi("api.json", 
+    LintingRules = "operation-tags:error,info-license:off,no-unused-components:off")]
+public partial interface ICustomApi { }
+// Build fails if operations missing tags
+// Ignores missing license and unused components
+
+// Disable all linting
+[SkuggaFromOpenApi("api.json", LintingRules = "all:off")]
+public partial interface INoLintApi { }
+```
+
+**Available Rules:**
+- `info-contact`, `info-description`, `info-license` - API info section
+- `operation-operationId`, `operation-tags`, `operation-description` - Operations
+- `operation-success-response`, `operation-parameters` - Response definitions
+- `path-parameters`, `no-identical-paths` - Path configuration
+- `tag-description`, `openapi-tags` - Tag definitions
+- `typed-enum`, `schema-description` - Schema quality
+- `no-unused-components` - Dead code detection
+
+**Severity Levels:**
+- `off` - Rule disabled
+- `info` - Informational message
+- `warn` - Warning (doesn't fail build)
+- `error` - Error (fails build)
+
+**Reference Tests:**
+- [`SpectralLintingTests.cs`](../../tests/Skugga.OpenApi.Tests/Linting/SpectralLintingTests.cs) - Linting rule validation
+
+---
+
+### Feature 10: Advanced Schema Support
+
+**What it does:** Handles complex OpenAPI schemas (allOf, oneOf, anyOf, discriminators, nested refs).
+
+**Use Case:** Working with sophisticated API specifications that use composition and polymorphism.
+
+**AllOf Example (Composition):**
+```csharp
+[SkuggaFromOpenApi("products.json")]
+public partial interface IProductApi { }
+
+// OpenAPI spec uses allOf:
+// Product = BaseProduct + { id: number }
+
+[Fact]
+public async Task AllOf_CombinesProperties()
+{
+    var api = Mock.Create<IProductApi>();
+    
+    // Override default since ExampleGenerator doesn't handle allOf yet
+    api.Setup(m => m.UpdateProduct(It.IsAny<long>(), It.IsAny<Product>()))
+       .Returns(Task.FromResult(new Product 
+       {
+           Id = 123,                    // From allOf extension
+           Name = "Widget",             // From BaseProduct
+           Category = "tools",          // From BaseProduct
+           Price = 29.99m               // From BaseProduct
+       }));
+    
+    var product = await api.UpdateProduct(123, new Product());
+    
+    Assert.NotNull(product);
+    Assert.Equal(123, product.Id);
+    Assert.Equal("Widget", product.Name);
+}
+```
+
+**OneOf Example (Polymorphism):**
+```csharp
+// OpenAPI spec uses oneOf for payment methods
+[SkuggaFromOpenApi("payments.json")]
+public partial interface IPaymentApi { }
+
+[Fact]
+public async Task OneOf_HandlesMultipleTypes()
+{
+    var api = Mock.Create<IPaymentApi>();
+    
+    // Can be CreditCardPayment OR BankTransfer OR PayPalPayment
+    var payment = await api.GetPayment(123);
+    
+    Assert.NotNull(payment);
+    // Check discriminator to determine actual type
+    if (payment.Type == "credit_card")
+    {
+        var cc = payment as CreditCardPayment;
+        Assert.NotNull(cc.CardNumber);
+    }
+}
+```
+
+**Reference Tests:**
+- [`AllOfTests.cs`](../../tests/Skugga.OpenApi.Tests/Generation/AllOfTests.cs) - Schema composition
+- [`AdvancedFeaturesTests.cs`](../../tests/Skugga.OpenApi.Tests/Generation/AdvancedFeaturesTests.cs) - Complex schemas
+
+---
+
+### Complete Real-World Example
+
+**Scenario:** Testing a microservice that integrates with GitHub API.
+
+```csharp
+using Skugga.Core;
+using Xunit;
+
+// Generate interface from GitHub's OpenAPI spec
+[SkuggaFromOpenApi("https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json")]
+public partial interface IGitHubApi { }
+
+public class GitHubIntegrationTests
+{
+    [Fact]
+    public async Task Can_List_User_Repositories()
+    {
+        // Arrange
+        var github = Mock.Create<IGitHubApi>();
+        
+        // Act
+        var repos = await github.ListUserRepos("microsoft");
+        
+        // Assert - realistic data from OpenAPI examples
+        Assert.NotNull(repos);
+        Assert.True(repos.Length > 0);
+        Assert.All(repos, repo => Assert.NotNull(repo.Name));
+    }
+    
+    [Fact]
+    public async Task Can_Get_Repository_Details()
+    {
+        var github = Mock.Create<IGitHubApi>();
+        
+        var repo = await github.GetRepository("microsoft", "vscode");
+        
+        Assert.NotNull(repo);
+        Assert.Equal("vscode", repo.Name);
+        Assert.NotNull(repo.Description);
+    }
+    
+    [Fact]
+    public async Task RateLimit_Headers_Are_Available()
+    {
+        var github = Mock.Create<IGitHubApi>();
+        
+        var response = await github.ListUserReposWithHeaders("microsoft");
+        
+        // Access response body
+        Assert.NotNull(response.Body);
+        
+        // Access rate limit headers
+        Assert.Contains("X-RateLimit-Limit", response.Headers.Keys);
+        Assert.Contains("X-RateLimit-Remaining", response.Headers.Keys);
+        
+        var limit = int.Parse(response.Headers["X-RateLimit-Limit"]);
+        Assert.Equal(5000, limit);
+    }
+    
+    [Fact]
+    public async Task Can_Override_Default_Behavior()
+    {
+        var github = Mock.Create<IGitHubApi>();
+        
+        // Override with custom data
+        github.Setup(g => g.GetRepository("test", "repo"))
+              .Returns(Task.FromResult(new Repository
+              {
+                  Name = "repo",
+                  FullName = "test/repo",
+                  Private = true,
+                  Description = "Custom test repo"
+              }));
+        
+        var repo = await github.GetRepository("test", "repo");
+        
+        Assert.True(repo.Private);
+        Assert.Equal("Custom test repo", repo.Description);
+    }
+}
+```
+
+---
+
+### Project Setup Guide
+
+**Step 1: Add NuGet Packages**
+```xml
+<ItemGroup>
+  <PackageReference Include="Skugga.Core" Version="1.2.0" />
+  <PackageReference Include="Skugga.OpenApi.Generator" Version="1.2.0" />
+</ItemGroup>
+```
+
+**Step 2: Add OpenAPI Spec**
+```xml
+<!-- For local files -->
+<ItemGroup>
+  <AdditionalFiles Include="specs/api.json" />
+</ItemGroup>
+
+<!-- For URLs -->
+<ItemGroup>
+  <SkuggaOpenApiUrl Include="https://api.example.com/openapi.json" />
+</ItemGroup>
+```
+
+**Step 3: Mark Interface**
+```csharp
+[SkuggaFromOpenApi("specs/api.json")]
+public partial interface IMyApi { }
+```
+
+**Step 4: Build & Test**
+```bash
+dotnet build   # Generates interface and mock
+dotnet test    # Run tests with generated mocks
+```
+
+---
+
+### Troubleshooting
+
+**Issue:** `SKUGGA_OPENAPI_003: Could not load OpenAPI spec`
+
+**Solution:** For URL specs, run `dotnet build` twice - first downloads, second generates.
+
+---
+
+**Issue:** `allOf` schema returns null
+
+**Solution:** Use `.Setup()` to provide explicit return values (see [Feature 10](#feature-10-advanced-schema-support)).
+
+---
+
+**Issue:** Too many linting warnings
+
+**Solution:** Configure `LintingRules` property or suppress in `.csproj`:
+```xml
+<PropertyGroup>
+  <NoWarn>$(NoWarn);SKUGGA_LINT_001;SKUGGA_LINT_002</NoWarn>
+</PropertyGroup>
+```
+
+---
+
+### Additional Resources
+
+- **[Full Doppelgänger Guide](DOPPELGANGER.md)** - Comprehensive documentation
+- **[Test Examples](../../tests/Skugga.OpenApi.Tests/)** - 200+ real test cases
+- **[OpenAPI Specification](https://swagger.io/specification/)** - OpenAPI format reference
 
 ---
 
@@ -491,6 +1422,57 @@ public class Service {
 var mock = Mock.Create<Service>(); // ⚠️ Warning
 ```
 **Solution:** Make members `virtual` or mock an interface instead.
+
+---
+
+## OpenAPI Diagnostics
+
+### SKUGGA_OPENAPI_001 to SKUGGA_OPENAPI_008
+**OpenAPI document validation errors** - See [DOPPELGANGER.md](DOPPELGANGER.md) for details.
+
+### SKUGGA_OPENAPI_009
+**OpenAPI document error** - Generic validation failure. Check build output for specific issue.
+
+---
+
+## OpenAPI Linting Diagnostics
+
+Spectral-inspired linting rules for OpenAPI quality. Configure via `LintingRules` property. See [DOPPELGANGER.md - OpenAPI Quality Linting](DOPPELGANGER.md#openapi-quality-linting) for full documentation.
+
+### Info Section Rules
+- **SKUGGA_LINT_001** (`info-contact`) - API contact information missing
+- **SKUGGA_LINT_002** (`info-description`) - API description missing
+- **SKUGGA_LINT_003** (`info-license`) - License information missing
+
+### Operation Rules
+- **SKUGGA_LINT_004** (`operation-operationId`) - Operation missing unique ID
+- **SKUGGA_LINT_005** (`operation-tags`) - Operation missing tags
+- **SKUGGA_LINT_006** (`operation-description`) - Operation missing description
+- **SKUGGA_LINT_007** (`operation-summary`) - Operation missing summary
+- **SKUGGA_LINT_008** (`operation-success-response`) - Missing 200 response
+- **SKUGGA_LINT_009** (`operation-success-response`) - Missing 2xx response
+- **SKUGGA_LINT_010** (`operation-parameters`) - Parameter missing description
+
+### Path Rules
+- **SKUGGA_LINT_011** (`path-parameters`) - Path parameter not defined in operation
+- **SKUGGA_LINT_012** (`no-identical-paths`) - Duplicate path patterns detected
+
+### Tag Rules
+- **SKUGGA_LINT_013** (`tag-description`) - Tag missing description
+- **SKUGGA_LINT_014** (`openapi-tags`) - Referenced tag not defined globally
+
+### Schema Rules
+- **SKUGGA_LINT_015** (`typed-enum`) - Enum missing type specification
+- **SKUGGA_LINT_016** (`schema-description`) - Schema missing description
+
+### Component Rules
+- **SKUGGA_LINT_017** (`no-unused-components`) - Unreferenced schema component detected
+
+**Configuration Example:**
+```csharp
+[SkuggaFromOpenApi("api.json", LintingRules = "info-license:off,operation-tags:error")]
+public partial interface IMyApi { }
+```
 
 ---
 

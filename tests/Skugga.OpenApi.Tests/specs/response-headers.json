@@ -1,0 +1,152 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Response Headers Test API",
+    "version": "1.0.0",
+    "description": "API for testing response headers support"
+  },
+  "paths": {
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user with rate limit headers",
+        "operationId": "getUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User found",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "description": "Request limit per hour",
+                "schema": {
+                  "type": "integer",
+                  "example": 1000
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests",
+                "schema": {
+                  "type": "integer",
+                  "example": 999
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Time when limit resets",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 1704110400
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                },
+                "examples": {
+                  "user": {
+                    "value": {
+                      "id": 123,
+                      "name": "John Doe",
+                      "email": "john@example.com"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "List products with ETag",
+        "operationId": "listProducts",
+        "responses": {
+          "200": {
+            "description": "Products retrieved",
+            "headers": {
+              "ETag": {
+                "description": "Entity tag for caching",
+                "schema": {
+                  "type": "string",
+                  "example": "\"products-v1\""
+                }
+              },
+              "X-Total-Count": {
+                "description": "Total number of products",
+                "schema": {
+                  "type": "integer",
+                  "example": 42
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                },
+                "examples": {
+                  "products": {
+                    "value": [
+                      {
+                        "id": 1,
+                        "name": "Widget"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 123
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Widget"
+          }
+        }
+      }
+    }
+  }
+}

@@ -31,6 +31,7 @@ public interface IProcessor
 public class DefaultValueTests
 {
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Empty_StringReturnsEmptyString()
     {
         // Arrange
@@ -45,6 +46,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Empty_ListReturnsEmptyList()
     {
         // Arrange
@@ -60,6 +62,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Empty_IEnumerableReturnsEmptyList()
     {
         // Arrange
@@ -74,6 +77,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Empty_ArrayReturnsEmptyArray()
     {
         // Arrange
@@ -89,6 +93,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Empty_DictionaryReturnsEmptyDictionary()
     {
         // Arrange
@@ -104,6 +109,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Empty_ValueTypeReturnsDefault()
     {
         // Arrange
@@ -117,6 +123,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Mock_InterfaceReturnsMockInstance()
     {
         // Arrange
@@ -133,6 +140,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Mock_NestedInterfaceReturnsMockInstance()
     {
         // Arrange
@@ -149,6 +157,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Mock_RecursiveMocking_CanCallNestedMethods()
     {
         // Arrange
@@ -167,6 +176,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Mock_ListsStillReturnEmpty()
     {
         // Arrange
@@ -181,6 +191,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_Mock_StringReturnsEmptyString()
     {
         // Arrange
@@ -195,6 +206,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_WithBehavior_Empty_Works()
     {
         // Arrange
@@ -209,6 +221,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_WithBehavior_Mock_Works()
     {
         // Arrange
@@ -224,6 +237,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_SetupOverrides_Empty()
     {
         // Arrange
@@ -240,6 +254,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void DefaultValue_SetupOverrides_Mock()
     {
         // Arrange
@@ -255,6 +270,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void CustomDefaultValueProvider_CanBeSet()
     {
         // Arrange
@@ -274,6 +290,7 @@ public class DefaultValueTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void EmptyDefaultValueProvider_DirectUsage()
     {
         // Arrange

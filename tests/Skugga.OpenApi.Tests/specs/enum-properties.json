@@ -1,0 +1,72 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Comprehensive Enum Validation Test API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/orders": {
+      "post": {
+        "operationId": "createOrder",
+        "summary": "Create a new order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Order"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                },
+                "example": {
+                  "id": 12345,
+                  "status": "pending",
+                  "priority": "normal",
+                  "paymentMethod": "credit_card"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "required": ["status", "priority"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 12345
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "completed", "cancelled"],
+            "example": "pending"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "normal", "high", "urgent"],
+            "example": "normal"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": ["credit_card", "debit_card", "paypal", "bank_transfer"],
+            "example": "credit_card"
+          }
+        }
+      }
+    }
+  }
+}

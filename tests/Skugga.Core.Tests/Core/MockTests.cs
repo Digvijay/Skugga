@@ -22,6 +22,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Create_WithLooseBehavior_ShouldReturnMockInstance()
     {
         // Act
@@ -33,6 +34,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Create_WithStrictBehavior_ShouldReturnMockInstance()
     {
         // Act
@@ -44,6 +46,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Create_CallingUnconfiguredMethod_WithLooseBehavior_ShouldReturnDefault()
     {
         // Arrange
@@ -57,6 +60,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Create_CallingUnconfiguredMethod_WithStrictBehavior_ShouldThrowMockException()
     {
         // Arrange
@@ -71,6 +75,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Setup_WithReturnValue_ShouldReturnConfiguredValue()
     {
         // Arrange
@@ -85,6 +90,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Setup_WithDifferentParameters_ShouldReturnDifferentValues()
     {
         // Arrange
@@ -98,6 +104,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Setup_WithValueTypeReturn_ShouldReturnConfiguredValue()
     {
         // Arrange
@@ -112,6 +119,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Setup_CallingWithDifferentParameters_ShouldReturnDefault()
     {
         // Arrange
@@ -126,6 +134,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Setup_PropertyGetter_ShouldReturnConfiguredValue()
     {
         // Arrange
@@ -141,6 +150,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Setup_MultipleProperties_ShouldReturnConfiguredValues()
     {
         // Arrange
@@ -154,6 +164,7 @@ public class MockTests
     }
 
     [Theory]
+    [Trait("Category", "Core")]
     [InlineData(true)]
     [InlineData(false)]
     public void Setup_BooleanReturn_ShouldReturnConfiguredValue(bool expected)
@@ -170,6 +181,7 @@ public class MockTests
     }
 
     [Fact]
+    [Trait("Category", "Core")]
     public void Create_ShouldUseFallbackWhenInterceptorNotAvailable()
     {
         // This test verifies the runtime fallback works

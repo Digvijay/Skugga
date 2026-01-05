@@ -33,6 +33,7 @@ public class GenericTypeParameterTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Mock_GenericInterface_SingleTypeParameter_ShouldWork()
     {
         // Arrange & Act
@@ -43,6 +44,7 @@ public class GenericTypeParameterTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Mock_GenericInterface_Setup_ShouldWork()
     {
         // Arrange
@@ -57,6 +59,7 @@ public class GenericTypeParameterTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Mock_GenericInterface_MultipleTypeParameters_ShouldWork()
     {
         // Arrange & Act
@@ -69,6 +72,7 @@ public class GenericTypeParameterTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Mock_GenericMethod_ShouldWork()
     {
         // Arrange
@@ -87,6 +91,7 @@ public class GenericTypeParameterTests
     // Will be tested separately once we add Microsoft.Extensions.Logging
     /*
     [Fact]
+    [Trait("Category", "Core")]
     public void Mock_ILogger_ShouldWork()
     {
         // This is the critical test - ILogger<T> uses generic type parameters in methods
@@ -98,6 +103,7 @@ public class GenericTypeParameterTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Mock_ILogger_Log_Method_ShouldWork()
     {
         // Arrange
@@ -121,6 +127,7 @@ public class GenericTypeParameterTests
     */
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Mock_GenericRepository_WithComplexType_ShouldWork()
     {
         // Arrange
@@ -136,6 +143,7 @@ public class GenericTypeParameterTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Mock_GenericRepository_VoidMethod_ShouldWork()
     {
         // Arrange
@@ -154,6 +162,7 @@ public class GenericTypeParameterTests
     }
     
     [Fact]
+    [Trait("Category", "Core")]
     public void Mock_NestedGenerics_ShouldWork()
     {
         // Arrange

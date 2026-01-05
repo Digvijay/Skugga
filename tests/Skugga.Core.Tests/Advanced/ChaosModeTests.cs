@@ -3,8 +3,46 @@ using Skugga.Core;
 namespace Skugga.Core.Tests;
 
 /// <summary>
-/// Tests for Chaos mode - resilience testing feature
+/// Tests for Chaos Engineering mode - resilience testing feature that randomly injects failures.
+/// Chaos mode helps verify that your code can handle unexpected exceptions and edge cases gracefully.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Chaos Engineering is a discipline that experiments on a system to build confidence in its capability
+/// to withstand turbulent conditions. Skugga's Chaos mode brings this concept to unit testing by:
+/// - Randomly throwing exceptions from mocked methods
+/// - Simulating unreliable dependencies and network failures
+/// - Testing error handling and retry logic
+/// - Validating graceful degradation scenarios
+/// </para>
+/// <para>
+/// Key features:
+/// - Configurable failure rate (0.0 to 1.0, where 1.0 = always fail)
+/// - Custom exception types (or use default ChaosException)
+/// - Statistics tracking (total calls, failures, success rate)
+/// - Deterministic mode for reproducible tests
+/// - Per-method chaos configuration
+/// </para>
+/// <para>
+/// Usage patterns:
+/// <code>
+/// var mock = Mock.Create&lt;IService&gt;();
+/// mock.Chaos(0.3); // 30% failure rate
+/// mock.Setup(m => m.GetData()).Returns("data");
+/// 
+/// // Test will randomly fail ~30% of the time
+/// var data = mock.GetData(); // May throw ChaosException
+/// </code>
+/// </para>
+/// <para>
+/// Test coverage:
+/// - Various failure rates (0%, 50%, 100%)
+/// - Custom exception types
+/// - Statistics collection and verification
+/// - Integration with Setup/Returns/Callback
+/// - Multiple method calls with chaos
+/// </para>
+/// </remarks>
 public class ChaosModeTests
 {
     public interface IService
@@ -14,6 +52,7 @@ public class ChaosModeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_WithZeroFailureRate_ShouldNeverThrow()
     {
         // Arrange
@@ -30,6 +69,7 @@ public class ChaosModeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_WithFullFailureRate_ShouldAlwaysThrow()
     {
         // Arrange
@@ -48,6 +88,7 @@ public class ChaosModeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_WithPartialFailureRate_ShouldSometimesThrow()
     {
         // Arrange
@@ -82,6 +123,7 @@ public class ChaosModeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_WithMultipleExceptions_ShouldThrowRandomException()
     {
         // Arrange
@@ -108,6 +150,7 @@ public class ChaosModeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_WithNoExceptions_ShouldNotThrow()
     {
         // Arrange
@@ -127,6 +170,7 @@ public class ChaosModeTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_WithNullExceptions_ShouldNotThrow()
     {
         // Arrange
@@ -146,6 +190,7 @@ public class ChaosModeTests
     }
 
     [Theory]
+    [Trait("Category", "Advanced")]
     [InlineData(0.0)]
     [InlineData(0.25)]
     [InlineData(0.5)]
@@ -176,6 +221,7 @@ public class ChaosModeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_WithConfigurableSeed_ShouldBeReproducible()
     {
         // Arrange - create two mocks with same seed
@@ -215,6 +261,7 @@ public class ChaosModeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_WithTimeout_ShouldDelayExecution()
     {
         // Arrange
@@ -237,6 +284,7 @@ public class ChaosModeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_Statistics_ShouldTrackInvocations()
     {
         // Arrange
@@ -266,6 +314,7 @@ public class ChaosModeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_Statistics_CanBeReset()
     {
         // Arrange
@@ -290,6 +339,7 @@ public class ChaosModeTests
     }
     
     [Fact]
+    [Trait("Category", "Advanced")]
     public void Chaos_WithTimeout_ShouldTrackTimeoutStatistics()
     {
         // Arrange

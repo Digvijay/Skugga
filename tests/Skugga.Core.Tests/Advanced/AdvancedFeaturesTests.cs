@@ -17,6 +17,7 @@ public class AdvancedFeaturesTests
     #region SetupSequence Tests
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void SetupSequence_WithMultipleReturns_ReturnsValuesInOrder()
     {
         // Arrange
@@ -34,6 +35,7 @@ public class AdvancedFeaturesTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void SetupSequence_WithSingleReturn_ReturnsValueAndRepeats()
     {
         // Arrange
@@ -48,6 +50,7 @@ public class AdvancedFeaturesTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void SetupSequence_WithStrings_ReturnsValuesInOrder()
     {
         // Arrange
@@ -65,6 +68,7 @@ public class AdvancedFeaturesTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void SetupSequence_WithException_ThrowsOnSpecifiedInvocation()
     {
         // Arrange
@@ -82,6 +86,7 @@ public class AdvancedFeaturesTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void SetupSequence_WithMixedReturnsAndThrows_WorksCorrectly()
     {
         // Arrange
@@ -101,6 +106,7 @@ public class AdvancedFeaturesTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void SetupSequence_OnProperty_ReturnsValuesInOrder()
     {
         // Arrange
@@ -118,6 +124,7 @@ public class AdvancedFeaturesTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void SetupSequence_MultipleSequencesOnDifferentMethods_WorkIndependently()
     {
         // Arrange
@@ -139,6 +146,7 @@ public class AdvancedFeaturesTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void SetupSequence_WithZeroReturns_ReturnsDefault()
     {
         // Arrange
@@ -150,6 +158,7 @@ public class AdvancedFeaturesTests
     }
 
     [Fact]
+    [Trait("Category", "Advanced")]
     public void SetupSequence_WithLongSequence_HandlesAllValues()
     {
         // Arrange
