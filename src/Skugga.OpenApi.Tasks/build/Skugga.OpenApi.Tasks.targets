@@ -8,15 +8,9 @@
       <PropertyGroup />
     </When>
     <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/Release/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
-      <!-- Release build (preferred for CI/CD and local release builds) -->
+      <!-- Release build (CI/CD and local release builds) -->
       <PropertyGroup>
         <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/Release/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
-      </PropertyGroup>
-    </When>
-    <When Condition="Exists('$(MSBuildThisFileDirectory)../bin/Debug/netstandard2.0/Skugga.OpenApi.Tasks.dll')">
-      <!-- Debug build fallback (for local debug builds) -->
-      <PropertyGroup>
-        <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)../bin/Debug/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
       </PropertyGroup>
     </When>
     <Otherwise>
