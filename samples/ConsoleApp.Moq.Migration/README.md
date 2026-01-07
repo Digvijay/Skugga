@@ -86,7 +86,7 @@ public interface IPaymentService
 
 public interface INotificationService
 {
-    void SendEmail(string to, string message);
+    void SendEmail(string recipientEmail, string message);
     void LogActivity(string activity);
 }
 ```
