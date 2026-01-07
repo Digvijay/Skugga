@@ -882,8 +882,8 @@ public class GitHubIntegrationTests
 **Step 1: Add NuGet Packages**
 ```xml
 <ItemGroup>
-  <PackageReference Include="Skugga.Core" Version="1.2.0" />
-  <PackageReference Include="Skugga.OpenApi.Generator" Version="1.2.0" />
+  <PackageReference Include="Skugga.Core" Version="1.3.0" />
+  <PackageReference Include="Skugga.OpenApi.Generator" Version="1.3.0" />
 </ItemGroup>
 ```
 

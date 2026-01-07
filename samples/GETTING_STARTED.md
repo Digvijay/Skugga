@@ -82,7 +82,7 @@ Edit your `.csproj` file:
 
   <ItemGroup>
     <!-- Skugga from NuGet -->
-    <PackageReference Include="Skugga" Version="1.2.0" />
+    <PackageReference Include="Skugga" Version="1.3.0" />
     
     <!-- Standard test packages -->
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
