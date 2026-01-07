@@ -2,9 +2,9 @@ name: Skugga CI
 
 on:
   push:
-    branches: [ "master", "test", "feature/**" ]
+    branches: [ "master", "development", "test", "feature/**", "maintainance/**" ]
   pull_request:
-    branches: [ "master", "test" ]
+    branches: [ "master", "development", "test" ]
   workflow_dispatch:
 
 jobs:
@@ -41,11 +41,16 @@ jobs:
         echo "::notice::SemVer: ${{ steps.gitversion.outputs.semVer }}"
         echo "::notice::FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
 
-    - name: Check Formatting
-      run: dotnet format --verify-no-changes Skugga.slnx
-
     - name: Restore Dependencies
       run: dotnet restore Skugga.slnx
+
+    - name: Build Generators
+      run: |
+        dotnet build src/Skugga.Generator/Skugga.Generator.csproj -c Release
+        dotnet build src/Skugga.OpenApi.Generator/Skugga.OpenApi.Generator.csproj -c Release
+
+    - name: Check Formatting
+      run: dotnet format --verify-no-changes Skugga.slnx --no-restore
 
     - name: Build Solution
       run: |
