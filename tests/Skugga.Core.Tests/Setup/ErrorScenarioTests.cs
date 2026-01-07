@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
-using Xunit;
 using Skugga.Core.Exceptions;
+using Xunit;
 
 namespace Skugga.Core.Tests.Setup
 {
@@ -31,7 +31,7 @@ namespace Skugga.Core.Tests.Setup
         public void HttpStatusException_HasStatusCode()
         {
             var exception = new HttpStatusException(404, "Not found");
-            
+
             Assert.Equal(404, exception.StatusCode);
             Assert.Equal("Not found", exception.Message);
             Assert.Null(exception.ErrorBody);
@@ -42,7 +42,7 @@ namespace Skugga.Core.Tests.Setup
         {
             var errorBody = new { Code = "RESOURCE_NOT_FOUND", Detail = "User not found" };
             var exception = new HttpStatusException(404, "Not found", errorBody);
-            
+
             Assert.Equal(404, exception.StatusCode);
             Assert.Equal(errorBody, exception.ErrorBody);
         }
@@ -56,7 +56,7 @@ namespace Skugga.Core.Tests.Setup
                 { "X-Error-Code", "AUTH_FAILED" }
             };
             var exception = new HttpStatusException(401, "Unauthorized", null, headers);
-            
+
             Assert.Equal(401, exception.StatusCode);
             Assert.NotNull(exception.Headers);
             Assert.Equal(2, exception.Headers.Count);
@@ -67,7 +67,7 @@ namespace Skugga.Core.Tests.Setup
         public void BadRequestException_HasStatusCode400()
         {
             var exception = new BadRequestException("Invalid request");
-            
+
             Assert.Equal(400, exception.StatusCode);
             Assert.Equal("Invalid request", exception.Message);
         }
@@ -81,7 +81,7 @@ namespace Skugga.Core.Tests.Setup
                 new ValidationError("currency", "Invalid currency code", "INVALID_FORMAT")
             };
             var exception = new BadRequestException("Validation failed", errors);
-            
+
             Assert.Equal(400, exception.StatusCode);
             Assert.NotNull(exception.ValidationErrors);
             Assert.Equal(2, exception.ValidationErrors.Count);
@@ -93,7 +93,7 @@ namespace Skugga.Core.Tests.Setup
         public void UnauthorizedException_HasStatusCode401()
         {
             var exception = new UnauthorizedException("Invalid token");
-            
+
             Assert.Equal(401, exception.StatusCode);
             Assert.Equal("Invalid token", exception.Message);
         }
@@ -102,7 +102,7 @@ namespace Skugga.Core.Tests.Setup
         public void UnauthorizedException_CanHaveAuthenticateHeader()
         {
             var exception = new UnauthorizedException("Token expired", "Bearer realm=\"api\"");
-            
+
             Assert.Equal(401, exception.StatusCode);
             Assert.NotNull(exception.Headers);
             Assert.Contains("WWW-Authenticate", exception.Headers.Keys);
@@ -113,7 +113,7 @@ namespace Skugga.Core.Tests.Setup
         public void ForbiddenException_HasStatusCode403()
         {
             var exception = new ForbiddenException("Access denied");
-            
+
             Assert.Equal(403, exception.StatusCode);
             Assert.Equal("Access denied", exception.Message);
         }
@@ -122,7 +122,7 @@ namespace Skugga.Core.Tests.Setup
         public void NotFoundException_HasStatusCode404()
         {
             var exception = new NotFoundException("Resource not found");
-            
+
             Assert.Equal(404, exception.StatusCode);
             Assert.Equal("Resource not found", exception.Message);
         }
@@ -131,7 +131,7 @@ namespace Skugga.Core.Tests.Setup
         public void NotFoundException_CanHaveResourceDetails()
         {
             var exception = new NotFoundException("User", "123");
-            
+
             Assert.Equal(404, exception.StatusCode);
             Assert.Equal("User", exception.ResourceType);
             Assert.Equal("123", exception.ResourceId);
@@ -143,7 +143,7 @@ namespace Skugga.Core.Tests.Setup
         public void TooManyRequestsException_HasStatusCode429()
         {
             var exception = new TooManyRequestsException("Rate limit exceeded");
-            
+
             Assert.Equal(429, exception.StatusCode);
             Assert.Equal("Rate limit exceeded", exception.Message);
         }
@@ -153,7 +153,7 @@ namespace Skugga.Core.Tests.Setup
         {
             var retryAfter = TimeSpan.FromSeconds(60);
             var exception = new TooManyRequestsException("Rate limit exceeded", retryAfter);
-            
+
             Assert.Equal(429, exception.StatusCode);
             Assert.Equal(retryAfter, exception.RetryAfter);
             Assert.NotNull(exception.Headers);
@@ -165,7 +165,7 @@ namespace Skugga.Core.Tests.Setup
         public void InternalServerErrorException_HasStatusCode500()
         {
             var exception = new InternalServerErrorException("Database connection failed");
-            
+
             Assert.Equal(500, exception.StatusCode);
             Assert.Equal("Database connection failed", exception.Message);
         }
@@ -174,7 +174,7 @@ namespace Skugga.Core.Tests.Setup
         public void ServiceUnavailableException_HasStatusCode503()
         {
             var exception = new ServiceUnavailableException("Service temporarily unavailable");
-            
+
             Assert.Equal(503, exception.StatusCode);
             Assert.Equal("Service temporarily unavailable", exception.Message);
         }
@@ -184,7 +184,7 @@ namespace Skugga.Core.Tests.Setup
         {
             var retryAfter = TimeSpan.FromMinutes(5);
             var exception = new ServiceUnavailableException("Maintenance mode", retryAfter);
-            
+
             Assert.Equal(503, exception.StatusCode);
             Assert.Equal(retryAfter, exception.RetryAfter);
             Assert.NotNull(exception.Headers);
@@ -203,9 +203,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.ProcessPayment(It.IsAny<Payment>()))
                 .ReturnsError(401, "Invalid API key");
 
-            var exception = Assert.Throws<UnauthorizedException>(() => 
+            var exception = Assert.Throws<UnauthorizedException>(() =>
                 mock.ProcessPayment(new Payment()));
-            
+
             Assert.Equal(401, exception.StatusCode);
             Assert.Equal("Invalid API key", exception.Message);
         }
@@ -215,13 +215,13 @@ namespace Skugga.Core.Tests.Setup
         {
             var mock = Mock.Create<IPaymentGateway>();
             var errorBody = new { Code = "AUTH_FAILED", Detail = "API key is invalid or expired" };
-            
+
             mock.Setup(x => x.ProcessPayment(It.IsAny<Payment>()))
                 .ReturnsError(401, "Unauthorized", errorBody);
 
-            var exception = Assert.Throws<HttpStatusException>(() => 
+            var exception = Assert.Throws<HttpStatusException>(() =>
                 mock.ProcessPayment(new Payment()));
-            
+
             Assert.Equal(401, exception.StatusCode);
             Assert.Equal(errorBody, exception.ErrorBody);
         }
@@ -233,9 +233,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.ProcessPayment(It.Is<Payment>(p => p.Amount <= 0)))
                 .ReturnsBadRequest("Amount must be positive");
 
-            var exception = Assert.Throws<BadRequestException>(() => 
+            var exception = Assert.Throws<BadRequestException>(() =>
                 mock.ProcessPayment(new Payment { Amount = -10 }));
-            
+
             Assert.Equal(400, exception.StatusCode);
             Assert.Equal("Amount must be positive", exception.Message);
         }
@@ -249,9 +249,9 @@ namespace Skugga.Core.Tests.Setup
                     new ValidationError("amount", "Must be positive"),
                     new ValidationError("currency", "Invalid currency code"));
 
-            var exception = Assert.Throws<BadRequestException>(() => 
+            var exception = Assert.Throws<BadRequestException>(() =>
                 mock.ProcessPayment(new Payment()));
-            
+
             Assert.Equal(400, exception.StatusCode);
             Assert.NotNull(exception.ValidationErrors);
             Assert.Equal(2, exception.ValidationErrors.Count);
@@ -266,9 +266,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.GetInvoice(It.IsAny<string>()))
                 .ReturnsUnauthorized("Token expired");
 
-            var exception = Assert.Throws<UnauthorizedException>(() => 
+            var exception = Assert.Throws<UnauthorizedException>(() =>
                 mock.GetInvoice("inv_123"));
-            
+
             Assert.Equal(401, exception.StatusCode);
             Assert.Equal("Token expired", exception.Message);
         }
@@ -280,9 +280,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.GetInvoice("inv_admin"))
                 .ReturnsForbidden("Insufficient permissions");
 
-            var exception = Assert.Throws<ForbiddenException>(() => 
+            var exception = Assert.Throws<ForbiddenException>(() =>
                 mock.GetInvoice("inv_admin"));
-            
+
             Assert.Equal(403, exception.StatusCode);
             Assert.Equal("Insufficient permissions", exception.Message);
         }
@@ -294,9 +294,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.GetInvoice("inv_nonexistent"))
                 .ReturnsNotFound("Invoice not found");
 
-            var exception = Assert.Throws<NotFoundException>(() => 
+            var exception = Assert.Throws<NotFoundException>(() =>
                 mock.GetInvoice("inv_nonexistent"));
-            
+
             Assert.Equal(404, exception.StatusCode);
             Assert.Equal("Invoice not found", exception.Message);
         }
@@ -308,9 +308,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.GetUser(999))
                 .ReturnsNotFound("User", "999");
 
-            var exception = Assert.Throws<NotFoundException>(() => 
+            var exception = Assert.Throws<NotFoundException>(() =>
                 mock.GetUser(999));
-            
+
             Assert.Equal(404, exception.StatusCode);
             Assert.Equal("User", exception.ResourceType);
             Assert.Equal("999", exception.ResourceId);
@@ -325,9 +325,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.ProcessPayment(It.IsAny<Payment>()))
                 .ReturnsTooManyRequests("Rate limit exceeded");
 
-            var exception = Assert.Throws<TooManyRequestsException>(() => 
+            var exception = Assert.Throws<TooManyRequestsException>(() =>
                 mock.ProcessPayment(new Payment()));
-            
+
             Assert.Equal(429, exception.StatusCode);
             Assert.Equal("Rate limit exceeded", exception.Message);
         }
@@ -337,13 +337,13 @@ namespace Skugga.Core.Tests.Setup
         {
             var mock = Mock.Create<IPaymentGateway>();
             var retryAfter = TimeSpan.FromSeconds(60);
-            
+
             mock.Setup(x => x.ProcessPayment(It.IsAny<Payment>()))
                 .ReturnsTooManyRequests("Rate limit exceeded", retryAfter);
 
-            var exception = Assert.Throws<TooManyRequestsException>(() => 
+            var exception = Assert.Throws<TooManyRequestsException>(() =>
                 mock.ProcessPayment(new Payment()));
-            
+
             Assert.Equal(429, exception.StatusCode);
             Assert.Equal(retryAfter, exception.RetryAfter);
             Assert.NotNull(exception.Headers);
@@ -357,9 +357,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.ProcessPayment(It.IsAny<Payment>()))
                 .ReturnsInternalServerError("Database connection failed");
 
-            var exception = Assert.Throws<InternalServerErrorException>(() => 
+            var exception = Assert.Throws<InternalServerErrorException>(() =>
                 mock.ProcessPayment(new Payment()));
-            
+
             Assert.Equal(500, exception.StatusCode);
             Assert.Equal("Database connection failed", exception.Message);
         }
@@ -371,9 +371,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.GetInvoice(It.IsAny<string>()))
                 .ReturnsServiceUnavailable("Service temporarily unavailable");
 
-            var exception = Assert.Throws<ServiceUnavailableException>(() => 
+            var exception = Assert.Throws<ServiceUnavailableException>(() =>
                 mock.GetInvoice("inv_123"));
-            
+
             Assert.Equal(503, exception.StatusCode);
             Assert.Equal("Service temporarily unavailable", exception.Message);
         }
@@ -385,9 +385,9 @@ namespace Skugga.Core.Tests.Setup
             mock.Setup(x => x.ValidateAccount(It.IsAny<string>()))
                 .ReturnsError(401, "Invalid credentials");
 
-            var exception = Assert.Throws<UnauthorizedException>(() => 
+            var exception = Assert.Throws<UnauthorizedException>(() =>
                 mock.ValidateAccount("acc_123"));
-            
+
             Assert.Equal(401, exception.StatusCode);
             Assert.Equal("Invalid credentials", exception.Message);
         }
@@ -400,9 +400,9 @@ namespace Skugga.Core.Tests.Setup
                 .ReturnsValidationError("Validation failed",
                     new ValidationError("accountId", "Cannot be empty"));
 
-            var exception = Assert.Throws<BadRequestException>(() => 
+            var exception = Assert.Throws<BadRequestException>(() =>
                 mock.ValidateAccount(""));
-            
+
             Assert.Equal(400, exception.StatusCode);
             Assert.NotNull(exception.ValidationErrors);
             Assert.Single(exception.ValidationErrors);
@@ -412,7 +412,7 @@ namespace Skugga.Core.Tests.Setup
         public void MultipleSetups_DifferentErrors_WorkCorrectly()
         {
             var mock = Mock.Create<IPaymentGateway>();
-            
+
             // Setup different error scenarios
             mock.Setup(x => x.GetUser(404)).ReturnsNotFound("User", "404");
             mock.Setup(x => x.GetUser(401)).ReturnsUnauthorized("Token expired");

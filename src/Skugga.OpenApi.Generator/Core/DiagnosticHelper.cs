@@ -1,5 +1,5 @@
-using Microsoft.CodeAnalysis;
 using System;
+using Microsoft.CodeAnalysis;
 
 namespace Skugga.OpenApi.Generator
 {
@@ -222,7 +222,7 @@ namespace Skugga.OpenApi.Generator
                 Array.Copy(args, argsWithUrl, args.Length);
             }
             argsWithUrl[args.Length] = DocsBaseUrl;
-            
+
             return Diagnostic.Create(descriptor, location ?? Location.None, argsWithUrl);
         }
     }

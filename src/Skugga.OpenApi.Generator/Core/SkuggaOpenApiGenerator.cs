@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
 using SharpYaml.Serialization;
-using System.Text.Json;
 
 namespace Skugga.OpenApi.Generator
 {
@@ -70,7 +70,7 @@ namespace Skugga.OpenApi.Generator
             context.RegisterSourceOutput(compilationAndInterfaces, (spc, source) =>
             {
                 var ((compilation, interfaces), additionalFiles) = source;
-                
+
                 foreach (var interfaceDecl in interfaces)
                 {
                     if (interfaceDecl != null)
@@ -87,7 +87,7 @@ namespace Skugga.OpenApi.Generator
         private static InterfaceDeclarationSyntax? GetOpenApiInterface(GeneratorSyntaxContext context)
         {
             var interfaceDecl = (InterfaceDeclarationSyntax)context.Node;
-            
+
             // Check if interface has [SkuggaFromOpenApi] attribute
             foreach (var attributeList in interfaceDecl.AttributeLists)
             {
@@ -97,7 +97,7 @@ namespace Skugga.OpenApi.Generator
                     if (symbol is IMethodSymbol attrSymbol)
                     {
                         var attrType = attrSymbol.ContainingType;
-                        if (attrType.Name == "SkuggaFromOpenApiAttribute" || 
+                        if (attrType.Name == "SkuggaFromOpenApiAttribute" ||
                             attrType.Name == "SkuggaFromOpenApi")
                         {
                             return interfaceDecl;
@@ -105,7 +105,7 @@ namespace Skugga.OpenApi.Generator
                     }
                 }
             }
-            
+
             return null;
         }
 
@@ -154,7 +154,7 @@ namespace Skugga.OpenApi.Generator
             try
             {
                 // Detect if input is YAML
-                bool isYaml = source?.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) == true || 
+                bool isYaml = source?.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) == true ||
                              source?.EndsWith(".yml", StringComparison.OrdinalIgnoreCase) == true;
 
                 if (!isYaml && specContent != null)
@@ -175,9 +175,9 @@ namespace Skugga.OpenApi.Generator
                     {
                         var yamlSerializer = new Serializer();
                         var yamlObject = yamlSerializer.Deserialize(new StringReader(jsonContent));
-                        jsonContent = JsonSerializer.Serialize(yamlObject, new JsonSerializerOptions 
-                        { 
-                            WriteIndented = false 
+                        jsonContent = JsonSerializer.Serialize(yamlObject, new JsonSerializerOptions
+                        {
+                            WriteIndented = false
                         });
                     }
                     catch (Exception yamlEx)
@@ -234,17 +234,17 @@ namespace Skugga.OpenApi.Generator
 
                 // Validate the document structure and schema
                 ValidateOpenApiDocument(context, interfaceDecl, document);
-                
+
                 // Perform comprehensive build-time validation
                 var validator = new DocumentValidator(context, document);
                 validator.Validate();
-                
+
                 // Perform Spectral-inspired linting
                 var lintingRulesConfig = GetAttributeNamedParameter(attribute, "LintingRules");
                 var lintingConfig = Validation.LintingConfiguration.Parse(lintingRulesConfig);
                 var lintingRules = new Validation.OpenApiLintingRules(context, document, lintingConfig);
                 lintingRules.Lint();
-                
+
                 // Check for paths - this is a critical error
                 if (document.Paths == null || document.Paths.Count == 0)
                 {
@@ -343,9 +343,9 @@ namespace Skugga.OpenApi.Generator
                         else
                         {
                             // Check for at least one success response
-                            var hasSuccessResponse = op.Responses.Any(r => 
+                            var hasSuccessResponse = op.Responses.Any(r =>
                                 r.Key == "200" || r.Key == "201" || r.Key == "202" || r.Key == "204" || r.Key == "default");
-                            
+
                             if (!hasSuccessResponse)
                             {
                                 context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -389,7 +389,7 @@ namespace Skugga.OpenApi.Generator
         {
             var namespaceName = interfaceSymbol.ContainingNamespace?.ToDisplayString() ?? "Generated";
             var interfaceName = interfaceSymbol.Name;
-            
+
             // Check if interface is nested and build containing type info
             var containingTypes = new System.Collections.Generic.List<(string Name, string Modifiers)>();
             var containingType = interfaceSymbol.ContainingType;
@@ -405,28 +405,28 @@ namespace Skugga.OpenApi.Generator
             var operationFilter = GetAttributeNamedParameter(attribute, "OperationFilter");
             var generateAsync = GetAttributeNamedParameter(attribute, "GenerateAsync");
             var shouldGenerateAsync = string.IsNullOrEmpty(generateAsync) ? true : bool.Parse(generateAsync);
-            
+
             // Get schema prefix - defaults to null for backward compatibility
             var schemaPrefix = GetAttributeNamedParameter(attribute, "SchemaPrefix");
-            
+
             // Get example set name for selecting specific named examples
             var useExampleSet = GetAttributeNamedParameter(attribute, "UseExampleSet");
-            
+
             // Enhancement : Stateful behavior
             var statefulBehavior = GetAttributeNamedParameter(attribute, "StatefulBehavior");
             var enableStateful = !string.IsNullOrEmpty(statefulBehavior) && bool.Parse(statefulBehavior);
-            
+
             // Enhancement : Contract verification (placeholder for future implementation)
             var validateContracts = GetAttributeNamedParameter(attribute, "ValidateContracts");
             var enableContractValidation = !string.IsNullOrEmpty(validateContracts) && bool.Parse(validateContracts);
-            
+
             // Feature: Authentication handling
             var automaticallyHandleAuth = GetAttributeNamedParameter(attribute, "AutomaticallyHandleAuth");
             var enableAuthHandling = !string.IsNullOrEmpty(automaticallyHandleAuth) && bool.Parse(automaticallyHandleAuth);
-            
+
             // Extract security schemes from the document for auth generation
-            var securitySchemes = enableAuthHandling && document.Components?.SecuritySchemes != null 
-                ? document.Components.SecuritySchemes 
+            var securitySchemes = enableAuthHandling && document.Components?.SecuritySchemes != null
+                ? document.Components.SecuritySchemes
                 : new Dictionary<string, OpenApiSecurityScheme>();
 
             // Create generators with shared TypeMapper
@@ -442,7 +442,7 @@ namespace Skugga.OpenApi.Generator
 
             // Generate the interface (with containing types for nested interfaces)
             var interfaceCode = interfaceGenerator.GenerateInterface(interfaceName, namespaceName, operationFilter, containingTypes);
-            
+
             context.AddSource($"{interfaceName}.g.cs", SourceText.From(interfaceCode, Encoding.UTF8));
 
             // Generate schema classes with optional prefix from attribute (null = no prefix for backward compatibility)

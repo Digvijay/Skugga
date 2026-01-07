@@ -1,5 +1,5 @@
-using Skugga.Core;
 using System.Threading.Tasks;
+using Skugga.Core;
 using Xunit;
 
 namespace Skugga.OpenApi.Tests.Generation
@@ -18,7 +18,7 @@ namespace Skugga.OpenApi.Tests.Generation
             // When UseExampleSet is not specified, should use first available example
             var mock = new IExampleSetDefaultApiMock();
             var user = await mock.GetUserById(1);
-            
+
             Assert.NotNull(user);
             // First example is "success" - should have Alice's data
             Assert.Equal(123, user.Id);
@@ -38,7 +38,7 @@ namespace Skugga.OpenApi.Tests.Generation
             // Should select the "success" named example
             var mock = new IExampleSetSuccessApiMock();
             var user = await mock.GetUserById(1);
-            
+
             Assert.NotNull(user);
             Assert.Equal(123, user.Id);
             Assert.Equal("Alice Success", user.Name);
@@ -53,7 +53,7 @@ namespace Skugga.OpenApi.Tests.Generation
             // Should select the "new-user" named example
             var mock = new IExampleSetNewUserApiMock();
             var user = await mock.GetUserById(1);
-            
+
             Assert.NotNull(user);
             Assert.Equal(456, user.Id);
             Assert.Equal("Bob NewUser", user.Name);
@@ -68,7 +68,7 @@ namespace Skugga.OpenApi.Tests.Generation
             // Should select the "premium" named example
             var mock = new IExampleSetPremiumApiMock();
             var user = await mock.GetUserById(1);
-            
+
             Assert.NotNull(user);
             Assert.Equal(789, user.Id);
             Assert.Equal("Carol Premium", user.Name);
@@ -87,7 +87,7 @@ namespace Skugga.OpenApi.Tests.Generation
             // When specified example set doesn't exist, should fall back to first example
             var mock = new IExampleSetNonexistentApiMock();
             var user = await mock.GetUserById(1);
-            
+
             Assert.NotNull(user);
             // Should fall back to first example (success)
             Assert.Equal(123, user.Id);
@@ -106,21 +106,21 @@ namespace Skugga.OpenApi.Tests.Generation
             var defaultMock = new IExampleSetDefaultApiMock();
             var newUserMock = new IExampleSetNewUserApiMock();
             var premiumMock = new IExampleSetPremiumApiMock();
-            
+
             var defaultUser = await defaultMock.GetUserById(1);
             var newUser = await newUserMock.GetUserById(1);
             var premiumUser = await premiumMock.GetUserById(1);
-            
+
             // All should be valid users
             Assert.NotNull(defaultUser);
             Assert.NotNull(newUser);
             Assert.NotNull(premiumUser);
-            
+
             // But with different IDs
             Assert.NotEqual(defaultUser.Id, newUser.Id);
             Assert.NotEqual(defaultUser.Id, premiumUser.Id);
             Assert.NotEqual(newUser.Id, premiumUser.Id);
-            
+
             // And different names
             Assert.NotEqual(defaultUser.Name, newUser.Name);
             Assert.NotEqual(defaultUser.Name, premiumUser.Name);

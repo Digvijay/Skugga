@@ -1,5 +1,5 @@
-using Skugga.Core;
 using System.Threading.Tasks;
+using Skugga.Core;
 using Xunit;
 
 namespace Skugga.OpenApi.Tests.Generation
@@ -23,7 +23,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var interfaceType = typeof(IResponseHeadersApi);
             var method = interfaceType.GetMethod("GetUser");
-            
+
             Assert.NotNull(method);
         }
 
@@ -33,7 +33,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var interfaceType = typeof(IResponseHeadersApi);
             var method = interfaceType.GetMethod("ListProducts");
-            
+
             Assert.NotNull(method);
         }
 
@@ -43,7 +43,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mock = new IResponseHeadersApiMock();
             var result = await mock.GetUser(123);
-            
+
             Assert.NotNull(result);
             Assert.NotNull(result.Body);
             Assert.NotNull(result.Headers);
@@ -55,7 +55,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mock = new IResponseHeadersApiMock();
             var result = await mock.ListProducts();
-            
+
             Assert.NotNull(result);
             Assert.NotNull(result.Body);
             Assert.NotNull(result.Headers);
@@ -67,7 +67,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mock = new IResponseHeadersApiMock();
             var response = await mock.GetUser(123);
-            
+
             Assert.NotNull(response.Body);
             Assert.NotNull(response.Headers);
             Assert.True(response.Headers.ContainsKey("X-RateLimit-Limit"));
@@ -84,7 +84,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mock = new IResponseHeadersApiMock();
             var response = await mock.ListProducts();
-            
+
             Assert.NotNull(response.Headers);
             Assert.True(response.Headers.ContainsKey("ETag"));
             Assert.Equal("\"products-v1\"", response.Headers["ETag"]);
@@ -98,7 +98,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mock = new IResponseHeadersApiMock();
             var response = await mock.GetUser(123);
-            
+
             Assert.NotNull(response.Body);
             Assert.Equal(123, response.Body.Id);
             Assert.Equal("John Doe", response.Body.Name);

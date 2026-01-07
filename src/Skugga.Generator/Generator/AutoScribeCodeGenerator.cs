@@ -1,6 +1,6 @@
-using Microsoft.CodeAnalysis;
-using System.Text;
 using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis;
 
 namespace Skugga.Generator;
 
@@ -32,7 +32,7 @@ internal static class AutoScribeCodeGenerator
         var toStringMethod = type.GetMembers("ToString")
             .OfType<IMethodSymbol>()
             .FirstOrDefault(m => m.Parameters.Length == 0);
-        
+
         if (toStringMethod != null && toStringMethod.ContainingType.SpecialType != SpecialType.System_Object)
         {
             // Type has custom ToString - use it directly
@@ -52,7 +52,7 @@ internal static class AutoScribeCodeGenerator
             SpecialType.System_Decimal => $"{{{valueExpression}}}m",
             SpecialType.System_Single => $"{{{valueExpression}}}f",
             SpecialType.System_Double => $"{{{valueExpression}}}d",
-            SpecialType.System_Int32 or SpecialType.System_Int64 or 
+            SpecialType.System_Int32 or SpecialType.System_Int64 or
             SpecialType.System_Int16 or SpecialType.System_Byte => $"{{{valueExpression}}}",
             _ => $"{{SerializeValue({valueExpression})}}"
         };
@@ -75,10 +75,10 @@ internal static class AutoScribeCodeGenerator
         {
             var prop = properties[i];
             if (i > 0) sb.Append(", ");
-            
+
             sb.Append(prop.Name);
             sb.Append(" = ");
-            
+
             // Recursively generate value for property type
             sb.Append($"{{{valueExpression}.{prop.Name}}}");
         }
@@ -135,20 +135,20 @@ internal static class AutoScribeCodeGenerator
     /// </summary>
     public static void GenerateMethodRecording(StringBuilder sb, IMethodSymbol method, string returnType)
     {
-        var isAsync = method.ReturnType.Name == "Task" && 
-                     method.ReturnType is INamedTypeSymbol namedType && 
+        var isAsync = method.ReturnType.Name == "Task" &&
+                     method.ReturnType is INamedTypeSymbol namedType &&
                      namedType.TypeArguments.Length > 0;
-        
+
         var hasReturnValue = !method.ReturnsVoid && returnType != "Task";
 
         // Build parameter array for recording
-        var paramArray = method.Parameters.Length == 0 
-            ? "Array.Empty<object?>()" 
+        var paramArray = method.Parameters.Length == 0
+            ? "Array.Empty<object?>()"
             : $"new object?[] {{ {string.Join(", ", method.Parameters.Select(p => p.Name))} }}";
 
         sb.AppendLine("            // Record the call");
         sb.AppendLine($"            var callArgs = {paramArray};");
-        
+
         if (hasReturnValue)
         {
             sb.AppendLine($"            var result = {(isAsync ? "await " : "")}_real.{method.Name}({string.Join(", ", method.Parameters.Select(p => p.Name))});");

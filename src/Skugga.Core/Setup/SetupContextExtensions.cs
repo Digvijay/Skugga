@@ -24,7 +24,7 @@ namespace Skugga.Core
     public static partial class SetupContextExtensions
     {
         #region Returns Methods
-        
+
         /// <summary>
         /// Configures the setup to return the specified value when invoked.
         /// </summary>
@@ -43,7 +43,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures the setup to return a value computed by a function when invoked.
         /// </summary>
@@ -66,7 +66,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures the setup to return a value computed from the method argument.
         /// </summary>
@@ -89,7 +89,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures the setup to return a value computed from two method arguments.
         /// </summary>
@@ -106,7 +106,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures the setup to return a value computed from three method arguments.
         /// </summary>
@@ -123,14 +123,14 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         // Note: Returns<T1..T4> through Returns<T1..T8> are generated at compile-time
         // See SetupExtensionsGenerator.cs
-        
+
         #endregion
 
         #region ReturnsAsync Methods
-        
+
         /// <summary>
         /// Configures the setup to return a Task<TResult> with the specified value (async shorthand).
         /// </summary>
@@ -155,7 +155,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures the setup to return a Task<TResult> computed by a function (async shorthand).
         /// </summary>
@@ -178,7 +178,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures the setup to return a Task<TResult> computed from a method argument (async shorthand).
         /// </summary>
@@ -201,7 +201,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures the setup to return a Task<TResult> computed from two method arguments (async shorthand).
         /// </summary>
@@ -224,14 +224,14 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         // Note: ReturnsAsync<T1..T3> through ReturnsAsync<T1..T8> are generated at compile-time
         // See SetupExtensionsGenerator.cs
-        
+
         #endregion
 
         #region ReturnsInOrder Methods
-        
+
         /// <summary>
         /// Configures the setup to return values in sequence on successive calls.
         /// </summary>
@@ -255,7 +255,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures the setup to return values in sequence on successive calls.
         /// </summary>
@@ -267,11 +267,11 @@ namespace Skugga.Core
         {
             return ReturnsInOrder(context, values.ToArray());
         }
-        
+
         #endregion
 
         #region Callback Methods (for SetupContext<T, TResult>)
-        
+
         /// <summary>
         /// Configures a callback to execute when the method is invoked.
         /// </summary>
@@ -293,7 +293,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures a callback with access to method arguments when invoked.
         /// </summary>
@@ -313,7 +313,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures a callback with access to two method arguments when invoked.
         /// </summary>
@@ -329,7 +329,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures a callback with access to three method arguments when invoked.
         /// </summary>
@@ -345,11 +345,11 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         #endregion
 
         #region Callback Methods (for VoidSetupContext<T>)
-        
+
         /// <summary>
         /// Configures a callback to execute when a void method is invoked.
         /// </summary>
@@ -369,7 +369,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures a callback with access to method arguments when a void method is invoked.
         /// </summary>
@@ -389,7 +389,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures a callback with access to two method arguments when a void method is invoked.
         /// </summary>
@@ -405,7 +405,7 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         /// <summary>
         /// Configures a callback with access to three method arguments when a void method is invoked.
         /// </summary>
@@ -421,11 +421,11 @@ namespace Skugga.Core
             }
             return context;
         }
-        
+
         #endregion
 
         #region Raises Methods
-        
+
         /// <summary>
         /// Configures the setup to automatically raise the specified event when the method is invoked.
         /// </summary>
@@ -440,22 +440,22 @@ namespace Skugga.Core
         ///     .Raises(nameof(IServiceWithEvents.Completed), EventArgs.Empty);
         /// </example>
         public static SetupContext<TMock, TResult> Raises<TMock, TResult>(
-            this SetupContext<TMock, TResult> context, 
-            string eventName, 
+            this SetupContext<TMock, TResult> context,
+            string eventName,
             params object?[] args)
         {
             if (context.Setup == null)
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, default(TResult), null);
             }
-            
+
             // Store event info in setup
             context.Setup.EventToRaise = eventName;
             context.Setup.EventArgs = args;
-            
+
             return context;
         }
-        
+
         /// <summary>
         /// Configures the setup to automatically raise the specified event when a void method is invoked.
         /// </summary>
@@ -469,26 +469,26 @@ namespace Skugga.Core
         ///     .Raises(nameof(IServiceWithEvents.StatusChanged), new StatusEventArgs { Status = "Done" });
         /// </example>
         public static VoidSetupContext<TMock> Raises<TMock>(
-            this VoidSetupContext<TMock> context, 
-            string eventName, 
+            this VoidSetupContext<TMock> context,
+            string eventName,
             params object?[] args)
         {
             if (context.Setup == null)
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
             }
-            
+
             // Store event info in setup
             context.Setup.EventToRaise = eventName;
             context.Setup.EventArgs = args;
-            
+
             return context;
         }
-        
+
         #endregion
 
         #region InSequence Methods
-        
+
         /// <summary>
         /// Configures this setup to be part of a sequence, ensuring it's called in order.
         /// </summary>
@@ -510,13 +510,13 @@ namespace Skugga.Core
             {
                 throw new InvalidOperationException("InSequence must be called after Returns/Callback");
             }
-            
+
             context.Setup.Sequence = sequence;
             context.Setup.SequenceStep = sequence.RegisterStep();
-            
+
             return context;
         }
-        
+
         /// <summary>
         /// Configures this setup to be part of a sequence, ensuring it's called in order.
         /// </summary>
@@ -537,17 +537,17 @@ namespace Skugga.Core
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
             }
-            
+
             context.Setup.Sequence = sequence;
             context.Setup.SequenceStep = sequence.RegisterStep();
-            
+
             return context;
         }
-        
+
         #endregion
 
         #region CallbackRefOut Methods
-        
+
         /// <summary>
         /// Configures a callback with support for ref/out parameters.
         /// The callback delegate can have ref/out parameters matching the mocked method signature.
@@ -570,9 +570,9 @@ namespace Skugga.Core
             {
                 throw new InvalidOperationException("CallbackRefOut must be called after Returns");
             }
-            
+
             context.Setup.RefOutCallback = callback;
-            
+
             // Mark parameters as ref/out for matching (analyze delegate signature)
             var method = callback.GetType().GetMethod("Invoke");
             if (method != null)
@@ -587,10 +587,10 @@ namespace Skugga.Core
                     }
                 }
             }
-            
+
             return context;
         }
-        
+
         /// <summary>
         /// Configures a callback with support for ref/out parameters for void methods.
         /// The callback delegate can have ref/out parameters matching the mocked method signature.
@@ -611,9 +611,9 @@ namespace Skugga.Core
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
             }
-            
+
             context.Setup.RefOutCallback = callback;
-            
+
             // Mark parameters as ref/out for matching (analyze delegate signature)
             var method = callback.GetType().GetMethod("Invoke");
             if (method != null)
@@ -628,14 +628,14 @@ namespace Skugga.Core
                     }
                 }
             }
-            
+
             return context;
         }
-        
+
         #endregion
 
         #region OutValue/RefValue Methods (for SetupContext<T, TResult>)
-        
+
         /// <summary>
         /// Configures an out parameter value for this setup.
         /// </summary>
@@ -660,17 +660,17 @@ namespace Skugga.Core
             {
                 throw new InvalidOperationException("OutValue must be called after Returns/Callback");
             }
-            
+
             context.Setup.OutValues ??= new Dictionary<int, object?>();
             context.Setup.OutValues[parameterIndex] = value;
-            
+
             // Mark this parameter as ref/out so matching ignores its value
             context.Setup.RefOutParameterIndices ??= new HashSet<int>();
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
-            
+
             return context;
         }
-        
+
         /// <summary>
         /// Configures a ref parameter value for this setup.
         /// </summary>
@@ -694,17 +694,17 @@ namespace Skugga.Core
             {
                 throw new InvalidOperationException("RefValue must be called after Returns/Callback");
             }
-            
+
             context.Setup.RefValues ??= new Dictionary<int, object?>();
             context.Setup.RefValues[parameterIndex] = value;
-            
+
             // Mark this parameter as ref/out so matching ignores its value
             context.Setup.RefOutParameterIndices ??= new HashSet<int>();
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
-            
+
             return context;
         }
-        
+
         /// <summary>
         /// Configures an out parameter with a dynamic value computed from the method arguments.
         /// </summary>
@@ -729,17 +729,17 @@ namespace Skugga.Core
             {
                 throw new InvalidOperationException("OutValueFunc must be called after Returns/Callback");
             }
-            
+
             context.Setup.OutValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
             context.Setup.OutValueFactories[parameterIndex] = valueFactory;
-            
+
             // Mark this parameter as ref/out so matching ignores its value
             context.Setup.RefOutParameterIndices ??= new HashSet<int>();
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
-            
+
             return context;
         }
-        
+
         /// <summary>
         /// Configures a ref parameter with a dynamic value computed from the method arguments.
         /// </summary>
@@ -763,21 +763,21 @@ namespace Skugga.Core
             {
                 throw new InvalidOperationException("RefValueFunc must be called after Returns/Callback");
             }
-            
+
             context.Setup.RefValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
             context.Setup.RefValueFactories[parameterIndex] = valueFactory;
-            
+
             // Mark this parameter as ref/out so matching ignores its value
             context.Setup.RefOutParameterIndices ??= new HashSet<int>();
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
-            
+
             return context;
         }
-        
+
         #endregion
 
         #region OutValue/RefValue Methods (for VoidSetupContext<T>)
-        
+
         /// <summary>
         /// Configures an out parameter value for this void setup.
         /// </summary>
@@ -795,17 +795,17 @@ namespace Skugga.Core
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
             }
-            
+
             context.Setup.OutValues ??= new Dictionary<int, object?>();
             context.Setup.OutValues[parameterIndex] = value;
-            
+
             // Mark this parameter as ref/out so matching ignores its value
             context.Setup.RefOutParameterIndices ??= new HashSet<int>();
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
-            
+
             return context;
         }
-        
+
         /// <summary>
         /// Configures a ref parameter value for this void setup.
         /// </summary>
@@ -823,17 +823,17 @@ namespace Skugga.Core
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
             }
-            
+
             context.Setup.RefValues ??= new Dictionary<int, object?>();
             context.Setup.RefValues[parameterIndex] = value;
-            
+
             // Mark this parameter as ref/out so matching ignores its value
             context.Setup.RefOutParameterIndices ??= new HashSet<int>();
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
-            
+
             return context;
         }
-        
+
         /// <summary>
         /// Configures an out parameter with a dynamic value for void setups.
         /// </summary>
@@ -851,17 +851,17 @@ namespace Skugga.Core
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
             }
-            
+
             context.Setup.OutValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
             context.Setup.OutValueFactories[parameterIndex] = valueFactory;
-            
+
             // Mark this parameter as ref/out so matching ignores its value
             context.Setup.RefOutParameterIndices ??= new HashSet<int>();
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
-            
+
             return context;
         }
-        
+
         /// <summary>
         /// Configures a ref parameter with a dynamic value for void setups.
         /// </summary>
@@ -879,17 +879,17 @@ namespace Skugga.Core
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
             }
-            
+
             context.Setup.RefValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
             context.Setup.RefValueFactories[parameterIndex] = valueFactory;
-            
+
             // Mark this parameter as ref/out so matching ignores its value
             context.Setup.RefOutParameterIndices ??= new HashSet<int>();
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
-            
+
             return context;
         }
-        
+
         #endregion
 
         #region Throws Methods
@@ -913,9 +913,9 @@ namespace Skugga.Core
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, default(TResult), null);
             }
-            
+
             context.Setup.Exception = exception;
-            
+
             return context;
         }
 
@@ -937,9 +937,9 @@ namespace Skugga.Core
             {
                 context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
             }
-            
+
             context.Setup.Exception = exception;
-            
+
             return context;
         }
 

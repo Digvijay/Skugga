@@ -97,7 +97,7 @@ namespace Skugga.Core
                 "Ensure your project references Skugga.Generator and enables interceptors.\n" +
                 "See: https://github.com/Digvijay/Skugga/blob/main/README.md#autoscribe");
         }
-        
+
         /// <summary>
         /// Exports recorded method calls to JSON format for analysis or replay.
         /// </summary>
@@ -119,14 +119,14 @@ namespace Skugga.Core
         /// </example>
         public static string ExportToJson(IEnumerable<RecordedCall> recordings)
         {
-            var items = recordings.Select(r => 
+            var items = recordings.Select(r =>
                 $"{{\"Method\":\"{r.MethodName}\"," +
                 $"\"Args\":[{string.Join(",", r.Arguments.Select(a => $"\"{a}\""))}]," +
                 $"\"Result\":\"{r.Result}\"," +
                 $"\"Duration\":{r.DurationMilliseconds}}}");
             return $"[{string.Join(",", items)}]";
         }
-        
+
         /// <summary>
         /// Exports recorded method calls to CSV format for analysis in spreadsheets.
         /// </summary>
@@ -157,7 +157,7 @@ namespace Skugga.Core
             }
             return string.Join(Environment.NewLine, lines);
         }
-        
+
         /// <summary>
         /// Creates a replay context that can be used to replay recorded method calls.
         /// </summary>
@@ -188,7 +188,7 @@ namespace Skugga.Core
             return new ReplayContext(recordings.ToList());
         }
     }
-    
+
     /// <summary>
     /// Represents a recorded method call with timing information.
     /// </summary>
@@ -198,17 +198,17 @@ namespace Skugga.Core
         /// Gets or sets the name of the method that was called.
         /// </summary>
         public string MethodName { get; set; } = string.Empty;
-        
+
         /// <summary>
         /// Gets or sets the arguments passed to the method.
         /// </summary>
         public object?[] Arguments { get; set; } = Array.Empty<object?>();
-        
+
         /// <summary>
         /// Gets or sets the result returned by the method.
         /// </summary>
         public object? Result { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the time taken to execute the method in milliseconds.
         /// </summary>
@@ -217,13 +217,13 @@ namespace Skugga.Core
         /// Does not include recording overhead.
         /// </remarks>
         public long DurationMilliseconds { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the timestamp when the method was called.
         /// </summary>
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
-    
+
     /// <summary>
     /// Context for replaying recorded method calls and verifying behavior matches.
     /// </summary>
@@ -231,7 +231,7 @@ namespace Skugga.Core
     {
         private readonly List<RecordedCall> _recordings;
         private int _currentIndex = 0;
-        
+
         /// <summary>
         /// Initializes a new replay context with the specified recordings.
         /// </summary>
@@ -240,7 +240,7 @@ namespace Skugga.Core
         {
             _recordings = recordings;
         }
-        
+
         /// <summary>
         /// Gets the next expected call in the replay sequence.
         /// </summary>
@@ -254,7 +254,7 @@ namespace Skugga.Core
                 return _recordings[_currentIndex++];
             return null;
         }
-        
+
         /// <summary>
         /// Verifies that a method call matches the next expected recording.
         /// </summary>
@@ -284,19 +284,19 @@ namespace Skugga.Core
         {
             var expected = GetNextExpectedCall();
             if (expected == null) return false;
-            
+
             if (expected.MethodName != methodName) return false;
             if (expected.Arguments.Length != args.Length) return false;
-            
+
             for (int i = 0; i < args.Length; i++)
             {
                 if (!Equals(expected.Arguments[i], args[i]))
                     return false;
             }
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// Resets the replay context to the beginning of the recording sequence.
         /// </summary>
@@ -307,29 +307,29 @@ namespace Skugga.Core
         {
             _currentIndex = 0;
         }
-        
+
         /// <summary>
         /// Gets all recordings in this replay context.
         /// </summary>
         public IReadOnlyList<RecordedCall> Recordings => _recordings;
     }
-    
+
     /// <summary>
     /// Factory for creating test harness instances.
     /// </summary>
     /// <remarks>
     /// Test harnesses provide a structured way to organize mocks and system under test (SUT).
     /// </remarks>
-    public static class Harness 
-    { 
+    public static class Harness
+    {
         /// <summary>
         /// Creates a new test harness for the specified type.
         /// </summary>
         /// <typeparam name="T">The type of the system under test</typeparam>
         /// <returns>A new test harness instance</returns>
-        public static TestHarness<T> Create<T>() => new TestHarness<T>(); 
+        public static TestHarness<T> Create<T>() => new TestHarness<T>();
     }
-    
+
     /// <summary>
     /// Base class for test harnesses that organize mocks and system under test.
     /// </summary>
@@ -372,13 +372,13 @@ namespace Skugga.Core
     /// Assert.Equal("John", user.Name);
     /// </code>
     /// </example>
-    public class TestHarness<T> 
-    { 
+    public class TestHarness<T>
+    {
         /// <summary>
         /// Gets or sets the system under test.
         /// </summary>
         public T SUT { get; protected set; } = default!;
-        
+
         /// <summary>
         /// Dictionary for storing mock instances by type.
         /// </summary>

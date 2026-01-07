@@ -36,13 +36,13 @@ namespace Skugga.OpenApi.Tests
             // The interface should be generated with methods from the spec
             // Check that it's a valid interface type
             var interfaceType = typeof(IPetStoreApi);
-            
+
             Assert.True(interfaceType.IsInterface, "Should be an interface");
-            
+
             // Verify methods exist
             var methods = interfaceType.GetMethods();
             Assert.NotEmpty(methods);
-            
+
             // Check for specific methods from petstore.json
             Assert.Contains(methods, m => m.Name == "ListPets");
             Assert.Contains(methods, m => m.Name == "GetPet");
@@ -57,10 +57,10 @@ namespace Skugga.OpenApi.Tests
         {
             // Verify Pet schema is generated
             var petType = typeof(Pet);
-            
+
             Assert.NotNull(petType);
             Assert.True(petType.IsClass, "Should be a class");
-            
+
             // Verify properties exist
             var properties = petType.GetProperties();
             Assert.Contains(properties, p => p.Name == "Id");
@@ -78,14 +78,14 @@ namespace Skugga.OpenApi.Tests
         {
             // The mock should be auto-generated as IPetStoreApiMock
             var mock = new IPetStoreApiMock();
-            
+
             // Verify it implements the interface
             Assert.IsAssignableFrom<IPetStoreApi>(mock);
-            
+
             // Verify methods return realistic values
             var pets = mock.ListPets();
             Assert.NotNull(pets);
-            
+
             var pet = mock.GetPet(123);
             Assert.NotNull(pet);
         }

@@ -1,8 +1,8 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.OpenApi.Models;
 
 namespace Skugga.OpenApi.Generator.Validation
 {
@@ -791,7 +791,7 @@ namespace Skugga.OpenApi.Generator.Validation
         public static LintingConfiguration Parse(string? configString)
         {
             var config = new LintingConfiguration();
-            
+
             if (string.IsNullOrWhiteSpace(configString))
                 return config;
 

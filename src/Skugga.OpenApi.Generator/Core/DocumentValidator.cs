@@ -1,8 +1,8 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.OpenApi.Models;
-using Microsoft.OpenApi.Any;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 
 namespace Skugga.OpenApi.Generator
 {
@@ -110,7 +110,7 @@ namespace Skugga.OpenApi.Generator
             // Validate object schemas have properties defined
             if (schema.Type == "object")
             {
-                if ((schema.Properties == null || schema.Properties.Count == 0) && 
+                if ((schema.Properties == null || schema.Properties.Count == 0) &&
                     (schema.AllOf == null || schema.AllOf.Count == 0))
                 {
                     ReportInfo("SKUGGA_OPENAPI_018", "Empty Object Schema",
@@ -192,7 +192,7 @@ namespace Skugga.OpenApi.Generator
             if (firstEnum == null) return;
 
             var enumTypeName = firstEnum.GetType().Name;
-            
+
             // Check for type mismatches
             if (schema.Type == "integer")
             {
@@ -238,13 +238,13 @@ namespace Skugga.OpenApi.Generator
 
             // Check if the example value matches any enum value
             var exampleMatches = schema.Enum.Any(enumValue => AreOpenApiValuesEqual(enumValue, example));
-            
+
             if (!exampleMatches)
             {
                 var exampleValueStr = GetOpenApiValueString(example);
                 var allowedValues = string.Join(", ", schema.Enum.Select(GetOpenApiValueString));
                 var firstAllowed = GetOpenApiValueString(schema.Enum.First());
-                
+
                 _context.ReportDiagnostic(DiagnosticHelper.Create(
                     DiagnosticHelper.InvalidEnumValue,
                     Location.None,
@@ -262,9 +262,9 @@ namespace Skugga.OpenApi.Generator
         {
             if (value1 == null && value2 == null) return true;
             if (value1 == null || value2 == null) return false;
-            
+
             // Compare by type and value
-            return value1.GetType() == value2.GetType() && 
+            return value1.GetType() == value2.GetType() &&
                    GetOpenApiValueString(value1) == GetOpenApiValueString(value2);
         }
 
@@ -370,7 +370,7 @@ namespace Skugga.OpenApi.Generator
                                 // Validate parameter example against enum constraint
                                 if (parameter.Schema.Enum != null && parameter.Schema.Enum.Count > 0 && parameter.Example != null)
                                 {
-                                    ValidateExampleAgainstEnum($"parameter '{parameter.Name}' in '{operationId}'", 
+                                    ValidateExampleAgainstEnum($"parameter '{parameter.Name}' in '{operationId}'",
                                         parameter.Schema, parameter.Example, "parameter example");
                                 }
 
@@ -387,7 +387,7 @@ namespace Skugga.OpenApi.Generator
                         {
                             var statusCode = responseEntry.Key;
                             var response = responseEntry.Value;
-                            
+
                             // Allow "default" and numeric codes
                             if (statusCode != "default" && !int.TryParse(statusCode, out var parsedCode))
                             {
@@ -495,7 +495,7 @@ namespace Skugga.OpenApi.Generator
             if (schema.Reference != null)
             {
                 var refId = schema.Reference.Id;
-                if (!string.IsNullOrEmpty(refId) && 
+                if (!string.IsNullOrEmpty(refId) &&
                     _document.Components?.Schemas != null &&
                     !_document.Components.Schemas.ContainsKey(refId))
                 {

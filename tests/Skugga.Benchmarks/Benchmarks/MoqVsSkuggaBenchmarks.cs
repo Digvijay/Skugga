@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
-using Skugga.Core;
 using Moq;
+using Skugga.Core;
 
 // Interfaces for comprehensive testing  
 public interface IMathCalc { int Add(int a, int b); int Multiply(int a, int b); int Divide(int a, int b); }
@@ -21,7 +21,7 @@ public class MoqVsSkuggaBenchmarks
     {
         var output = new System.Text.StringBuilder();
         var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        
+
         output.AppendLine("# Comprehensive Moq vs Skugga Benchmarks\n");
         output.AppendLine($"**Test Date:** {timestamp}  ");
         output.AppendLine($"**Iterations:** {Iterations:N0} | **Warmup:** {Warmup:N0}  ");
@@ -29,7 +29,7 @@ public class MoqVsSkuggaBenchmarks
         output.AppendLine($"**OS:** macOS 15.7  ");
         output.AppendLine($"**Runtime:** .NET 10.0.1\n");
         output.AppendLine("---\n");
-        
+
         Console.WriteLine(output.ToString());
 
         var results = new (string Name, double Skugga, double Moq)[]
@@ -49,7 +49,7 @@ public class MoqVsSkuggaBenchmarks
         };
 
         PrintResults(results, output);
-        
+
         // Save to file
         var benchmarkDir = Path.Combine(Directory.GetCurrentDirectory(), "benchmarks");
         Directory.CreateDirectory(benchmarkDir);
@@ -105,12 +105,12 @@ public class MoqVsSkuggaBenchmarks
         }
 
         output.AppendLine("-".PadRight(100, '-'));
-        output.AppendLine($"{"TOTAL",-45} {totalSkugga,15:F2} {totalMoq,15:F2} {(totalMoq/totalSkugga),11:F2}x");
+        output.AppendLine($"{"TOTAL",-45} {totalSkugga,15:F2} {totalMoq,15:F2} {(totalMoq / totalSkugga),11:F2}x");
         output.AppendLine();
         output.AppendLine("=".PadRight(100, '='));
-        output.AppendLine($"✓ Overall: Skugga is {(totalMoq/totalSkugga):F2}x faster than Moq");
+        output.AppendLine($"✓ Overall: Skugga is {(totalMoq / totalSkugga):F2}x faster than Moq");
         output.AppendLine("=".PadRight(100, '='));
-        
+
         Console.Write(output.ToString());
     }
 
@@ -385,11 +385,11 @@ public class MoqVsSkuggaBenchmarks
             var mock = Skugga.Core.Mock.Create<IDataStore>();
             mock.Setup(x => x.Exists(Skugga.Core.It.IsAny<int>())).Returns(true);
             mock.Setup(x => x.GetData(Skugga.Core.It.Is<int>(n => n > 0))).Returns("data");
-            
+
             _ = mock.Exists(1);
             _ = mock.GetData(42);
             mock.SaveData(1, "test");
-            
+
             mock.Verify(x => x.Exists(Skugga.Core.It.IsAny<int>()), Skugga.Core.Times.Once());
             mock.Verify(x => x.SaveData(1, "test"), Skugga.Core.Times.Once());
         }
@@ -402,11 +402,11 @@ public class MoqVsSkuggaBenchmarks
             var mock = new Moq.Mock<IDataStore>();
             mock.Setup(x => x.Exists(Moq.It.IsAny<int>())).Returns(true);
             mock.Setup(x => x.GetData(Moq.It.Is<int>(n => n > 0))).Returns("data");
-            
+
             _ = mock.Object.Exists(1);
             _ = mock.Object.GetData(42);
             mock.Object.SaveData(1, "test");
-            
+
             mock.Verify(x => x.Exists(Moq.It.IsAny<int>()), Moq.Times.Once());
             mock.Verify(x => x.SaveData(1, "test"), Moq.Times.Once());
         }

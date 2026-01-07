@@ -1,5 +1,5 @@
-using Xunit;
 using Skugga.Core;
+using Xunit;
 
 namespace Skugga.Core.Tests;
 
@@ -15,13 +15,13 @@ public interface IParser
 {
     /// <summary>Attempts to parse a string to an integer.</summary>
     bool TryParse(string input, out int result);
-    
+
     /// <summary>Attempts to parse a string to a double.</summary>
     bool TryParseDouble(string input, out double result);
-    
+
     /// <summary>Gets multiple values via out parameters.</summary>
     void GetValues(out int x, out int y);
-    
+
     /// <summary>Dictionary-style TryGet pattern.</summary>
     bool TryGetValue(string key, out string? value);
 }
@@ -33,10 +33,10 @@ public interface IRefService
 {
     /// <summary>Modifies a value passed by reference.</summary>
     void ModifyValue(ref int value);
-    
+
     /// <summary>Swaps two values passed by reference.</summary>
     void SwapValues(ref int a, ref int b);
-    
+
     /// <summary>Processes a ref parameter and returns a value.</summary>
     int ProcessRef(ref string input);
 }
@@ -48,7 +48,7 @@ public interface IMixedService
 {
     /// <summary>Combines normal, ref, and out parameters in a single method.</summary>
     bool TryProcess(string input, ref int counter, out string result);
-    
+
     /// <summary>Method with all parameter types: normal, ref, out.</summary>
     void MixedParameters(int normal, ref int refParam, out int outParam, string another);
 }
@@ -99,7 +99,7 @@ public interface IVoidOutService
 public class OutRefTests
 {
     #region Out Parameter Tests - Single Values
-    
+
     /// <summary>
     /// Verifies that a single out int parameter can be configured and returns the expected value.
     /// </summary>
@@ -421,12 +421,12 @@ public class OutRefTests
         var sequence = new MockSequence();
         var mock = Mock.Create<IParser>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.TryParse("first", out dummy))
             .Returns(true)
             .OutValue(1, 1)
             .InSequence(sequence);
-        
+
         mock.Setup(m => m.TryParse("second", out dummy))
             .Returns(true)
             .OutValue(1, 2)
@@ -448,7 +448,7 @@ public class OutRefTests
         // Arrange
         var mock = Mock.Create<IParser>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.TryParse(It.IsAny<string>(), out dummy))
             .Returns(true)
             .OutValueFunc(1, args => int.Parse((string)args[0]!));
@@ -462,7 +462,7 @@ public class OutRefTests
         Assert.True(success1);
         Assert.True(success2);
         Assert.True(success3);
-        
+
         // Then check the out values
         Assert.Equal(42, result1);
         Assert.Equal(100, result2);
@@ -476,17 +476,17 @@ public class OutRefTests
         // Arrange
         var mock = Mock.Create<IRefService>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.ModifyValue(ref dummy))
             .RefValueFunc(0, args => (int)args[0]! * 2);
 
         // Act
         int value1 = 5;
         mock.ModifyValue(ref value1);
-        
+
         int value2 = 25;
         mock.ModifyValue(ref value2);
-        
+
         int value3 = 100;
         mock.ModifyValue(ref value3);
 
@@ -503,7 +503,7 @@ public class OutRefTests
         // Arrange
         var mock = Mock.Create<IParser>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.TryParse(It.Is<string>(s => s.StartsWith("valid")), out dummy))
             .Returns(true)
             .OutValueFunc(1, args => ((string)args[0]!).Length);
@@ -524,9 +524,10 @@ public class OutRefTests
         // Arrange
         var mock = Mock.Create<IRefService>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.ModifyValue(ref dummy))
-            .RefValueFunc(0, args => {
+            .RefValueFunc(0, args =>
+            {
                 int val = (int)args[0]!;
                 return val < 10 ? val * 3 : val + 100;
             });
@@ -534,7 +535,7 @@ public class OutRefTests
         // Act
         int value1 = 3;
         mock.ModifyValue(ref value1);
-        
+
         int value2 = 15;
         mock.ModifyValue(ref value2);
 
@@ -550,7 +551,7 @@ public class OutRefTests
         // Arrange
         var mock = Mock.Create<IParser>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.TryParse(It.IsAny<string>(), out dummy))
             .Returns(true)
             .OutValue(1, 999) // Static value
@@ -571,7 +572,7 @@ public class OutRefTests
         var mock = Mock.Create<IMultiOutService>();
         int dummy1 = 0;
         string dummy2 = "";
-        
+
         mock.Setup(m => m.GetValues(It.IsAny<int>(), out dummy1, out dummy2))
             .OutValueFunc(1, args => (int)args[0]! * 10)
             .OutValueFunc(2, args => $"value{args[0]}");
@@ -591,7 +592,7 @@ public class OutRefTests
         // Arrange
         var mock = Mock.Create<IVoidOutService>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.ProcessValue(It.IsAny<string>(), out dummy))
             .OutValueFunc(1, args => ((string)args[0]!).Length * 2);
 
@@ -617,10 +618,10 @@ public class OutRefTests
         var mock = Mock.Create<IParser>();
         int dummy = 0;
         bool callbackWasCalled = false;
-        
+
         mock.Setup(m => m.TryParse(It.IsAny<string>(), out dummy))
             .Returns(true)
-            .CallbackRefOut((TryParseCallback)((string input, out int result) => 
+            .CallbackRefOut((TryParseCallback)((string input, out int result) =>
             {
                 callbackWasCalled = true;
                 result = int.Parse(input) * 10;
@@ -643,9 +644,9 @@ public class OutRefTests
         // Arrange
         var mock = Mock.Create<IRefService>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.ModifyValue(ref dummy))
-            .CallbackRefOut((ModifyValueCallback)((ref int value) => 
+            .CallbackRefOut((ModifyValueCallback)((ref int value) =>
             {
                 value = value + 100;
             }));
@@ -653,7 +654,7 @@ public class OutRefTests
         // Act
         int value1 = 5;
         mock.ModifyValue(ref value1);
-        
+
         int value2 = 25;
         mock.ModifyValue(ref value2);
 
@@ -669,9 +670,9 @@ public class OutRefTests
         // Arrange
         var mock = Mock.Create<IVoidOutService>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.ProcessValue(It.IsAny<string>(), out dummy))
-            .CallbackRefOut((ProcessValueCallback)((string input, out int result) => 
+            .CallbackRefOut((ProcessValueCallback)((string input, out int result) =>
             {
                 result = input.ToUpper().Length;
             }));
@@ -693,10 +694,10 @@ public class OutRefTests
         var mock = Mock.Create<IParser>();
         int dummy = 0;
         bool wasCalled = false;
-        
+
         mock.Setup(m => m.TryParse("42", out dummy))
             .Returns(true)
-            .CallbackRefOut((TryParseCallback)((string input, out int result) => 
+            .CallbackRefOut((TryParseCallback)((string input, out int result) =>
             {
                 wasCalled = true;
                 result = 999;
@@ -718,11 +719,11 @@ public class OutRefTests
         // Arrange
         var mock = Mock.Create<IParser>();
         int dummy = 0;
-        
+
         mock.Setup(m => m.TryParse(It.IsAny<string>(), out dummy))
             .Returns(true)
             .OutValueFunc(1, args => 111)  // This should be overridden
-            .CallbackRefOut((TryParseCallback)((string input, out int result) => 
+            .CallbackRefOut((TryParseCallback)((string input, out int result) =>
             {
                 result = 222;  // Callback takes precedence
             }));
@@ -733,7 +734,7 @@ public class OutRefTests
         // Assert
         Assert.Equal(222, result);  // Callback value, not OutValueFunc
     }
-    
+
     #endregion
 }
 

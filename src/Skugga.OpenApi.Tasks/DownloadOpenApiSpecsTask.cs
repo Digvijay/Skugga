@@ -101,7 +101,7 @@ namespace Skugga.OpenApi.Tasks
                         if (File.Exists(metaFilePath))
                         {
                             var metaLines = File.ReadAllLines(metaFilePath);
-                            var etagLine = metaLines.FirstOrDefault(l => l.StartsWith("ETag:"));
+                            var etagLine = metaLines.FirstOrDefault(l => l.StartsWith("ETag:", StringComparison.Ordinal));
                             if (etagLine != null)
                             {
                                 cachedETag = etagLine.Substring("ETag:".Length).Trim();

@@ -1,7 +1,7 @@
-using Xunit;
 using System;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
+using Xunit;
 
 namespace Skugga.OpenApi.Tests.Performance
 {
@@ -39,7 +39,7 @@ namespace Skugga.OpenApi.Tests.Performance
             // - CompilationProvider caches compilation state
             //
             // See: SkuggaOpenApiGenerator.Initialize() method
-            
+
             Assert.True(true, "IIncrementalGenerator provides automatic caching - no additional code needed");
         }
 
@@ -89,7 +89,7 @@ namespace Skugga.OpenApi.Tests.Performance
             //   });
             //
             // See: SkuggaOpenApiGenerator.Initialize() method
-            
+
             Assert.True(true, "IIncrementalGenerator runs in parallel automatically - no additional code needed");
         }
 
@@ -137,7 +137,7 @@ namespace Skugga.OpenApi.Tests.Performance
             //      - New: Input added/modified, new output
             //      - Modified: Input changed, different output
             //      - Unchanged: Input changed, same output
-            
+
             Assert.True(true, "Cache invalidation works automatically - monitored by Roslyn");
         }
 
@@ -179,7 +179,7 @@ namespace Skugga.OpenApi.Tests.Performance
             // ✅ Independent interfaces (no cross-dependencies)
             // ✅ Avoid I/O bottlenecks (local specs faster than network)
             // ✅ Sufficient CPU cores (parallelization scales with cores)
-            
+
             Assert.True(true, "Multiple specs process in parallel automatically");
         }
 
@@ -218,7 +218,7 @@ namespace Skugga.OpenApi.Tests.Performance
             //   $ dotnet-trace report trace.nettrace
             //
             // Look for "Gen 0/1/2 Collections" and "Heap Size" metrics
-            
+
             Assert.True(true, "IIncrementalGenerator optimizes memory usage automatically");
         }
 
@@ -246,9 +246,9 @@ namespace Skugga.OpenApi.Tests.Performance
             //
             //   $ # Check if files in generated/ change between builds
             //   $ # If they change, cache is broken
-            
+
             var projectPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..");
-            
+
             // First build (warm up)
             var process1 = Process.Start(new ProcessStartInfo
             {
@@ -259,7 +259,7 @@ namespace Skugga.OpenApi.Tests.Performance
                 UseShellExecute = false
             });
             process1?.WaitForExit();
-            
+
             // Second build (should be fast)
             var stopwatch = Stopwatch.StartNew();
             var process2 = Process.Start(new ProcessStartInfo
@@ -272,9 +272,9 @@ namespace Skugga.OpenApi.Tests.Performance
             });
             process2?.WaitForExit();
             stopwatch.Stop();
-            
+
             // Assert incremental build is fast (< 2 seconds)
-            Assert.True(stopwatch.ElapsedMilliseconds < 2000, 
+            Assert.True(stopwatch.ElapsedMilliseconds < 2000,
                 $"Incremental build took {stopwatch.ElapsedMilliseconds}ms - expected < 2000ms. Cache may not be working.");
         }
     }

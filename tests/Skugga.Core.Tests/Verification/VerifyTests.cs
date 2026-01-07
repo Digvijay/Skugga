@@ -18,10 +18,10 @@ public class VerifyTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         // Act
         mock.Execute();
-        
+
         // Assert
         mock.Verify(x => x.Execute(), Times.Once());
     }
@@ -32,7 +32,7 @@ public class VerifyTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         // Assert - method was never called
         mock.Verify(x => x.Execute(), Times.Never());
     }
@@ -44,11 +44,11 @@ public class VerifyTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         mock.Execute();
-        
+
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() => 
+        var exception = Assert.Throws<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.Never()));
-        
+
         exception.Message.Should().Contain("Expected exactly 0 call(s)");
         exception.Message.Should().Contain("but was called 1 time(s)");
     }
@@ -59,11 +59,11 @@ public class VerifyTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() => 
+        var exception = Assert.Throws<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.Once()));
-        
+
         exception.Message.Should().Contain("Expected exactly 1 call(s)");
         exception.Message.Should().Contain("but was called 0 time(s)");
     }
@@ -74,12 +74,12 @@ public class VerifyTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         // Act
         mock.Execute();
         mock.Execute();
         mock.Execute();
-        
+
         // Assert
         mock.Verify(x => x.Execute(), Times.Exactly(3));
     }
@@ -90,11 +90,11 @@ public class VerifyTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         // Act
         mock.ExecuteWithArgs(42);
         mock.ExecuteWithArgs(100);
-        
+
         // Assert
         mock.Verify(x => x.ExecuteWithArgs(42), Times.Once());
         mock.Verify(x => x.ExecuteWithArgs(100), Times.Once());
@@ -107,12 +107,12 @@ public class VerifyTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         // Act
         mock.Execute();
         mock.Execute();
         mock.Execute();
-        
+
         // Assert
         mock.Verify(x => x.Execute(), Times.AtLeast(2)); // Should pass (3 >= 2)
         mock.Verify(x => x.Execute(), Times.AtLeast(3)); // Should pass (3 >= 3)
@@ -125,11 +125,11 @@ public class VerifyTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         mock.Execute();
-        
+
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() => 
+        var exception = Assert.Throws<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.AtLeast(2)));
-        
+
         exception.Message.Should().Contain("at least 2");
     }
 
@@ -139,11 +139,11 @@ public class VerifyTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         // Act
         mock.Execute();
         mock.Execute();
-        
+
         // Assert
         mock.Verify(x => x.Execute(), Times.AtMost(3)); // Should pass (2 <= 3)
         mock.Verify(x => x.Execute(), Times.AtMost(2)); // Should pass (2 <= 2)
@@ -158,11 +158,11 @@ public class VerifyTests
         mock.Execute();
         mock.Execute();
         mock.Execute();
-        
+
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() => 
+        var exception = Assert.Throws<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.AtMost(2)));
-        
+
         exception.Message.Should().Contain("at most 2");
     }
 
@@ -172,12 +172,12 @@ public class VerifyTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         // Act
         mock.Execute();
         mock.Execute();
         mock.Execute();
-        
+
         // Assert
         mock.Verify(x => x.Execute(), Times.Between(1, 5)); // Should pass (3 is in [1,5])
         mock.Verify(x => x.Execute(), Times.Between(3, 3)); // Should pass (3 is in [3,3])
@@ -190,11 +190,11 @@ public class VerifyTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         mock.Execute();
-        
+
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() => 
+        var exception = Assert.Throws<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.Between(2, 5)));
-        
+
         exception.Message.Should().Contain("between 2 and 5");
     }
 
@@ -205,11 +205,11 @@ public class VerifyTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         mock.Setup(x => x.GetData()).Returns("test");
-        
+
         // Act
         var result1 = mock.GetData();
         var result2 = mock.GetData();
-        
+
         // Assert
         result1.Should().Be("test");
         result2.Should().Be("test");
@@ -223,12 +223,12 @@ public class VerifyTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         mock.Setup(x => x.Calculate(2, 3)).Returns(5);
-        
+
         // Act
         mock.Calculate(2, 3);
         mock.Calculate(2, 3);
         mock.Calculate(5, 10);
-        
+
         // Assert
         mock.Verify(x => x.Calculate(2, 3), Times.Exactly(2));
         mock.Verify(x => x.Calculate(5, 10), Times.Once());
@@ -241,12 +241,12 @@ public class VerifyTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         // Act
         mock.Execute();
         mock.Execute();
         mock.GetData();
-        
+
         // Assert
         mock.Verify(x => x.Execute(), Times.Exactly(2));
         mock.Verify(x => x.GetData(), Times.Once());
@@ -261,13 +261,13 @@ public class VerifyTests
         var mock = Mock.Create<ITestService>();
         mock.Execute();
         mock.Execute();
-        
+
         // Verify first round
         mock.Verify(x => x.Execute(), Times.Exactly(2));
-        
+
         // Create new mock (simulating reset)
         var newMock = Mock.Create<ITestService>();
-        
+
         // Assert - new mock should have no history
         newMock.Verify(x => x.Execute(), Times.Never());
     }

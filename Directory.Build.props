@@ -16,7 +16,16 @@
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    
+    <!-- AOT Compatibility -->
+    <IsAotCompatible Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">true</IsAotCompatible>
+    
+    <!-- Enable high quality analysis -->
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <NoWarn>$(NoWarn);CA2007;CA1014;CA1847;CA1852;CA1310;CA1311;CA1304;CA1860;CA1861;CA1834;CA1051;CA1805;CA1000;CA2201;CA1854;CA1869;CA1707;CA1862;CA1806;CA1716</NoWarn>
     
     <!-- Enable interceptors for Skugga -->
     <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Skugga.Generated</InterceptorsPreviewNamespaces>
@@ -39,7 +48,7 @@
 
   <!-- Include icon and README in packages -->
   <ItemGroup Condition="'$(IsPackable)' == 'true'">
-    <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" />
-    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="/" />
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

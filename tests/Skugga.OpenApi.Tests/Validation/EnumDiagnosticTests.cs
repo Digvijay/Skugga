@@ -66,7 +66,7 @@ namespace Skugga.OpenApi.Tests.Validation
             // SKUGGA_OPENAPI_021 is tested in DocumentValidator implementation
             // It provides specific guidance for string, integer, and number enum mismatches
             // This test documents that the diagnostic includes Fix: guidance
-            
+
             // The diagnostic is triggered by DocumentValidator.ValidateEnumValues()
             // and provides type-specific fix examples
             Assert.True(true, "Enum type mismatch validation provides detailed fix guidance in DocumentValidator");
@@ -104,11 +104,11 @@ namespace Skugga.OpenApi.Tests.Validation
             foreach (var diagnostic in enumDiagnostics)
             {
                 var message = diagnostic.MessageFormat.ToString();
-                var hasGuidance = message.Contains("Fix:") || 
-                                 message.Contains("Consider:") || 
+                var hasGuidance = message.Contains("Fix:") ||
+                                 message.Contains("Consider:") ||
                                  message.Contains("Allowed");
-                
-                Assert.True(hasGuidance, 
+
+                Assert.True(hasGuidance,
                     $"Diagnostic {diagnostic.Id} should have actionable guidance (Fix:/Consider:/Allowed)");
             }
         }
@@ -121,13 +121,13 @@ namespace Skugga.OpenApi.Tests.Validation
             // 1. SKUGGA_OPENAPI_028 - InvalidEnumValue (example doesn't match allowed values)
             // 2. SKUGGA_OPENAPI_029 - EnumParameterWithoutConstraint (parameter references enum schema)
             // 3. SKUGGA_OPENAPI_021 - EnumTypeMismatch (enhanced with detailed guidance)
-            
+
             var invalidEnumValue = Skugga.OpenApi.Generator.DiagnosticHelper.InvalidEnumValue;
             var enumParameter = Skugga.OpenApi.Generator.DiagnosticHelper.EnumParameterWithoutConstraint;
-            
+
             Assert.Equal("SKUGGA_OPENAPI_028", invalidEnumValue.Id);
             Assert.Equal("SKUGGA_OPENAPI_029", enumParameter.Id);
-            
+
             // SKUGGA_OPENAPI_021 is tested via DocumentValidator behavior
             Assert.True(true, "Three enum diagnostics available: 028, 029, and enhanced 021");
         }

@@ -50,8 +50,8 @@ namespace Skugga.Core.Exceptions
         /// </summary>
         public override string ToString()
         {
-            return Code != null 
-                ? $"{Field}: {Message} (code: {Code})" 
+            return Code != null
+                ? $"{Field}: {Message} (code: {Code})"
                 : $"{Field}: {Message}";
         }
     }

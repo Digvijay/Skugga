@@ -259,7 +259,7 @@ Here's a complete working example using a remote OpenAPI spec:
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Skugga" Version="1.2.0" />
+    <PackageReference Include="Skugga" Version="1.3.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
   </ItemGroup>
 

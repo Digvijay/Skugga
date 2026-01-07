@@ -15,7 +15,8 @@ if (args.Length > 0 && args[0] == "--benchmark")
 
 app.MapGet("/", () => "Skugga Pilot Running");
 
-app.Lifetime.ApplicationStarted.Register(() => {
+app.Lifetime.ApplicationStarted.Register(() =>
+{
     stopwatch.Stop();
     Console.WriteLine($"Skugga.Performance.E2E started in {stopwatch.ElapsedMilliseconds} ms.");
 });

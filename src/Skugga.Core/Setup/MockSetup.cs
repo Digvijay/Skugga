@@ -26,18 +26,18 @@ namespace Skugga.Core
     /// <item><description>Sequential ordering (InSequence)</description></item>
     /// </list>
     /// </remarks>
-    public class MockSetup 
+    public class MockSetup
     {
         /// <summary>
         /// Gets the method signature (e.g., "GetData" or "get_Name" for properties).
         /// </summary>
         public string Signature { get; }
-        
+
         /// <summary>
         /// Gets the expected arguments (may include ArgumentMatcher instances).
         /// </summary>
         public object?[] Args { get; }
-        
+
         /// <summary>
         /// Gets or sets the static return value for this setup.
         /// </summary>
@@ -45,7 +45,7 @@ namespace Skugga.Core
         /// Used when Returns(value) is called. For computed values, use ValueFactory instead.
         /// </remarks>
         public object? Value { get; set; }
-        
+
         /// <summary>
         /// Gets or sets a function that computes the return value from method arguments.
         /// </summary>
@@ -53,7 +53,7 @@ namespace Skugga.Core
         /// Used when Returns(func) is called. Takes precedence over Value if both are set.
         /// </remarks>
         public Func<object?[], object?>? ValueFactory { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the callback to execute when this setup is matched.
         /// </summary>
@@ -61,7 +61,7 @@ namespace Skugga.Core
         /// Executes before the return value is provided. Useful for side effects or verification.
         /// </remarks>
         public Action<object?[]>? Callback { get; set; }
-        
+
         /// <summary>
         /// Gets or sets an exception to throw when this setup is matched.
         /// </summary>
@@ -69,7 +69,7 @@ namespace Skugga.Core
         /// Used by Throws() extension method. When set, this exception is thrown instead of returning a value.
         /// </remarks>
         public Exception? Exception { get; set; }
-        
+
         /// <summary>
         /// Gets or sets a delegate with ref/out parameters for complex parameter scenarios.
         /// </summary>
@@ -77,7 +77,7 @@ namespace Skugga.Core
         /// Invoked by generated code with proper ref/out modifiers to assign parameter values.
         /// </remarks>
         public Delegate? RefOutCallback { get; set; }
-        
+
         /// <summary>
         /// Gets or sets an array of values to return sequentially on successive calls.
         /// </summary>
@@ -86,14 +86,14 @@ namespace Skugga.Core
         /// Last value is repeated for subsequent calls.
         /// </remarks>
         public object?[]? SequentialValues { get; set; }
-        
+
         /// <summary>
         /// Tracks the current index in SequentialValues for sequential returns.
         /// </summary>
         private int _sequentialIndex = 0;
-        
+
         #region Event Support
-        
+
         /// <summary>
         /// Gets or sets the event name to raise when this setup is invoked.
         /// </summary>
@@ -101,16 +101,16 @@ namespace Skugga.Core
         /// Used by Raises() extension method to trigger events on method invocation.
         /// </remarks>
         public string? EventToRaise { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the event arguments to pass when raising the event.
         /// </summary>
         public object?[]? EventArgs { get; set; }
-        
+
         #endregion
-        
+
         #region Sequence Support
-        
+
         /// <summary>
         /// Gets or sets the MockSequence this setup is part of (if any).
         /// </summary>
@@ -118,16 +118,16 @@ namespace Skugga.Core
         /// Used by InSequence() to enforce ordered method calls.
         /// </remarks>
         public MockSequence? Sequence { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the step number in the sequence.
         /// </summary>
         public int SequenceStep { get; set; }
-        
+
         #endregion
-        
+
         #region Out/Ref Parameter Support
-        
+
         /// <summary>
         /// Gets or sets static out parameter values (parameter index -> value).
         /// </summary>
@@ -135,7 +135,7 @@ namespace Skugga.Core
         /// Used when OutValue() is called to configure static out parameter values.
         /// </remarks>
         public Dictionary<int, object?>? OutValues { get; set; }
-        
+
         /// <summary>
         /// Gets or sets static ref parameter values (parameter index -> value).
         /// </summary>
@@ -143,7 +143,7 @@ namespace Skugga.Core
         /// Used when RefValue() is called to configure static ref parameter values.
         /// </remarks>
         public Dictionary<int, object?>? RefValues { get; set; }
-        
+
         /// <summary>
         /// Gets or sets dynamic out parameter value factories (parameter index -> factory).
         /// </summary>
@@ -151,7 +151,7 @@ namespace Skugga.Core
         /// Used when OutValueFunc() is called to compute out values from method arguments.
         /// </remarks>
         public Dictionary<int, Func<object?[], object?>>? OutValueFactories { get; set; }
-        
+
         /// <summary>
         /// Gets or sets dynamic ref parameter value factories (parameter index -> factory).
         /// </summary>
@@ -159,7 +159,7 @@ namespace Skugga.Core
         /// Used when RefValueFunc() is called to compute ref values from method arguments.
         /// </remarks>
         public Dictionary<int, Func<object?[], object?>>? RefValueFactories { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the set of parameter indices that are ref/out parameters.
         /// </summary>
@@ -167,9 +167,9 @@ namespace Skugga.Core
         /// These parameters are ignored during matching since their values are outputs, not inputs.
         /// </remarks>
         public HashSet<int>? RefOutParameterIndices { get; set; }
-        
+
         #endregion
-        
+
         /// <summary>
         /// Initializes a new MockSetup with the specified configuration.
         /// </summary>
@@ -177,11 +177,11 @@ namespace Skugga.Core
         /// <param name="args">The expected arguments</param>
         /// <param name="val">The return value</param>
         /// <param name="callback">Optional callback to execute on invocation</param>
-        public MockSetup(string sig, object?[] args, object? val, Action<object?[]>? callback = null) 
-        { 
-            Signature = sig; 
-            Args = args; 
-            Value = val; 
+        public MockSetup(string sig, object?[] args, object? val, Action<object?[]>? callback = null)
+        {
+            Signature = sig;
+            Args = args;
+            Value = val;
             Callback = callback;
         }
 
@@ -206,17 +206,17 @@ namespace Skugga.Core
         public bool Matches(string sig, object?[] args)
         {
             // Quick checks: signature and argument count must match
-            if (Signature != sig || Args.Length != args.Length) 
+            if (Signature != sig || Args.Length != args.Length)
                 return false;
-            
+
             // Check each argument
-            for(int i = 0; i < Args.Length; i++)
+            for (int i = 0; i < Args.Length; i++)
             {
                 // Skip matching for ref/out parameters - they always match regardless of value
                 // since they are outputs, not inputs
                 if (RefOutParameterIndices != null && RefOutParameterIndices.Contains(i))
                     continue;
-                
+
                 // If the setup arg is a matcher (e.g., It.IsAny<T>()), use its Matches() method
                 if (Args[i] is ArgumentMatcher matcher)
                 {
@@ -230,10 +230,10 @@ namespace Skugga.Core
                         return false;
                 }
             }
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// Executes the callback if configured.
         /// </summary>
@@ -247,7 +247,7 @@ namespace Skugga.Core
             Callback?.Invoke(args);
             // RefOutCallback is invoked by generated code with proper ref/out modifiers
         }
-        
+
         /// <summary>
         /// Gets the next value in the sequential values array.
         /// </summary>
@@ -267,17 +267,17 @@ namespace Skugga.Core
         {
             if (SequentialValues == null || SequentialValues.Length == 0)
                 return null;
-                
+
             var value = SequentialValues[_sequentialIndex];
-            
+
             // Advance index, but don't go past the end (repeat last value)
             if (_sequentialIndex < SequentialValues.Length - 1)
                 _sequentialIndex++;
-            
+
             // Check if this value is an exception marker
             if (value is SequenceException seqEx)
                 throw seqEx.Exception;
-                
+
             return value;
         }
     }

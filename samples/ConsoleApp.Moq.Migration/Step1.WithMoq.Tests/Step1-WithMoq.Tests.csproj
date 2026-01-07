@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Step1.WithMoq\Step1-WithMoq.csproj" />
+    <ProjectReference Include="../Step1.WithMoq/Step1-WithMoq.csproj" />
   </ItemGroup>
 
 </Project>

@@ -66,7 +66,7 @@ namespace Skugga.OpenApi.Generator
 
             // Generate methods from operations
             var operations = GetOperations(operationFilter);
-            
+
             foreach (var (operation, path, method) in operations)
             {
                 GenerateMethod(sb, operation, path, method, nestingLevel);
@@ -117,16 +117,16 @@ namespace Skugga.OpenApi.Generator
                 sb.AppendLine($"{indent}/// <para>{EscapeXmlDoc(operation.Description)}</para>");
                 sb.AppendLine($"{indent}/// <para></para>");
             }
-            
+
             // HTTP endpoint info
             sb.AppendLine($"{indent}/// <para><strong>Endpoint:</strong> {httpMethod.ToUpper()} {EscapeXmlDoc(path)}</para>");
-            
+
             // Operation ID if present
             if (!string.IsNullOrEmpty(operation.OperationId))
             {
                 sb.AppendLine($"{indent}/// <para><strong>Operation ID:</strong> {EscapeXmlDoc(operation.OperationId)}</para>");
             }
-            
+
             // Tags if present
             if (operation.Tags != null && operation.Tags.Any())
             {
@@ -136,7 +136,7 @@ namespace Skugga.OpenApi.Generator
                     sb.AppendLine($"{indent}/// <para><strong>Tags:</strong> {EscapeXmlDoc(tags)}</para>");
                 }
             }
-            
+
             // Security/Auth requirements
             if (operation.Security != null && operation.Security.Any())
             {
@@ -156,24 +156,24 @@ namespace Skugga.OpenApi.Generator
                     sb.AppendLine($"{indent}/// <para><strong>🔒 Authentication:</strong> {string.Join(", ", securitySchemes.Distinct())}</para>");
                 }
             }
-            
+
             // Response documentation
             if (operation.Responses != null && operation.Responses.Any())
             {
                 sb.AppendLine($"{indent}/// <para></para>");
                 sb.AppendLine($"{indent}/// <para><strong>Responses:</strong></para>");
                 sb.AppendLine($"{indent}/// <list type=\"bullet\">");
-                
+
                 foreach (var response in operation.Responses.OrderBy(r => r.Key))
                 {
                     var statusCode = response.Key;
                     var statusDesc = response.Value?.Description ?? GetStatusCodeDescription(statusCode);
                     sb.AppendLine($"{indent}///   <item><strong>{statusCode}:</strong> {EscapeXmlDoc(statusDesc)}</item>");
                 }
-                
+
                 sb.AppendLine($"{indent}/// </list>");
             }
-            
+
             sb.AppendLine($"{indent}/// </remarks>");
 
             // Parameter documentation with enhanced details
@@ -186,14 +186,14 @@ namespace Skugga.OpenApi.Generator
                 }
                 sb.AppendLine($"{indent}/// <param name=\"{param.Name}\">{paramDoc}</param>");
             }
-            
+
             // Return value documentation
             var returnDoc = GetReturnDocumentation(operation, returnType);
             if (!string.IsNullOrEmpty(returnDoc))
             {
                 sb.AppendLine($"{indent}/// <returns>{returnDoc}</returns>");
             }
-            
+
             // Example usage
             var example = GenerateExampleUsage(methodName, parameters, returnType);
             if (!string.IsNullOrEmpty(example))
@@ -210,9 +210,9 @@ namespace Skugga.OpenApi.Generator
 
             // Method signature with async support
             var isAsync = ShouldBeAsync(operation);
-            var finalReturnType = isAsync && returnType != "void" ? $"Task<{returnType}>" : 
+            var finalReturnType = isAsync && returnType != "void" ? $"Task<{returnType}>" :
                                   isAsync ? "Task" : returnType;
-            
+
             sb.Append($"{indent}{finalReturnType} {methodName}(");
 
             if (parameters.Any())
@@ -223,7 +223,7 @@ namespace Skugga.OpenApi.Generator
 
             sb.AppendLine(");");
         }
-        
+
         /// <summary>
         /// Generates return value documentation from operation responses.
         /// </summary>
@@ -231,18 +231,18 @@ namespace Skugga.OpenApi.Generator
         {
             if (returnType == "void")
                 return "No content returned";
-            
+
             var successResponse = operation.Responses?.FirstOrDefault(r =>
                 r.Key == "200" || r.Key == "201" || r.Key == "202" || r.Key == "204" || r.Key == "default").Value;
-            
+
             if (successResponse != null && !string.IsNullOrEmpty(successResponse.Description))
             {
                 return EscapeXmlDoc(successResponse.Description);
             }
-            
+
             return $"Returns {returnType}";
         }
-        
+
         /// <summary>
         /// Generates example usage code for the method.
         /// </summary>
@@ -250,7 +250,7 @@ namespace Skugga.OpenApi.Generator
         {
             var sb = new StringBuilder();
             var hasReturn = returnType != "void";
-            
+
             // Example variable declarations for parameters
             if (parameters.Any())
             {
@@ -270,7 +270,7 @@ namespace Skugga.OpenApi.Generator
                     }
                 }
             }
-            
+
             // Example method call
             var paramList = string.Join(", ", parameters.Select(p => p.Name));
             if (hasReturn)
@@ -281,10 +281,10 @@ namespace Skugga.OpenApi.Generator
             {
                 sb.AppendLine($"await api.{methodName}({paramList});");
             }
-            
+
             return sb.ToString().TrimEnd();
         }
-        
+
         /// <summary>
         /// Gets a human-readable description for HTTP status codes.
         /// </summary>
@@ -437,7 +437,7 @@ namespace Skugga.OpenApi.Generator
                 foreach (var operation in path.Value.Operations)
                 {
                     var op = operation.Value;
-                    
+
                     // Skip if operation is null
                     if (op == null)
                         continue;
@@ -448,7 +448,7 @@ namespace Skugga.OpenApi.Generator
                         var filterTags = operationFilter.Split(',')
                             .Select(t => t.Trim().ToLowerInvariant())
                             .ToArray();
-                        
+
                         if (op.Tags == null || op.Tags.Count == 0 || !op.Tags.Any(t =>
                             t != null && t.Name != null && filterTags.Contains(t.Name.ToLowerInvariant())))
                         {

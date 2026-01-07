@@ -1,5 +1,5 @@
-using OrdersApi.Services;
 using OrdersApi.Models;
+using OrdersApi.Services;
 using Skugga.Core;
 
 namespace OrdersApi.Tests;
@@ -139,20 +139,20 @@ public class IntegrationTests
 
         mockOrderService.Setup(x => x.GetOrderByIdAsync("order-999"))
             .ReturnsAsync(order);
-        
+
         mockCustomerService.Setup(x => x.GetCustomerByIdAsync("cust-1"))
             .ReturnsAsync(customer);
-        
+
         mockNotificationService.Setup(x => x.SendOrderConfirmationAsync("order-999", "customer@example.com"))
             .Returns(Task.CompletedTask);
 
         // Act - Simulate workflow
         var retrievedOrder = await mockOrderService.GetOrderByIdAsync("order-999");
         Assert.NotNull(retrievedOrder);
-        
+
         var retrievedCustomer = await mockCustomerService.GetCustomerByIdAsync(retrievedOrder.CustomerId);
         Assert.NotNull(retrievedCustomer);
-        
+
         await mockNotificationService.SendOrderConfirmationAsync(retrievedOrder.Id, retrievedCustomer.Email);
 
         // Assert - Verify all interactions

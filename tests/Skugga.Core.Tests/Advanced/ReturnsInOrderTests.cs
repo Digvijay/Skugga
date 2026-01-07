@@ -1,5 +1,5 @@
-using Skugga.Core;
 using FluentAssertions;
+using Skugga.Core;
 
 namespace Skugga.Core.Tests;
 
@@ -19,9 +19,9 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder("first", "second", "third");
-        
+
         // Act & Assert
         mock.GetNext().Should().Be("first");
         mock.GetNext().Should().Be("second");
@@ -34,9 +34,9 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder("first", "second", "third");
-        
+
         // Act & Assert
         mock.GetNext().Should().Be("first");
         mock.GetNext().Should().Be("second");
@@ -51,9 +51,9 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder("only");
-        
+
         // Act & Assert
         mock.GetNext().Should().Be("only");
         mock.GetNext().Should().Be("only");
@@ -66,9 +66,9 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNumber()).ReturnsInOrder(1, 2, 3, 4, 5);
-        
+
         // Act & Assert
         mock.GetNumber().Should().Be(1);
         mock.GetNumber().Should().Be(2);
@@ -84,9 +84,9 @@ public class ReturnsInOrderTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         var values = new List<string> { "a", "b", "c" };
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder(values);
-        
+
         // Act & Assert
         mock.GetNext().Should().Be("a");
         mock.GetNext().Should().Be("b");
@@ -100,9 +100,9 @@ public class ReturnsInOrderTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         var values = new[] { "x", "y", "z" };
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder(values);
-        
+
         // Act & Assert
         mock.GetNext().Should().Be("x");
         mock.GetNext().Should().Be("y");
@@ -115,10 +115,10 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder("a", "b", "c");
         mock.Setup(x => x.GetNumber()).ReturnsInOrder(1, 2, 3);
-        
+
         // Act & Assert
         mock.GetNext().Should().Be("a");
         mock.GetNumber().Should().Be(1);
@@ -134,10 +134,10 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetData(1)).ReturnsInOrder("first-1", "second-1", "third-1");
         mock.Setup(x => x.GetData(2)).ReturnsInOrder("first-2", "second-2");
-        
+
         // Act & Assert
         mock.GetData(1).Should().Be("first-1");
         mock.GetData(2).Should().Be("first-2");
@@ -152,9 +152,9 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder("first", null!, "third");
-        
+
         // Act & Assert
         mock.GetNext().Should().Be("first");
         mock.GetNext().Should().BeNull();
@@ -168,16 +168,16 @@ public class ReturnsInOrderTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         var callCount = 0;
-        
+
         mock.Setup(x => x.GetNext())
             .Callback(() => callCount++)
             .ReturnsInOrder("first", "second", "third");
-        
+
         // Act
         mock.GetNext();
         mock.GetNext();
         mock.GetNext();
-        
+
         // Assert
         callCount.Should().Be(3);
     }
@@ -188,14 +188,14 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder("first", "second", "third");
-        
+
         // Act
         mock.GetNext();
         mock.GetNext();
         mock.GetNext();
-        
+
         // Assert
         mock.Verify(x => x.GetNext(), Times.Exactly(3));
     }
@@ -206,11 +206,11 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNext())
             .Returns("static")
             .ReturnsInOrder("first", "second"); // Override static with sequential
-        
+
         // Act & Assert
         mock.GetNext().Should().Be("first");
         mock.GetNext().Should().Be("second");
@@ -223,11 +223,11 @@ public class ReturnsInOrderTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         var counter = 0;
-        
+
         mock.Setup(x => x.GetNumber())
             .Returns(() => ++counter)
             .ReturnsInOrder(10, 20, 30); // Override function with sequential
-        
+
         // Act & Assert
         mock.GetNumber().Should().Be(10);
         mock.GetNumber().Should().Be(20);
@@ -241,9 +241,9 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>(MockBehavior.Strict);
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder("first", "second");
-        
+
         // Act & Assert
         mock.GetNext().Should().Be("first");
         mock.GetNext().Should().Be("second");
@@ -255,14 +255,14 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetValue()).ReturnsInOrder(
             (object)1,
             (object)"text",
             (object)true,
             (object)3.14
         );
-        
+
         // Act & Assert
         mock.GetValue().Should().Be(1);
         mock.GetValue().Should().Be("text");
@@ -277,18 +277,18 @@ public class ReturnsInOrderTests
         // Arrange
         var mock = Mock.Create<ITestService>();
         var executionOrder = new List<string>();
-        
+
         mock.Setup(x => x.GetNext())
             .Callback(() => executionOrder.Add("callback"))
             .ReturnsInOrder("first", "second");
-        
+
         // Act
         executionOrder.Add("before");
         var result1 = mock.GetNext();
         executionOrder.Add("after-1");
         var result2 = mock.GetNext();
         executionOrder.Add("after-2");
-        
+
         // Assert
         executionOrder.Should().Equal("before", "callback", "after-1", "callback", "after-2");
         result1.Should().Be("first");
@@ -301,12 +301,12 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder();
-        
+
         // Act
         var result = mock.GetNext();
-        
+
         // Assert
         result.Should().BeNull();
     }
@@ -317,12 +317,12 @@ public class ReturnsInOrderTests
     {
         // Arrange
         var mock = Mock.Create<ITestService>();
-        
+
         mock.Setup(x => x.GetNext()).ReturnsInOrder("first", "second", "third");
-        
+
         // Act
         var result = mock.GetNext();
-        
+
         // Assert
         result.Should().Be("first");
     }

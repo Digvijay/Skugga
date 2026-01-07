@@ -1,7 +1,7 @@
-using Xunit;
+using System;
 using FluentAssertions;
 using Skugga.Core;
-using System;
+using Xunit;
 
 namespace Skugga.Core.Tests;
 
@@ -116,7 +116,7 @@ public class ItIsAnyTests
         mock.Process(42); // Called with 42
 
         // Assert
-        var exception = Assert.Throws<MockException>(() => 
+        var exception = Assert.Throws<MockException>(() =>
             mock.Verify(x => x.Execute(It.IsAny<string>()), Times.Once())
         );
         exception.Message.Should().Contain("Expected exactly 1 call(s)");
@@ -243,7 +243,7 @@ public class ItIsAnyTests
         // Act & Assert
         mock.Process(1).Should().Be("allowed");
         mock.Process(42).Should().Be("allowed");
-        
+
         // But unsetup method should still throw
         Assert.Throws<MockException>(() => mock.Execute("test"));
     }

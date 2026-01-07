@@ -83,11 +83,11 @@ namespace Skugga.Core
             long before = GC.GetAllocatedBytesForCurrentThread();
             action();
             long after = GC.GetAllocatedBytesForCurrentThread();
-            
-            if (after - before > 0) 
+
+            if (after - before > 0)
                 throw new Exception($"Allocated {after - before} bytes (Expected 0).");
         }
-        
+
         /// <summary>
         /// Asserts that an action allocates at most the specified number of bytes.
         /// </summary>
@@ -121,11 +121,11 @@ namespace Skugga.Core
             action();
             long after = GC.GetAllocatedBytesForCurrentThread();
             long allocated = after - before;
-            
+
             if (allocated > maxBytes)
                 throw new Exception($"Allocated {allocated} bytes (Expected at most {maxBytes}).");
         }
-        
+
         /// <summary>
         /// Measures allocation of an action and returns a detailed report.
         /// </summary>
@@ -168,24 +168,24 @@ namespace Skugga.Core
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect();
-            
+
             // Record GC collection counts before execution
             long gen0Before = GC.CollectionCount(0);
             long gen1Before = GC.CollectionCount(1);
             long gen2Before = GC.CollectionCount(2);
             long bytesBefore = GC.GetAllocatedBytesForCurrentThread();
-            
+
             // Execute and time the action
             var sw = System.Diagnostics.Stopwatch.StartNew();
             action();
             sw.Stop();
-            
+
             // Record metrics after execution
             long bytesAfter = GC.GetAllocatedBytesForCurrentThread();
             long gen0After = GC.CollectionCount(0);
             long gen1After = GC.CollectionCount(1);
             long gen2After = GC.CollectionCount(2);
-            
+
             return new AllocationReport
             {
                 ActionName = actionName,
@@ -196,7 +196,7 @@ namespace Skugga.Core
                 Gen2Collections = (int)(gen2After - gen2Before)
             };
         }
-        
+
         /// <summary>
         /// Configures a performance threshold for a specific action.
         /// </summary>
@@ -229,7 +229,7 @@ namespace Skugga.Core
                 MaxMilliseconds = maxMilliseconds
             };
         }
-        
+
         /// <summary>
         /// Validates that an action meets a performance threshold.
         /// </summary>
@@ -255,15 +255,15 @@ namespace Skugga.Core
         public static void MeetsThreshold(Action action, PerformanceThreshold threshold)
         {
             var report = Measure(action, threshold.ActionName);
-            
+
             if (report.BytesAllocated > threshold.MaxBytes)
                 throw new Exception($"[{threshold.ActionName}] Allocated {report.BytesAllocated} bytes (Threshold: {threshold.MaxBytes}).");
-            
+
             if (report.DurationMilliseconds > threshold.MaxMilliseconds)
                 throw new Exception($"[{threshold.ActionName}] Took {report.DurationMilliseconds}ms (Threshold: {threshold.MaxMilliseconds}ms).");
         }
     }
-    
+
     /// <summary>
     /// Detailed report of memory allocations and performance metrics.
     /// </summary>
@@ -273,17 +273,17 @@ namespace Skugga.Core
         /// Gets or sets the name of the action that was measured.
         /// </summary>
         public string ActionName { get; set; } = string.Empty;
-        
+
         /// <summary>
         /// Gets or sets the total bytes allocated on the heap during execution.
         /// </summary>
         public long BytesAllocated { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the time taken to execute the action in milliseconds.
         /// </summary>
         public long DurationMilliseconds { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the number of generation 0 garbage collections during execution.
         /// </summary>
@@ -291,7 +291,7 @@ namespace Skugga.Core
         /// Gen0 collections are fast and frequent. High count may indicate many short-lived allocations.
         /// </remarks>
         public int Gen0Collections { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the number of generation 1 garbage collections during execution.
         /// </summary>
@@ -299,7 +299,7 @@ namespace Skugga.Core
         /// Gen1 collections are slower. Indicates objects surviving initial collection.
         /// </remarks>
         public int Gen1Collections { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the number of generation 2 garbage collections during execution.
         /// </summary>
@@ -307,7 +307,7 @@ namespace Skugga.Core
         /// Gen2 collections are slowest and most expensive. Should be rare.
         /// </remarks>
         public int Gen2Collections { get; set; }
-        
+
         /// <summary>
         /// Formats the report as a human-readable string.
         /// </summary>
@@ -317,7 +317,7 @@ namespace Skugga.Core
                    $"GC: Gen0={Gen0Collections}, Gen1={Gen1Collections}, Gen2={Gen2Collections}";
         }
     }
-    
+
     /// <summary>
     /// Performance threshold configuration for monitoring action performance.
     /// </summary>
@@ -327,12 +327,12 @@ namespace Skugga.Core
         /// Gets or sets the name of the action being monitored.
         /// </summary>
         public string ActionName { get; set; } = string.Empty;
-        
+
         /// <summary>
         /// Gets or sets the maximum allowed allocation in bytes.
         /// </summary>
         public long MaxBytes { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the maximum allowed duration in milliseconds.
         /// </summary>

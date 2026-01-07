@@ -58,7 +58,7 @@ namespace Skugga.OpenApi.Generator
                 var firstSchema = schema.AllOf.FirstOrDefault(s => s.Reference != null);
                 if (firstSchema != null)
                     return MapType(firstSchema, typeName, schemaIsNullable);
-                
+
                 // If no reference, it's a composition - use provided type name or generate one
                 return typeName ?? "object";
             }
@@ -102,7 +102,7 @@ namespace Skugga.OpenApi.Generator
 
             // Handle primitives
             var csharpType = MapPrimitiveType(schema);
-            
+
             // Make nullable if requested and it's a value type
             if (schemaIsNullable && IsValueType(csharpType))
                 return $"{csharpType}?";

@@ -37,7 +37,7 @@ namespace Skugga.Core
         /// Gets the mock handler for this protected setup context.
         /// </summary>
         public MockHandler Handler { get; }
-        
+
         /// <summary>
         /// Initializes a new instance with the specified handler.
         /// </summary>
@@ -46,7 +46,7 @@ namespace Skugga.Core
         {
             Handler = handler;
         }
-        
+
         /// <summary>
         /// Sets up a protected method with a return value.
         /// </summary>
@@ -73,7 +73,7 @@ namespace Skugga.Core
         {
             return new ProtectedSetupContext<TResult>(Handler, methodName, args);
         }
-        
+
         /// <summary>
         /// Sets up a protected void method.
         /// </summary>
@@ -98,7 +98,7 @@ namespace Skugga.Core
         {
             return new ProtectedVoidSetupContext(Handler, methodName, args);
         }
-        
+
         /// <summary>
         /// Sets up a protected property getter.
         /// </summary>
@@ -123,7 +123,7 @@ namespace Skugga.Core
             return new ProtectedSetupContext<TResult>(Handler, "get_" + propertyName, Array.Empty<object?>());
         }
     }
-    
+
     /// <summary>
     /// Setup context for protected methods with return values.
     /// Provides fluent API for configuring return values and callbacks.
@@ -134,7 +134,7 @@ namespace Skugga.Core
         private readonly MockHandler _handler;
         private readonly string _methodName;
         private readonly object?[] _args;
-        
+
         /// <summary>
         /// Initializes a new instance for the specified protected method.
         /// </summary>
@@ -144,7 +144,7 @@ namespace Skugga.Core
             _methodName = methodName;
             _args = args;
         }
-        
+
         /// <summary>
         /// Configures the return value for this protected method setup.
         /// </summary>
@@ -164,7 +164,7 @@ namespace Skugga.Core
         {
             _handler.AddSetup(_methodName, _args, value);
         }
-        
+
         /// <summary>
         /// Configures a callback to execute when the protected method is called.
         /// </summary>
@@ -192,7 +192,7 @@ namespace Skugga.Core
             return this;
         }
     }
-    
+
     /// <summary>
     /// Setup context for protected void methods.
     /// Provides API for configuring callbacks on void methods.
@@ -202,7 +202,7 @@ namespace Skugga.Core
         private readonly MockHandler _handler;
         private readonly string _methodName;
         private readonly object?[] _args;
-        
+
         /// <summary>
         /// Initializes a new instance for the specified protected void method.
         /// </summary>
@@ -212,7 +212,7 @@ namespace Skugga.Core
             _methodName = methodName;
             _args = args;
         }
-        
+
         /// <summary>
         /// Configures a callback to execute when the protected void method is called.
         /// </summary>

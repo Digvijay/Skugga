@@ -1,8 +1,8 @@
-using Skugga.Core;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Skugga.Core;
 using Xunit;
 
 namespace Skugga.OpenApi.Tests
@@ -91,7 +91,7 @@ namespace Skugga.OpenApi.Tests
 
             Assert.NotNull(task);
             Assert.True(task.IsCompleted);
-            
+
             var pets = await task;
             Assert.NotNull(pets);
             Assert.NotEmpty(pets);
@@ -121,13 +121,13 @@ namespace Skugga.OpenApi.Tests
         public void AsyncMock_UsesTaskFromResult()
         {
             var mock = new IPetStoreApiMock();
-            
+
             var task1 = mock.GetPet(1);
             var task2 = mock.GetPet(2);
 
             // Each call creates a new Task
             Assert.NotSame(task1, task2);
-            
+
             // Both are completed (Task.FromResult)
             Assert.True(task1.IsCompleted);
             Assert.True(task2.IsCompleted);
@@ -138,7 +138,7 @@ namespace Skugga.OpenApi.Tests
         public async Task AsyncMock_IntegratesWithAsyncAwait()
         {
             var mock = new IPetStoreApiMock();
-            
+
             async Task<Pet> GetPetAsync(int id)
             {
                 return await mock.GetPet(id);

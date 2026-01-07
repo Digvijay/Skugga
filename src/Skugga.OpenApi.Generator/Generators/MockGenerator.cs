@@ -106,7 +106,7 @@ namespace Skugga.OpenApi.Generator
 
             // Generate method implementations
             var operations = GetOperations(operationFilter);
-            
+
 
             foreach (var (operation, path, method) in operations)
             {
@@ -158,7 +158,7 @@ namespace Skugga.OpenApi.Generator
             var hasHeaders = response?.Headers != null && response.Headers.Any();
             var parameters = GetParameters(operation);
             var isAsync = ShouldBeAsync(operation);
-            var finalReturnType = isAsync && returnType != "void" ? $"Task<{returnType}>" : 
+            var finalReturnType = isAsync && returnType != "void" ? $"Task<{returnType}>" :
                                   isAsync ? "Task" : returnType;
 
             // Detect CRUD operation for stateful behavior
@@ -223,7 +223,7 @@ namespace Skugga.OpenApi.Generator
                     // Extract body type from ApiResponse<T>
                     var bodyType = returnType.Replace("Skugga.Core.ApiResponse<", "").TrimEnd('>');
                     var bodyValue = _exampleGenerator.GenerateDefaultValue(schema, bodyType, mediaType);
-                    
+
                     // Generate headers dictionary
                     sb.AppendLine($"{bodyIndent}var headers = new System.Collections.Generic.Dictionary<string, string>");
                     sb.AppendLine($"{bodyIndent}{{");
@@ -233,14 +233,14 @@ namespace Skugga.OpenApi.Generator
                         sb.AppendLine($"{bodyIndent}    {{ \"{header.Key}\", \"{EscapeString(headerValue)}\" }},");
                     }
                     sb.AppendLine($"{bodyIndent}}};");
-                    
+
                     // Generate validation if enabled
                     if (_enableValidation)
                     {
                         sb.AppendLine($"{bodyIndent}var result = {bodyValue};");
                         GenerateValidationCode(sb, "result", bodyType, schema, bodyIndent);
                     }
-                    
+
                     // Return ApiResponse
                     if (isAsync)
                     {
@@ -257,14 +257,14 @@ namespace Skugga.OpenApi.Generator
                 {
                     // No headers - return body directly
                     var defaultValue = _exampleGenerator.GenerateDefaultValue(schema, returnType, mediaType);
-                    
+
                     // Generate validation if enabled
                     if (_enableValidation)
                     {
                         sb.AppendLine($"{bodyIndent}var result = {defaultValue};");
                         GenerateValidationCode(sb, "result", returnType, schema, bodyIndent);
                     }
-                    
+
                     if (isAsync)
                     {
                         var resultValue = _enableValidation ? "result" : defaultValue;
@@ -309,7 +309,7 @@ namespace Skugga.OpenApi.Generator
         private void GenerateStatefulMethodBody(StringBuilder sb, string crudOp, string? entityType, string? idParam, string returnType, OpenApiSchema responseSchema, OpenApiSchema? requestBodySchema, OpenApiMediaType? mediaType, OpenApiResponse? response, bool isAsync, List<ParameterInfo> parameters, string bodyIndent, bool hasHeaders)
         {
             var innerIndent = bodyIndent + "    ";
-            
+
             // Check if there's a body parameter
             var hasBodyParam = parameters.Any(p => p.Name == "body");
             var bodyParamType = hasBodyParam ? parameters.First(p => p.Name == "body").Type : null;
@@ -334,7 +334,7 @@ namespace Skugga.OpenApi.Generator
                     {
                         sb.AppendLine($"{innerIndent}// Create entity from body data with generated ID");
                         sb.Append($"{innerIndent}var entity = new {returnType} {{ ");
-                        
+
                         // Add ID assignment (assuming first property is ID or contains "id")
                         var properties = responseSchema.Properties ?? new Dictionary<string, OpenApiSchema>();
                         var idProperty = properties.FirstOrDefault(p => p.Key.ToLowerInvariant().Contains("id")).Key;
@@ -344,7 +344,7 @@ namespace Skugga.OpenApi.Generator
                             var idValue = idSchema.Type == "string" ? "newId.ToString()" : "newId";
                             sb.Append($"{ToPascalCase(idProperty)} = {idValue}, ");
                         }
-                        
+
                         // Add common properties from body
                         var bodyProperties = requestBodySchema.Properties ?? new Dictionary<string, OpenApiSchema>();
                         foreach (var prop in bodyProperties)
@@ -354,14 +354,14 @@ namespace Skugga.OpenApi.Generator
                                 sb.Append($"{ToPascalCase(prop.Key)} = body.{ToPascalCase(prop.Key)}, ");
                             }
                         }
-                        
+
                         // Remove trailing comma and space if present
                         var currentLine = sb.ToString();
                         if (currentLine.EndsWith(", "))
                         {
                             sb.Length -= 2;
                         }
-                        
+
                         sb.AppendLine(" };");
                     }
                     else
@@ -421,9 +421,9 @@ namespace Skugga.OpenApi.Generator
                     sb.AppendLine($"{innerIndent}// Return all entities or empty list");
                     sb.AppendLine($"{innerIndent}if (!_entityStore.ContainsKey(\"{entityType}\"))");
                     sb.AppendLine($"{innerIndent}{{");
-                    var emptyList = returnType.Contains("[]") ? $"new {returnType.Replace("[]", "[0]")}" : 
-                                   returnType.Contains("IEnumerable") || returnType.Contains("List") ? 
-                                   $"new System.Collections.Generic.List<{GetGenericTypeArgument(returnType)}>()" : 
+                    var emptyList = returnType.Contains("[]") ? $"new {returnType.Replace("[]", "[0]")}" :
+                                   returnType.Contains("IEnumerable") || returnType.Contains("List") ?
+                                   $"new System.Collections.Generic.List<{GetGenericTypeArgument(returnType)}>()" :
                                    _exampleGenerator.GenerateDefaultValue(responseSchema, returnType, mediaType);
                     if (isAsync)
                     {
@@ -480,7 +480,7 @@ namespace Skugga.OpenApi.Generator
                         sb.AppendLine($"{innerIndent}// Get existing entity or create new one");
                         sb.AppendLine($"{innerIndent}var existing = _entityStore[\"{entityType}\"].ContainsKey({idParamName}?.ToString() ?? \"\")");
                         sb.AppendLine($"{innerIndent}    ? ({returnType})_entityStore[\"{entityType}\"][{idParamName}?.ToString() ?? \"\"]");
-                        
+
                         // Create new entity with ID - need to handle type conversion
                         var idProperty = (responseSchema.Properties ?? new Dictionary<string, OpenApiSchema>()).FirstOrDefault(p => p.Key.ToLowerInvariant().Contains("id")).Key;
                         var idSchema = responseSchema.Properties?[idProperty];
@@ -490,7 +490,7 @@ namespace Skugga.OpenApi.Generator
                         // Add property assignments
                         var bodyProperties = requestBodySchema.Properties ?? new Dictionary<string, OpenApiSchema>();
                         var responseProperties = responseSchema.Properties ?? new Dictionary<string, OpenApiSchema>();
-                        
+
                         foreach (var prop in bodyProperties)
                         {
                             if (responseProperties.ContainsKey(prop.Key))
@@ -498,7 +498,7 @@ namespace Skugga.OpenApi.Generator
                                 sb.AppendLine($"{innerIndent}existing.{ToPascalCase(prop.Key)} = body.{ToPascalCase(prop.Key)};");
                             }
                         }
-                        
+
                         sb.AppendLine($"{innerIndent}var updated = existing;");
                         sb.AppendLine($"{innerIndent}_entityStore[\"{entityType}\"][{idParamName}?.ToString() ?? \"\"] = updated;");
                     }
@@ -579,10 +579,10 @@ namespace Skugga.OpenApi.Generator
         {
             var startIndex = type.IndexOf('<');
             if (startIndex < 0) return "object";
-            
+
             var endIndex = type.LastIndexOf('>');
             if (endIndex < 0) return "object";
-            
+
             return type.Substring(startIndex + 1, endIndex - startIndex - 1);
         }
 
@@ -715,7 +715,7 @@ namespace Skugga.OpenApi.Generator
                 foreach (var operation in path.Value.Operations)
                 {
                     var op = operation.Value;
-                    
+
                     // Skip if operation is null
                     if (op == null)
                         continue;
@@ -726,7 +726,7 @@ namespace Skugga.OpenApi.Generator
                         var filterTags = operationFilter.Split(',')
                             .Select(t => t.Trim().ToLowerInvariant())
                             .ToArray();
-                        
+
                         if (op.Tags == null || op.Tags.Count == 0 || !op.Tags.Any(t =>
                             t != null && t.Name != null && filterTags.Contains(t.Name.ToLowerInvariant())))
                         {
@@ -839,7 +839,7 @@ namespace Skugga.OpenApi.Generator
         {
             if (string.IsNullOrEmpty(input))
                 return "";
-            
+
             return input.Replace("\\", "\\\\")
                         .Replace("\"", "\\\"")
                         .Replace("\n", "\\n")
@@ -880,19 +880,19 @@ namespace Skugga.OpenApi.Generator
         private void GenerateStateStorage(StringBuilder sb, int nestingLevel)
         {
             var baseIndent = new string(' ', (nestingLevel + 1) * 4);
-            
+
             sb.AppendLine($"{baseIndent}/// <summary>");
             sb.AppendLine($"{baseIndent}/// In-memory storage for stateful mock entities. Dictionary key is the entity type name.");
             sb.AppendLine($"{baseIndent}/// </summary>");
             sb.AppendLine($"{baseIndent}private readonly System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, object>> _entityStore = new();");
             sb.AppendLine();
-            
+
             sb.AppendLine($"{baseIndent}/// <summary>");
             sb.AppendLine($"{baseIndent}/// Counter for generating unique IDs per entity type.");
             sb.AppendLine($"{baseIndent}/// </summary>");
             sb.AppendLine($"{baseIndent}private readonly System.Collections.Generic.Dictionary<string, int> _idCounters = new();");
             sb.AppendLine();
-            
+
             sb.AppendLine($"{baseIndent}/// <summary>");
             sb.AppendLine($"{baseIndent}/// Lock object for thread-safe state operations.");
             sb.AppendLine($"{baseIndent}/// </summary>");
@@ -906,7 +906,7 @@ namespace Skugga.OpenApi.Generator
         {
             var baseIndent = new string(' ', (nestingLevel + 1) * 4);
             var bodyIndent = new string(' ', (nestingLevel + 2) * 4);
-            
+
             sb.AppendLine($"{baseIndent}/// <summary>");
             sb.AppendLine($"{baseIndent}/// Resets all stateful mock data. Call between tests for isolation.");
             sb.AppendLine($"{baseIndent}/// </summary>");
@@ -926,17 +926,17 @@ namespace Skugga.OpenApi.Generator
         private string DetectCrudOperation(string httpMethod, string path)
         {
             var method = httpMethod.ToUpperInvariant();
-            
+
             // Check if path has an ID parameter (e.g., /users/{id})
             var hasIdParam = path.Contains("{") && path.Contains("}");
-            
+
             if (method == "POST") return "CREATE";
             if (method == "GET" && hasIdParam) return "READ_ONE";
             if (method == "GET" && !hasIdParam) return "READ_ALL";
             if (method == "PUT" && hasIdParam) return "UPDATE";
             if (method == "PATCH" && hasIdParam) return "UPDATE";
             if (method == "DELETE" && hasIdParam) return "DELETE";
-            
+
             return "OTHER";
         }
 
@@ -947,10 +947,10 @@ namespace Skugga.OpenApi.Generator
         {
             // Remove leading slash and split by /
             var parts = path.TrimStart('/').Split('/');
-            
+
             // Get the first segment (e.g., "users" from "/users/{id}")
             var segment = parts.Length > 0 ? parts[0] : "Entity";
-            
+
             // Convert plural to singular (basic heuristic)
             if (segment.EndsWith("ies"))
                 segment = segment.Substring(0, segment.Length - 3) + "y";
@@ -958,7 +958,7 @@ namespace Skugga.OpenApi.Generator
                 segment = segment.Substring(0, segment.Length - 2);
             else if (segment.EndsWith("s"))
                 segment = segment.Substring(0, segment.Length - 1);
-            
+
             // PascalCase
             return ToPascalCase(segment);
         }
@@ -970,10 +970,10 @@ namespace Skugga.OpenApi.Generator
         {
             var startIndex = path.IndexOf('{');
             if (startIndex < 0) return null;
-            
+
             var endIndex = path.IndexOf('}', startIndex);
             if (endIndex < 0) return null;
-            
+
             return path.Substring(startIndex + 1, endIndex - startIndex - 1);
         }
 
@@ -985,9 +985,9 @@ namespace Skugga.OpenApi.Generator
             sb.AppendLine($"{indent}// Runtime contract validation");
             sb.AppendLine($"{indent}if ({varName} != null)");
             sb.AppendLine($"{indent}{{");
-            
+
             var innerIndent = indent + "    ";
-            
+
             // Required properties
             var requiredProps = schema.Required?.ToArray();
             if (requiredProps != null && requiredProps.Length > 0)
@@ -995,26 +995,26 @@ namespace Skugga.OpenApi.Generator
                 var requiredArray = string.Join(", ", requiredProps.Select(p => $"\"{p}\""));
                 sb.AppendLine($"{innerIndent}Skugga.Core.Validation.SchemaValidator.ValidateRequiredProperties({varName}, \"{typeName}\", new[] {{ {requiredArray} }});");
             }
-            
+
             // Type validation for arrays
             if (schema.Type == "array" && schema.Items != null)
             {
                 var itemType = _typeMapper.MapType(schema.Items);
                 var itemRequired = schema.Items.Required?.Select(r => $"\"{r}\"").ToArray();
-                var itemRequiredParam = itemRequired != null && itemRequired.Length > 0 
-                    ? $", new[] {{ {string.Join(", ", itemRequired)} }}" 
+                var itemRequiredParam = itemRequired != null && itemRequired.Length > 0
+                    ? $", new[] {{ {string.Join(", ", itemRequired)} }}"
                     : ", null";
-                    
+
                 sb.AppendLine($"{innerIndent}Skugga.Core.Validation.SchemaValidator.ValidateArray({varName}, \"{typeName}\", typeof({itemType}){itemRequiredParam});");
             }
-            
+
             // Enum validation
             if (schema.Enum != null && schema.Enum.Count > 0)
             {
                 var enumValues = schema.Enum.Select(e => $"\"{e}\"");
                 sb.AppendLine($"{innerIndent}Skugga.Core.Validation.SchemaValidator.ValidateValue({varName}, typeof({typeName}), \"{typeName}\", null, new[] {{ {string.Join(", ", enumValues)} }});");
             }
-            
+
             sb.AppendLine($"{indent}}}");
         }
 
@@ -1024,7 +1024,7 @@ namespace Skugga.OpenApi.Generator
         private void GenerateAuthState(StringBuilder sb, int nestingLevel = 1)
         {
             var indent = new string(' ', (nestingLevel + 1) * 4);
-            
+
             sb.AppendLine($"{indent}// Authentication state");
             sb.AppendLine($"{indent}private bool _tokenExpired = false;");
             sb.AppendLine($"{indent}private bool _tokenInvalid = false;");
@@ -1060,10 +1060,10 @@ namespace Skugga.OpenApi.Generator
 
             // Determine which auth schemes are present
             var hasOAuth2 = _securitySchemes.Any(s => s.Value?.Type == SecuritySchemeType.OAuth2);
-            var hasBearer = _securitySchemes.Any(s => s.Value?.Type == SecuritySchemeType.Http && 
+            var hasBearer = _securitySchemes.Any(s => s.Value?.Type == SecuritySchemeType.Http &&
                                                        s.Value?.Scheme?.Equals("bearer", StringComparison.OrdinalIgnoreCase) == true);
             var hasApiKey = _securitySchemes.Any(s => s.Value?.Type == SecuritySchemeType.ApiKey);
-            var hasBasic = _securitySchemes.Any(s => s.Value?.Type == SecuritySchemeType.Http && 
+            var hasBasic = _securitySchemes.Any(s => s.Value?.Type == SecuritySchemeType.Http &&
                                                       s.Value?.Scheme?.Equals("basic", StringComparison.OrdinalIgnoreCase) == true);
 
             // Generate token generation method for OAuth2/Bearer
@@ -1164,7 +1164,7 @@ namespace Skugga.OpenApi.Generator
                 if (param.Name == "body" || param.Name == ToCamelCase(idParam ?? "")) continue;
 
                 // Check if response schema has a matching property (case-insensitive)
-                var matchingProperty = properties.FirstOrDefault(p => 
+                var matchingProperty = properties.FirstOrDefault(p =>
                     p.Key.Equals(param.Name, StringComparison.OrdinalIgnoreCase) ||
                     ToPascalCase(p.Key).Equals(ToPascalCase(param.Name), StringComparison.OrdinalIgnoreCase));
 
@@ -1205,16 +1205,16 @@ namespace Skugga.OpenApi.Generator
         private Dictionary<string, string> ExtractPropertyAssignments(string exampleCode)
         {
             var assignments = new Dictionary<string, string>();
-            
+
             // Simple parsing of "new Type { Prop1 = value1, Prop2 = value2 }"
             var startIndex = exampleCode.IndexOf('{');
             var endIndex = exampleCode.LastIndexOf('}');
-            
+
             if (startIndex >= 0 && endIndex > startIndex)
             {
                 var propsPart = exampleCode.Substring(startIndex + 1, endIndex - startIndex - 1);
                 var propAssignments = propsPart.Split(',');
-                
+
                 foreach (var assignment in propAssignments)
                 {
                     var trimmed = assignment.Trim();
@@ -1228,7 +1228,7 @@ namespace Skugga.OpenApi.Generator
                     }
                 }
             }
-            
+
             return assignments;
         }
 

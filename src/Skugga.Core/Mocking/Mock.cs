@@ -71,7 +71,7 @@ namespace Skugga.Core
                 "Ensure your project references Skugga.Generator and enables interceptors.\n" +
                 "See: https://github.com/Digvijay/Skugga/blob/main/README.md#setup");
         }
-        
+
         /// <summary>
         /// Creates a mock object with the specified behavior and default value strategy.
         /// </summary>
@@ -96,7 +96,7 @@ namespace Skugga.Core
                 "Ensure your project references Skugga.Generator and enables interceptors.\n" +
                 "See: https://github.com/Digvijay/Skugga/blob/main/README.md#setup");
         }
-        
+
         /// <summary>
         /// Creates a mock object with the specified default value strategy and default (Loose) behavior.
         /// </summary>
@@ -115,7 +115,7 @@ namespace Skugga.Core
             // Convenience overload: default behavior with specified default value strategy
             return Create<T>(MockBehavior.Loose, defaultValue);
         }
-        
+
         /// <summary>
         /// Retrieves the IMockSetup interface from a mocked object for verification and configuration.
         /// </summary>
@@ -160,9 +160,9 @@ namespace Skugga.Core
             // All generated mocks implement IMockSetup
             if (mocked is IMockSetup directMock)
                 return directMock;
-                
+
             throw new ArgumentException(
-                $"Object is not a Skugga mock. Use Mock.Create<T>() to create mocks.", 
+                $"Object is not a Skugga mock. Use Mock.Create<T>() to create mocks.",
                 nameof(mocked));
         }
     }

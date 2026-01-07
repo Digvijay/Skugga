@@ -32,14 +32,14 @@ namespace Skugga.Core
     /// mockSetup.Handler.Verify(x => x.GetData(), Times.Once());
     /// </code>
     /// </example>
-    public interface IMockSetup 
-    { 
+    public interface IMockSetup
+    {
         /// <summary>
         /// Gets the mock handler that manages setup, invocations, and verification.
         /// </summary>
-        MockHandler Handler { get; } 
+        MockHandler Handler { get; }
     }
-    
+
     /// <summary>
     /// Interface for setting up protected members on mocks using string-based method names.
     /// </summary>
@@ -69,7 +69,7 @@ namespace Skugga.Core
         /// Gets the mock handler for accessing setup and verification capabilities.
         /// </summary>
         MockHandler Handler { get; }
-        
+
         /// <summary>
         /// Sets up a protected method with a return value.
         /// </summary>
@@ -78,7 +78,7 @@ namespace Skugga.Core
         /// <param name="args">The method arguments (use It.IsAny&lt;T&gt;() for wildcards)</param>
         /// <returns>Setup context for configuring return value and callbacks</returns>
         ProtectedSetupContext<TResult> Setup<TResult>(string methodName, params object?[] args);
-        
+
         /// <summary>
         /// Sets up a protected void method.
         /// </summary>
@@ -86,7 +86,7 @@ namespace Skugga.Core
         /// <param name="args">The method arguments (use It.IsAny&lt;T&gt;() for wildcards)</param>
         /// <returns>Setup context for configuring callbacks</returns>
         ProtectedVoidSetupContext Setup(string methodName, params object?[] args);
-        
+
         /// <summary>
         /// Sets up a protected property getter.
         /// </summary>

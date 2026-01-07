@@ -27,9 +27,9 @@
 
   <!-- Pack the task DLL and .targets file into the package -->
   <ItemGroup>
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="tasks\$(TargetFramework)" />
-    <None Include="build\Skugga.OpenApi.Tasks.targets" Pack="true" PackagePath="build" />
-    <None Include="buildTransitive\Skugga.OpenApi.Tasks.targets" Pack="true" PackagePath="buildTransitive" />
+    <None Include="$(OutputPath)/$(AssemblyName).dll" Pack="true" PackagePath="tasks/$(TargetFramework)" />
+    <None Include="build/Skugga.OpenApi.Tasks.targets" Pack="true" PackagePath="build" />
+    <None Include="buildTransitive/Skugga.OpenApi.Tasks.targets" Pack="true" PackagePath="buildTransitive" />
   </ItemGroup>
 
 </Project>

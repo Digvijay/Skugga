@@ -1,14 +1,14 @@
 #nullable enable
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Operations;
-using System.Text;
-using System.Linq;
-using System.Collections.Generic;
-using System;
-using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Skugga.Generator
 {
@@ -24,7 +24,7 @@ namespace Skugga.Generator
         private const string MockHandlerField = "private readonly MockHandler _handler = new();";
         private const string HandlerProperty = "public MockHandler Handler => _handler;";
         private const string ArrayEmpty = "Array.Empty<object?>()";
-        
+
         private static readonly DiagnosticDescriptor SealedClassRule = new(
             id: "SKUGGA001",
             title: "Cannot mock sealed class",
@@ -42,7 +42,7 @@ namespace Skugga.Generator
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Classes must have virtual members to be mocked effectively.");
-            
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             var provider = context.SyntaxProvider.CreateSyntaxProvider(
@@ -68,7 +68,7 @@ namespace Skugga.Generator
                         GenerateInterceptor(spc, target);
 
                         var symbolKey = target.Symbol!.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                        if (distinctMocks.Add(symbolKey)) 
+                        if (distinctMocks.Add(symbolKey))
                         {
                             GenerateMockClass(spc, target);
                         }
@@ -76,7 +76,7 @@ namespace Skugga.Generator
                     else if (target.Type == TargetType.AutoScribe)
                     {
                         GenerateAutoScribeInterceptor(spc, target);
-                        
+
                         var symbolKey = target.Symbol!.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                         if (distinctMocks.Add(symbolKey + "_AutoScribe"))
                         {
@@ -99,14 +99,14 @@ namespace Skugga.Generator
         {
             // Try to extract value from variables, fields, properties, or simple expressions
             // For compile-time generation, we inline the expression directly into the generated code
-            
+
             switch (expression)
             {
                 case IdentifierNameSyntax identifier:
                     // Variable reference: myVariable
                     // Inline it directly - the variable value will be captured at test runtime
                     return identifier.Identifier.Text;
-                
+
                 case MemberAccessExpressionSyntax memberAccess:
                     // Property/field access: obj.Property or this.field
                     // Check if we can evaluate it at compile-time
@@ -122,7 +122,7 @@ namespace Skugga.Generator
                     }
                     // For non-const members, inline the expression
                     return memberAccess.ToString();
-                
+
                 case BinaryExpressionSyntax binaryExpr:
                     // Calculations: x + 1, count * 2, etc.
                     // Try to evaluate at compile-time first
@@ -133,16 +133,16 @@ namespace Skugga.Generator
                     }
                     // If not constant, inline the expression
                     return $"({binaryExpr})";
-                
+
                 case InvocationExpressionSyntax invocation:
                     // Method calls: GetValue(), obj.Method(), etc.
                     // We can't evaluate these at compile-time, inline them
                     return invocation.ToString();
-                
+
                 case ElementAccessExpressionSyntax elementAccess:
                     // Array/indexer access: array[0], dict[key]
                     return elementAccess.ToString();
-                
+
                 case CastExpressionSyntax castExpr:
                     // Cast: (int)value
                     var innerExtracted = TryExtractVariableArgument(context, castExpr.Expression);
@@ -151,19 +151,19 @@ namespace Skugga.Generator
                         return $"({castExpr.Type}){innerExtracted}";
                     }
                     return castExpr.ToString();
-                
+
                 case ParenthesizedExpressionSyntax parenthesized:
                     // Parenthesized expression: (expr)
                     return TryExtractVariableArgument(context, parenthesized.Expression);
-                
+
                 case ConditionalExpressionSyntax conditional:
                     // Ternary: condition ? a : b
                     return conditional.ToString();
-                
+
                 case PrefixUnaryExpressionSyntax or PostfixUnaryExpressionSyntax:
                     // Unary operators: !value, -number, ++i, etc.
                     return expression.ToString();
-                
+
                 default:
                     // Unknown expression type - return null to skip interception
                     return null;
@@ -178,14 +178,14 @@ namespace Skugga.Generator
                 return null;
 
             var body = lambda.Body;
-            
+
             // Handle method call: x => x.Method(args)
             if (body is InvocationExpressionSyntax invocation &&
                 invocation.Expression is MemberAccessExpressionSyntax methodAccess)
             {
                 var methodName = methodAccess.Name.Identifier.Text;
                 var arguments = new List<string>();
-                
+
                 foreach (var arg in invocation.ArgumentList.Arguments)
                 {
                     // Use semantic model to evaluate constant expressions
@@ -208,7 +208,7 @@ namespace Skugga.Generator
                                 arguments.Add($"new ArgumentMatcher(typeof({typeInfo.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}), _ => true, \"It.IsAny<{typeInfo.Type.Name}>()\")");
                             }
                         }
-                        else if (argText.Contains("It.Is") || argText.Contains("It.IsIn") || 
+                        else if (argText.Contains("It.Is") || argText.Contains("It.IsIn") ||
                                  argText.Contains("It.IsNotIn") || argText.Contains("It.IsNull") ||
                                  argText.Contains("It.IsNotNull") || argText.Contains("It.IsRegex") ||
                                  argText.Contains("Match.Create"))
@@ -233,10 +233,10 @@ namespace Skugga.Generator
                         }
                     }
                 }
-                
+
                 return (methodName, arguments, false);
             }
-            
+
             // Handle property access: x => x.Property
             if (body is MemberAccessExpressionSyntax propertyAccess)
             {
@@ -246,7 +246,7 @@ namespace Skugga.Generator
                     return ("get_" + property.Name, new List<string>(), true);
                 }
             }
-            
+
             return null;
         }
 
@@ -262,11 +262,11 @@ namespace Skugga.Generator
         private static TargetInfo? GetTarget(GeneratorSyntaxContext context)
         {
             var invocation = (InvocationExpressionSyntax)context.Node;
-            
+
             if (invocation.Expression is MemberAccessExpressionSyntax member)
             {
                 var methodName = member.Name.Identifier.Text;
-                
+
                 // Handle Mock.Create<T>(), Harness.Create<T>(), and AutoScribe.Capture<T>()
                 // Note: Mock.Of<T>() is NOT intercepted - it calls Mock.Create internally which IS intercepted
                 if (methodName == "Create" || methodName == "Capture")
@@ -275,7 +275,7 @@ namespace Skugga.Generator
                     TargetType? targetType = null;
                     if (expressionStr == "Mock" || expressionStr.EndsWith(".Mock")) targetType = TargetType.Mock;
                     else if (expressionStr == "Harness" || expressionStr.EndsWith(".Harness")) targetType = TargetType.Harness;
-                    else if ((expressionStr == "AutoScribe" || expressionStr.EndsWith(".AutoScribe")) && methodName == "Capture") 
+                    else if ((expressionStr == "AutoScribe" || expressionStr.EndsWith(".AutoScribe")) && methodName == "Capture")
                         targetType = TargetType.AutoScribe;
 
                     if (targetType.HasValue && member.Name is GenericNameSyntax genericName)
@@ -294,19 +294,19 @@ namespace Skugga.Generator
                 {
                     // Get the type of the mock object (left side of the call)
                     var mockType = context.SemanticModel.GetTypeInfo(member.Expression).Type;
-                    
+
                     // Extract the lambda expression argument
                     if (invocation.ArgumentList.Arguments.Count > 0)
                     {
                         var lambdaArg = invocation.ArgumentList.Arguments[0].Expression;
                         var targetType = methodName == "Setup" ? TargetType.Setup : TargetType.Verify;
-                        
+
                         // Parse the lambda expression to extract method name and arguments
                         var parsed = ParseLambdaExpression(context, lambdaArg);
                         if (parsed.HasValue)
                         {
-                            return new TargetInfo(mockType as INamedTypeSymbol, member.Name.Identifier.GetLocation(), 
-                                targetType, lambdaArg, invocation, parsed.Value.methodName, 
+                            return new TargetInfo(mockType as INamedTypeSymbol, member.Name.Identifier.GetLocation(),
+                                targetType, lambdaArg, invocation, parsed.Value.methodName,
                                 parsed.Value.arguments, parsed.Value.isProperty);
                         }
                         else
@@ -322,8 +322,8 @@ namespace Skugga.Generator
 
         private void GenerateMockClass(SourceProductionContext spc, TargetInfo target)
         {
-            var symbol = target.Symbol;            if (symbol == null) return;            if (symbol == null) return;
-            
+            var symbol = target.Symbol; if (symbol == null) return; if (symbol == null) return;
+
             // Check for sealed class
             if (symbol.TypeKind == TypeKind.Class && symbol.IsSealed)
             {
@@ -331,7 +331,7 @@ namespace Skugga.Generator
                 spc.ReportDiagnostic(diagnostic);
                 return; // Cannot generate mock for sealed class
             }
-            
+
             // Check for class with no virtual members
             if (symbol.TypeKind == TypeKind.Class)
             {
@@ -344,7 +344,7 @@ namespace Skugga.Generator
                     // Continue generating but user is warned
                 }
             }
-            
+
             var stableHash = GetStableHash(symbol.ToDisplayString());
             var className = $"Skugga_{symbol.Name}_{stableHash}";
             var baseType = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -373,7 +373,7 @@ namespace Skugga.Generator
             sb.Append("        ");
             sb.AppendLine(HandlerProperty);
             sb.AppendLine();
-            
+
             // Add static constructor to register mock factory for recursive mocking
             sb.AppendLine("        static ");
             sb.Append(className);
@@ -386,7 +386,7 @@ namespace Skugga.Generator
             sb.AppendLine("(Skugga.Core.DefaultValue.Mock));");
             sb.AppendLine("        }");
             sb.AppendLine();
-            
+
             sb.AppendLine("        /// <summary>");
             sb.AppendLine("        /// Gets the mock object itself. This property exists for compatibility with other mocking frameworks.");
             sb.AppendLine("        /// In Skugga, the mock instance IS the interface - there's no separate .Object property needed.");
@@ -443,10 +443,10 @@ namespace Skugga.Generator
                     Accessibility.ProtectedAndInternal => "private protected",
                     _ => "public" // Default to public for interfaces
                 };
-                
+
                 var modifier = symbol.TypeKind == TypeKind.Class ? "override" : "";
                 var modifierStr = string.IsNullOrEmpty(modifier) ? "" : modifier + " ";
-                
+
                 // Handle generic methods - extract type parameters
                 var typeParams = "";
                 var typeConstraints = "";
@@ -454,7 +454,7 @@ namespace Skugga.Generator
                 {
                     var typeParamNames = string.Join(", ", method.TypeParameters.Select(tp => tp.Name));
                     typeParams = $"<{typeParamNames}>";
-                    
+
                     // Add type constraints if any
                     var constraints = method.TypeParameters
                         .Where(tp => tp.HasReferenceTypeConstraint || tp.HasValueTypeConstraint || tp.HasConstructorConstraint || tp.ConstraintTypes.Length > 0)
@@ -467,15 +467,15 @@ namespace Skugga.Generator
                             constraintList.AddRange(tp.ConstraintTypes.Select(ct => ct.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
                             return $"where {tp.Name} : {string.Join(", ", constraintList)}";
                         }).ToList();
-                    
+
                     if (constraints.Any())
                     {
                         typeConstraints = " " + string.Join(" ", constraints);
                     }
                 }
-                
+
                 var returnType = method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier));
-                
+
                 // Build parameter list with out/ref modifiers
                 var paramList = string.Join(", ", method.Parameters.Select(p =>
                 {
@@ -485,9 +485,9 @@ namespace Skugga.Generator
                                   "";
                     return $"{refKind}{p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))} {p.Name}";
                 }));
-                
+
                 var argArray = method.Parameters.Length == 0 ? ArrayEmpty : "new object?[] { " + string.Join(", ", method.Parameters.Select(p => p.Name)) + " }";
-                
+
                 // Check if method has out or ref parameters
                 var hasOutOrRef = method.Parameters.Any(p => p.RefKind == RefKind.Out || p.RefKind == RefKind.Ref);
 
@@ -506,7 +506,7 @@ namespace Skugga.Generator
                     sb.Append(')');
                     sb.AppendLine(typeConstraints);
                     sb.AppendLine("        {");
-                    
+
                     if (hasOutOrRef)
                     {
                         // Initialize out parameters with default values
@@ -522,13 +522,13 @@ namespace Skugga.Generator
                                 sb.AppendLine(")!;");
                             }
                         }
-                        
+
                         sb.Append("            var setup = _handler.Invoke(\"");
                         sb.Append(method.Name);
                         sb.Append("\", ");
                         sb.Append(argArray);
                         sb.AppendLine(") as Skugga.Core.MockSetup;");
-                        
+
                         // Apply out/ref values - check factories first, then static values
                         for (int i = 0; i < method.Parameters.Length; i++)
                         {
@@ -548,7 +548,7 @@ namespace Skugga.Generator
                                 sb.Append("](");
                                 sb.Append(argArray);
                                 sb.AppendLine(")!;");
-                                
+
                                 // Fall back to static value
                                 sb.Append("            else if (setup?.OutValues?.ContainsKey(");
                                 sb.Append(i);
@@ -576,7 +576,7 @@ namespace Skugga.Generator
                                 sb.Append("](");
                                 sb.Append(argArray);
                                 sb.AppendLine(")!;");
-                                
+
                                 // Fall back to static value
                                 sb.Append("            else if (setup?.RefValues?.ContainsKey(");
                                 sb.Append(i);
@@ -590,7 +590,7 @@ namespace Skugga.Generator
                                 sb.AppendLine("]!;");
                             }
                         }
-                        
+
                         // Invoke RefOutCallback if present
                         sb.AppendLine("            if (setup?.RefOutCallback != null)");
                         sb.AppendLine("            {");
@@ -602,7 +602,7 @@ namespace Skugga.Generator
                         }
                         sb.AppendLine(" };");
                         sb.AppendLine("                setup.RefOutCallback.DynamicInvoke(callbackArgs);");
-                        
+
                         // Copy back ref/out values
                         for (int i = 0; i < method.Parameters.Length; i++)
                         {
@@ -628,14 +628,14 @@ namespace Skugga.Generator
                         sb.Append(argArray);
                         sb.AppendLine(");");
                     }
-                    
+
                     sb.AppendLine("        }");
                 }
                 else
                 {
                     // Special handling for Task types to avoid null reference exceptions
                     var def = GetDefaultValueForType(method.ReturnType, returnType);
-                    
+
                     sb.Append("        ");
                     sb.Append(accessibility);
                     sb.Append(' ');
@@ -649,7 +649,7 @@ namespace Skugga.Generator
                     sb.Append(')');
                     sb.AppendLine(typeConstraints);
                     sb.AppendLine("        {");
-                    
+
                     if (hasOutOrRef)
                     {
                         // Initialize out parameters with default values
@@ -665,13 +665,13 @@ namespace Skugga.Generator
                                 sb.AppendLine(")!;");
                             }
                         }
-                        
+
                         sb.Append("            var setup = _handler.Invoke(\"");
                         sb.Append(method.Name);
                         sb.Append("\", ");
                         sb.Append(argArray);
                         sb.AppendLine(") as Skugga.Core.MockSetup;");
-                        
+
                         // Apply out/ref values - check factories first, then static values
                         for (int i = 0; i < method.Parameters.Length; i++)
                         {
@@ -691,7 +691,7 @@ namespace Skugga.Generator
                                 sb.Append("](");
                                 sb.Append(argArray);
                                 sb.AppendLine(")!;");
-                                
+
                                 // Fall back to static value
                                 sb.Append("            else if (setup?.OutValues?.ContainsKey(");
                                 sb.Append(i);
@@ -719,7 +719,7 @@ namespace Skugga.Generator
                                 sb.Append("](");
                                 sb.Append(argArray);
                                 sb.AppendLine(")!;");
-                                
+
                                 // Fall back to static value
                                 sb.Append("            else if (setup?.RefValues?.ContainsKey(");
                                 sb.Append(i);
@@ -733,7 +733,7 @@ namespace Skugga.Generator
                                 sb.AppendLine("]!;");
                             }
                         }
-                        
+
                         // Invoke RefOutCallback if present (cast to generated delegate type)
                         sb.AppendLine("            if (setup?.RefOutCallback != null)");
                         sb.AppendLine("            {");
@@ -745,7 +745,7 @@ namespace Skugga.Generator
                         }
                         sb.AppendLine(" };");
                         sb.AppendLine("                setup.RefOutCallback.DynamicInvoke(callbackArgs);");
-                        
+
                         // Copy back ref/out values
                         for (int i = 0; i < method.Parameters.Length; i++)
                         {
@@ -762,12 +762,12 @@ namespace Skugga.Generator
                             }
                         }
                         sb.AppendLine("            }");
-                        
+
                         sb.Append("            return setup?.Value != null ? (");
                         sb.Append(returnType);
                         sb.Append(")setup.Value : _handler.GetDefaultValueFor<");
                         sb.Append(returnType);
-                        sb.AppendLine(">(this)!;");;;
+                        sb.AppendLine(">(this)!;"); ; ;
                     }
                     else
                     {
@@ -782,16 +782,16 @@ namespace Skugga.Generator
                         sb.Append(returnType);
                         sb.AppendLine(">(this)!;");
                     }
-                    
+
                     sb.AppendLine("        }");
                 }
             }
-            
+
             sb.AppendLine(); // Add blank line before properties section
             foreach (var prop in GetAllProperties(symbol))
             {
                 if (symbol.TypeKind == TypeKind.Class && !prop.IsVirtual && !prop.IsAbstract && !prop.IsOverride) continue;
-                
+
                 // Determine accessibility modifier for property
                 var accessibility = prop.DeclaredAccessibility switch
                 {
@@ -802,16 +802,16 @@ namespace Skugga.Generator
                     Accessibility.ProtectedAndInternal => "private protected",
                     _ => "public"
                 };
-                
+
                 var modifier = symbol.TypeKind == TypeKind.Class ? "override" : "";
                 var modifierStr = string.IsNullOrEmpty(modifier) ? "" : modifier + " ";
                 var type = prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                
+
                 // Check which accessors the property actually has
                 // Interface properties can be { get; }, { set; }, or { get; set; }
                 bool hasGetter = prop.GetMethod != null;
                 bool hasSetter = prop.SetMethod != null;
-                
+
                 sb.AppendLine(); // Add blank line before each property
                 sb.Append("        ");
                 sb.Append(accessibility);
@@ -821,81 +821,81 @@ namespace Skugga.Generator
                 sb.Append(' ');
                 sb.AppendLine(prop.Name);
                 sb.AppendLine("        {");
-                
+
                 // Only generate getter if the property has one
                 if (hasGetter)
                 {
-                sb.AppendLine("            get");
-                sb.AppendLine("            {");
-                // Check for explicit Setup first (takes precedence over SetupProperty)
-                sb.Append("                var r = _handler.Invoke(\"get_");
-                sb.Append(prop.Name);
-                sb.Append("\", ");
-                sb.Append(ArrayEmpty);
-                sb.AppendLine(");");
-                sb.AppendLine("                if (r != null)");
-                sb.AppendLine("                {");
-                sb.Append("                    return (");
-                sb.Append(type);
-                sb.AppendLine(")r;");
-                sb.AppendLine("                }");
-                sb.AppendLine();
-                // Fall back to property backing storage (SetupProperty)
-                sb.Append("                if (_handler.HasPropertyStorage(\"");
-                sb.Append(prop.Name);
-                sb.AppendLine("\"))");
-                sb.AppendLine("                {");
-                sb.Append("                    var stored = _handler.GetPropertyValue(\"");
-                sb.Append(prop.Name);
-                sb.AppendLine("\");");
-                sb.Append("                    return stored != null ? (");
-                sb.Append(type);
-                sb.Append(")stored : default(");
-                sb.Append(type);
-                sb.AppendLine(")!;");
-                sb.AppendLine("                }");
-                sb.AppendLine();
-                // Final fallback - use default value provider
-                sb.Append("                return _handler.GetDefaultValueFor<");
-                sb.Append(type);
-                sb.AppendLine(">(this)!;");
-                sb.AppendLine("            }");
+                    sb.AppendLine("            get");
+                    sb.AppendLine("            {");
+                    // Check for explicit Setup first (takes precedence over SetupProperty)
+                    sb.Append("                var r = _handler.Invoke(\"get_");
+                    sb.Append(prop.Name);
+                    sb.Append("\", ");
+                    sb.Append(ArrayEmpty);
+                    sb.AppendLine(");");
+                    sb.AppendLine("                if (r != null)");
+                    sb.AppendLine("                {");
+                    sb.Append("                    return (");
+                    sb.Append(type);
+                    sb.AppendLine(")r;");
+                    sb.AppendLine("                }");
+                    sb.AppendLine();
+                    // Fall back to property backing storage (SetupProperty)
+                    sb.Append("                if (_handler.HasPropertyStorage(\"");
+                    sb.Append(prop.Name);
+                    sb.AppendLine("\"))");
+                    sb.AppendLine("                {");
+                    sb.Append("                    var stored = _handler.GetPropertyValue(\"");
+                    sb.Append(prop.Name);
+                    sb.AppendLine("\");");
+                    sb.Append("                    return stored != null ? (");
+                    sb.Append(type);
+                    sb.Append(")stored : default(");
+                    sb.Append(type);
+                    sb.AppendLine(")!;");
+                    sb.AppendLine("                }");
+                    sb.AppendLine();
+                    // Final fallback - use default value provider
+                    sb.Append("                return _handler.GetDefaultValueFor<");
+                    sb.Append(type);
+                    sb.AppendLine(">(this)!;");
+                    sb.AppendLine("            }");
                 }
-                
+
                 // Only generate setter if the property has one
                 if (hasSetter)
                 {
-                // Property setter implementation
-                // Track setter invocations for VerifySet support, and update backing storage if SetupProperty was called
-                sb.AppendLine("            set");
-                sb.AppendLine("            {");
-                // Always track setter invocations as "set_PropertyName" with the value as argument
-                // This enables VerifySet functionality
-                sb.Append("                _handler.Invoke(\"set_");
-                sb.Append(prop.Name);
-                sb.AppendLine("\", new object?[] { value });");
-                sb.AppendLine();
-                // Update backing storage if property was setup with SetupProperty/SetupAllProperties
-                sb.Append("                if (_handler.HasPropertyStorage(\"");
-                sb.Append(prop.Name);
-                sb.AppendLine("\"))");
-                sb.AppendLine("                {");
-                sb.Append("                    _handler.SetPropertyValue(\"");
-                sb.Append(prop.Name);
-                sb.AppendLine("\", value);");
-                sb.AppendLine("                }");
-                sb.AppendLine("            }");
+                    // Property setter implementation
+                    // Track setter invocations for VerifySet support, and update backing storage if SetupProperty was called
+                    sb.AppendLine("            set");
+                    sb.AppendLine("            {");
+                    // Always track setter invocations as "set_PropertyName" with the value as argument
+                    // This enables VerifySet functionality
+                    sb.Append("                _handler.Invoke(\"set_");
+                    sb.Append(prop.Name);
+                    sb.AppendLine("\", new object?[] { value });");
+                    sb.AppendLine();
+                    // Update backing storage if property was setup with SetupProperty/SetupAllProperties
+                    sb.Append("                if (_handler.HasPropertyStorage(\"");
+                    sb.Append(prop.Name);
+                    sb.AppendLine("\"))");
+                    sb.AppendLine("                {");
+                    sb.Append("                    _handler.SetPropertyValue(\"");
+                    sb.Append(prop.Name);
+                    sb.AppendLine("\", value);");
+                    sb.AppendLine("                }");
+                    sb.AppendLine("            }");
                 }
-                
+
                 sb.AppendLine("        }");
             }
-            
+
             // Generate events
             sb.AppendLine(); // Add blank line before events section
             foreach (var evt in GetAllEvents(symbol))
             {
                 if (symbol.TypeKind == TypeKind.Class && !evt.IsVirtual && !evt.IsAbstract && !evt.IsOverride) continue;
-                
+
                 // Determine accessibility modifier for event
                 var accessibility = evt.DeclaredAccessibility switch
                 {
@@ -906,12 +906,12 @@ namespace Skugga.Generator
                     Accessibility.ProtectedAndInternal => "private protected",
                     _ => "public"
                 };
-                
+
                 var modifier = symbol.TypeKind == TypeKind.Class ? "override" : "";
                 var modifierStr = string.IsNullOrEmpty(modifier) ? "" : modifier + " ";
                 // Include nullability annotations for events
                 var eventType = evt.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier));
-                
+
                 sb.AppendLine(); // Add blank line before each event
                 sb.Append("        ");
                 sb.Append(accessibility);
@@ -922,7 +922,7 @@ namespace Skugga.Generator
                 sb.Append(" ");
                 sb.AppendLine(evt.Name);
                 sb.AppendLine("        {");
-                
+
                 // add accessor
                 sb.AppendLine("            add");
                 sb.AppendLine("            {");
@@ -933,7 +933,7 @@ namespace Skugga.Generator
                 sb.AppendLine("\", value);");
                 sb.AppendLine("                }");
                 sb.AppendLine("            }");
-                
+
                 // remove accessor
                 sb.AppendLine("            remove");
                 sb.AppendLine("            {");
@@ -944,7 +944,7 @@ namespace Skugga.Generator
                 sb.AppendLine("\", value);");
                 sb.AppendLine("                }");
                 sb.AppendLine("            }");
-                
+
                 sb.AppendLine("        }");
             }
 
@@ -959,7 +959,7 @@ namespace Skugga.Generator
             var stableHash = GetStableHash(target.Symbol.ToDisplayString());
             var targetClassName = $"Skugga_{target.Symbol.Name}_{stableHash}";
             var interceptorName = $"Interceptor_{Guid.NewGuid().ToString("N")}";
-            var filePath = target.Location.SourceTree?.FilePath; 
+            var filePath = target.Location.SourceTree?.FilePath;
             var lineSpan = target.Location.GetLineSpan();
             var line = lineSpan.StartLinePosition.Line + 1;
             var charPos = lineSpan.StartLinePosition.Character + 1;
@@ -970,11 +970,11 @@ namespace Skugga.Generator
             // Determine which overload is being called based on arguments
             string methodSignature;
             string constructorCall;
-            
+
             if (target.InvocationSyntax?.ArgumentList.Arguments.Count > 0)
             {
                 var args = target.InvocationSyntax.ArgumentList.Arguments;
-                
+
                 // Check argument types by their syntax
                 if (args.Count == 1)
                 {
@@ -1091,7 +1091,7 @@ namespace Skugga.Generated
         [System.Runtime.CompilerServices.InterceptsLocation(@""{filePath}"", {line}, {charPos})]
         public static TestHarness<{sutSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}> Create() => new {harnessClassName}();
     }}
-}}"); 
+}}");
             spc.AddSource($"{harnessClassName}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
         }
 
@@ -1111,7 +1111,7 @@ namespace Skugga.Generated
             // TODO: For now, we can't fully intercept because Setup returns SetupContext
             // which the user then calls .Returns() on. We need to intercept the entire chain.
             // For now, just generate the code and document the limitation.
-            
+
             var sb = new StringBuilder();
             sb.AppendLine($@"// <auto-generated/>
 // NOTE: Setup/Verify interception is partially implemented
@@ -1140,7 +1140,7 @@ namespace Skugga.Generated
         {
             var symbol = target.Symbol;
             if (symbol == null || symbol.TypeKind != TypeKind.Interface) return;
-            
+
             var stableHash = GetStableHash(symbol.ToDisplayString());
             var className = $"AutoScribe_{symbol.Name}_{stableHash}";
             var baseType = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -1150,7 +1150,7 @@ namespace Skugga.Generated
             var properties = GetAllProperties(symbol).ToList();
 
             var sb = new StringBuilder();
-            
+
             // Header
             sb.AppendLine("// <auto-generated/>");
             sb.AppendLine("#nullable enable");
@@ -1161,7 +1161,7 @@ namespace Skugga.Generated
             sb.AppendLine();
             sb.AppendLine("namespace Skugga.Generated");
             sb.AppendLine("{");
-            
+
             // Class declaration
             sb.AppendLine($"    /// <summary>");
             sb.AppendLine($"    /// AutoScribe recording proxy for {symbol.Name}");
@@ -1169,14 +1169,14 @@ namespace Skugga.Generated
             sb.AppendLine($"    /// </summary>");
             sb.AppendLine($"    public class {className} : {baseType}");
             sb.AppendLine("    {");
-            
+
             // Fields
             sb.AppendLine($"        private readonly {baseType} _real;");
             sb.AppendLine("        private readonly StringBuilder _script = new();");
             sb.AppendLine("        private readonly System.Collections.Generic.List<string> _callLog = new();");
             sb.AppendLine("        private int _callCount = 0;");
             sb.AppendLine();
-            
+
             // Constructor
             sb.AppendLine($"        public {className}({baseType} realImplementation)");
             sb.AppendLine("        {");
@@ -1184,35 +1184,35 @@ namespace Skugga.Generated
             sb.AppendLine($"            Console.WriteLine(\"// [AutoScribe] Recording started for {symbol.Name}\");");
             sb.AppendLine("        }");
             sb.AppendLine();
-            
+
             // GetGeneratedScript method
             sb.AppendLine("        public string GetGeneratedScript() => _script.ToString();");
             sb.AppendLine();
-            
+
             // PrintTestMethod - outputs a complete, formatted test method
             AutoScribeCodeGenerator.GeneratePrintTestMethod(sb, symbol.Name);
-            
+
             // SerializeValue helper
             AutoScribeCodeGenerator.GenerateSerializeValueMethod(sb);
-            
+
             // Generate interface methods
             foreach (var method in methods)
             {
                 var returnType = method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                var paramList = string.Join(", ", method.Parameters.Select(p => 
+                var paramList = string.Join(", ", method.Parameters.Select(p =>
                     $"{p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {p.Name}"));
                 var argNames = string.Join(", ", method.Parameters.Select(p => p.Name));
-                
+
                 // Check if method returns Task or Task<T>
-                bool isAsync = method.ReturnType.Name == "Task" || 
+                bool isAsync = method.ReturnType.Name == "Task" ||
                                (method.ReturnType is INamedTypeSymbol nts && nts.OriginalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<TResult>");
-                bool isAsyncWithResult = method.ReturnType is INamedTypeSymbol namedType && 
-                                         namedType.IsGenericType && 
+                bool isAsyncWithResult = method.ReturnType is INamedTypeSymbol namedType &&
+                                         namedType.IsGenericType &&
                                          namedType.ConstructedFrom.ToDisplayString() == "System.Threading.Tasks.Task<TResult>";
-                
+
                 sb.AppendLine($"        public {(isAsync ? "async " : "")}{returnType} {method.Name}({paramList})");
                 sb.AppendLine("        {");
-                
+
                 if (method.ReturnsVoid)
                 {
                     sb.AppendLine($"            _real.{method.Name}({argNames});");
@@ -1282,11 +1282,11 @@ namespace Skugga.Generated
                     sb.AppendLine("            Console.WriteLine($\"// [AutoScribe] Call {_callCount}: {code}\");");
                     sb.AppendLine("            return result;");
                 }
-                
+
                 sb.AppendLine("        }");
                 sb.AppendLine();
             }
-            
+
             // Generate properties
             foreach (var prop in properties)
             {
@@ -1304,11 +1304,11 @@ namespace Skugga.Generated
                 sb.AppendLine("        }");
                 sb.AppendLine();
             }
-            
+
             // Close class and namespace
             sb.AppendLine("    }");
             sb.AppendLine("}");
-            
+
             // Generate recording proxy class
             var generatedContent = sb.ToString();
             spc.AddSource($"{className}.g.cs", SourceText.From(generatedContent, Encoding.UTF8));
@@ -1355,7 +1355,7 @@ namespace Skugga.Generated
         private static IEnumerable<IMethodSymbol> GetAllMethods(INamedTypeSymbol symbol) { return symbol.GetMembers().OfType<IMethodSymbol>().Concat(symbol.AllInterfaces.SelectMany(i => i.GetMembers().OfType<IMethodSymbol>())); }
         private static IEnumerable<IPropertySymbol> GetAllProperties(INamedTypeSymbol symbol) { return symbol.GetMembers().OfType<IPropertySymbol>().Concat(symbol.AllInterfaces.SelectMany(i => i.GetMembers().OfType<IPropertySymbol>())); }
         private static IEnumerable<IEventSymbol> GetAllEvents(INamedTypeSymbol symbol) { return symbol.GetMembers().OfType<IEventSymbol>().Concat(symbol.AllInterfaces.SelectMany(i => i.GetMembers().OfType<IEventSymbol>())); }
-        
+
         /// <summary>
         /// Returns appropriate default value for a type, with special handling for Task types.
         /// </summary>
@@ -1367,7 +1367,7 @@ namespace Skugga.Generated
                 // For generic type parameters, use default(T)!
                 return $"default({returnTypeDisplayString})!";
             }
-            
+
             // Check if it's Task (void async)
             if (returnType.Name == "Task" && returnType.ContainingNamespace?.ToDisplayString() == "System.Threading.Tasks")
             {
@@ -1384,7 +1384,7 @@ namespace Skugga.Generated
                     return "global::System.Threading.Tasks.Task.CompletedTask";
                 }
             }
-            
+
             // Check if it's ValueTask
             if (returnType.Name == "ValueTask" && returnType.ContainingNamespace?.ToDisplayString() == "System.Threading.Tasks")
             {
@@ -1400,36 +1400,36 @@ namespace Skugga.Generated
                     return "default(global::System.Threading.Tasks.ValueTask)";
                 }
             }
-            
+
             // Default behavior for non-Task types
             return returnType.IsReferenceType ? "null!" : $"default({returnTypeDisplayString})";
         }
-        
+
         enum TargetType { Mock, Harness, Setup, Verify, AutoScribe }
-        class TargetInfo 
-        { 
-            public INamedTypeSymbol? Symbol; 
-            public Location Location; 
-            public TargetType Type; 
-            public ExpressionSyntax? LambdaExpression; 
+        class TargetInfo
+        {
+            public INamedTypeSymbol? Symbol;
+            public Location Location;
+            public TargetType Type;
+            public ExpressionSyntax? LambdaExpression;
             public InvocationExpressionSyntax? InvocationSyntax;
             public string? MethodName;
             public List<string>? Arguments;
             public bool IsProperty;
-            
-            public TargetInfo(INamedTypeSymbol? s, Location l, TargetType t, ExpressionSyntax? lambda = null, 
-                InvocationExpressionSyntax? invocation = null, string? methodName = null, 
-                List<string>? args = null, bool isProperty = false) 
-            { 
-                Symbol=s; 
-                Location=l; 
-                Type=t; 
-                LambdaExpression=lambda; 
-                InvocationSyntax=invocation;
-                MethodName=methodName;
-                Arguments=args;
-                IsProperty=isProperty;
-            } 
+
+            public TargetInfo(INamedTypeSymbol? s, Location l, TargetType t, ExpressionSyntax? lambda = null,
+                InvocationExpressionSyntax? invocation = null, string? methodName = null,
+                List<string>? args = null, bool isProperty = false)
+            {
+                Symbol = s;
+                Location = l;
+                Type = t;
+                LambdaExpression = lambda;
+                InvocationSyntax = invocation;
+                MethodName = methodName;
+                Arguments = args;
+                IsProperty = isProperty;
+            }
         }
 
         /// <summary>

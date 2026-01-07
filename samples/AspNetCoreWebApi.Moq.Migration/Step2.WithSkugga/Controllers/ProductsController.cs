@@ -80,7 +80,7 @@ public class ProductsController : ControllerBase
             return NotFound();
 
         var oldPrice = existing.Price;
-        
+
         existing.Name = request.Name;
         existing.Price = request.Price;
         existing.StockQuantity = request.StockQuantity;
@@ -139,7 +139,7 @@ public class ProductsController : ControllerBase
     private ProductDto MapToDto(Product product)
     {
         var discount = _pricing.CalculateDiscount(product.Price, product.Category);
-        
+
         return new ProductDto
         {
             Id = product.Id,

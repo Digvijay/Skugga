@@ -39,7 +39,7 @@ namespace Skugga.Generator.Tests;
 public class SkuggaGeneratorTests
 {
     #region Mock Skugga.Core Assembly
-    
+
     /// <summary>
     /// Mock definitions of core Skugga types for testing the generator in isolation.
     /// This simulates the Skugga.Core assembly without requiring actual project references.
@@ -78,9 +78,9 @@ public class SkuggaGeneratorTests
             }
         }
         ";
-    
+
     #endregion
-    
+
     #region Basic Mock Generation Tests
 
     /// <summary>
@@ -114,7 +114,7 @@ public class SkuggaGeneratorTests
         await VerifyGeneratorAsync(source, generatedSources =>
         {
             generatedSources.Should().NotBeEmpty("generator should produce output");
-            
+
             var mockClass = generatedSources.FirstOrDefault(s => s.Contains("class Skugga_IService_"));
             mockClass.Should().NotBeNull("should generate mock class for IService");
             mockClass.Should().Contain("GetData()", "should implement GetData method");
@@ -234,9 +234,9 @@ public class SkuggaGeneratorTests
             mockClass.Should().Contain("public int Count", "should generate Count property");
         });
     }
-    
+
     #endregion
-    
+
     #region Advanced Generation Tests
 
     /// <summary>
@@ -461,9 +461,9 @@ public class SkuggaGeneratorTests
             mockClass.Should().Contain("global::TestNamespace.IService", "should use fully qualified name for interface");
         });
     }
-    
+
     #endregion
-    
+
     #region Test Infrastructure
 
     /// <summary>
@@ -499,8 +499,8 @@ public class SkuggaGeneratorTests
         driver = (CSharpGeneratorDriver)driver.RunGenerators(compilation);
 
         var result = driver.GetRunResult();
-        
-        result.Diagnostics.Should().NotContain(d => d.Severity == DiagnosticSeverity.Error, 
+
+        result.Diagnostics.Should().NotContain(d => d.Severity == DiagnosticSeverity.Error,
             "generator should not produce errors");
 
         var generatedSources = result.GeneratedTrees
@@ -511,6 +511,6 @@ public class SkuggaGeneratorTests
 
         await Task.CompletedTask;
     }
-    
+
     #endregion
 }

@@ -1,9 +1,9 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
-using Skugga.Core;
+using FakeItEasy;
 using Moq;
 using NSubstitute;
-using FakeItEasy;
+using Skugga.Core;
 
 // Test interfaces for different scenarios
 public interface ICalculator
@@ -228,7 +228,7 @@ public abstract class AbstractProcessor
     {
         return ProcessCore(input);
     }
-    
+
     protected abstract string ProcessCore(string input);
     protected abstract int MaxRetries { get; }
 }

@@ -29,7 +29,7 @@ namespace Skugga.Core.Exceptions
         /// </summary>
         /// <param name="statusCode">The HTTP status code.</param>
         /// <param name="message">The error message.</param>
-        public HttpStatusException(int statusCode, string message) 
+        public HttpStatusException(int statusCode, string message)
             : base(message)
         {
             StatusCode = statusCode;
@@ -41,7 +41,7 @@ namespace Skugga.Core.Exceptions
         /// <param name="statusCode">The HTTP status code.</param>
         /// <param name="message">The error message.</param>
         /// <param name="errorBody">The structured error response body.</param>
-        public HttpStatusException(int statusCode, string message, object? errorBody) 
+        public HttpStatusException(int statusCode, string message, object? errorBody)
             : base(message)
         {
             StatusCode = statusCode;
@@ -55,7 +55,7 @@ namespace Skugga.Core.Exceptions
         /// <param name="message">The error message.</param>
         /// <param name="errorBody">The structured error response body.</param>
         /// <param name="headers">Additional HTTP headers.</param>
-        public HttpStatusException(int statusCode, string message, object? errorBody, Dictionary<string, string>? headers) 
+        public HttpStatusException(int statusCode, string message, object? errorBody, Dictionary<string, string>? headers)
             : base(message)
         {
             StatusCode = statusCode;
@@ -79,7 +79,7 @@ namespace Skugga.Core.Exceptions
         /// Initializes a new instance of BadRequestException.
         /// </summary>
         /// <param name="message">The error message.</param>
-        public BadRequestException(string message) 
+        public BadRequestException(string message)
             : base(400, message)
         {
         }
@@ -89,7 +89,7 @@ namespace Skugga.Core.Exceptions
         /// </summary>
         /// <param name="message">The error message.</param>
         /// <param name="validationErrors">The validation errors.</param>
-        public BadRequestException(string message, IReadOnlyList<ValidationError> validationErrors) 
+        public BadRequestException(string message, IReadOnlyList<ValidationError> validationErrors)
             : base(400, message, validationErrors)
         {
             ValidationErrors = validationErrors;
@@ -106,7 +106,7 @@ namespace Skugga.Core.Exceptions
         /// Initializes a new instance of UnauthorizedException.
         /// </summary>
         /// <param name="message">The error message.</param>
-        public UnauthorizedException(string message) 
+        public UnauthorizedException(string message)
             : base(401, message)
         {
         }
@@ -116,7 +116,7 @@ namespace Skugga.Core.Exceptions
         /// </summary>
         /// <param name="message">The error message.</param>
         /// <param name="authenticateHeader">The WWW-Authenticate header value.</param>
-        public UnauthorizedException(string message, string authenticateHeader) 
+        public UnauthorizedException(string message, string authenticateHeader)
             : base(401, message, null, new Dictionary<string, string> { { "WWW-Authenticate", authenticateHeader } })
         {
         }
@@ -132,7 +132,7 @@ namespace Skugga.Core.Exceptions
         /// Initializes a new instance of ForbiddenException.
         /// </summary>
         /// <param name="message">The error message.</param>
-        public ForbiddenException(string message) 
+        public ForbiddenException(string message)
             : base(403, message)
         {
         }
@@ -158,7 +158,7 @@ namespace Skugga.Core.Exceptions
         /// Initializes a new instance of NotFoundException.
         /// </summary>
         /// <param name="message">The error message.</param>
-        public NotFoundException(string message) 
+        public NotFoundException(string message)
             : base(404, message)
         {
         }
@@ -168,7 +168,7 @@ namespace Skugga.Core.Exceptions
         /// </summary>
         /// <param name="resourceType">The type of resource (e.g., "User", "Order").</param>
         /// <param name="resourceId">The resource identifier.</param>
-        public NotFoundException(string resourceType, string resourceId) 
+        public NotFoundException(string resourceType, string resourceId)
             : base(404, $"{resourceType} with id '{resourceId}' not found")
         {
             ResourceType = resourceType;
@@ -191,7 +191,7 @@ namespace Skugga.Core.Exceptions
         /// Initializes a new instance of TooManyRequestsException.
         /// </summary>
         /// <param name="message">The error message.</param>
-        public TooManyRequestsException(string message) 
+        public TooManyRequestsException(string message)
             : base(429, message)
         {
         }
@@ -201,7 +201,7 @@ namespace Skugga.Core.Exceptions
         /// </summary>
         /// <param name="message">The error message.</param>
         /// <param name="retryAfter">How long to wait before retrying.</param>
-        public TooManyRequestsException(string message, TimeSpan retryAfter) 
+        public TooManyRequestsException(string message, TimeSpan retryAfter)
             : base(429, message, null, new Dictionary<string, string> { { "Retry-After", ((int)retryAfter.TotalSeconds).ToString() } })
         {
             RetryAfter = retryAfter;
@@ -218,7 +218,7 @@ namespace Skugga.Core.Exceptions
         /// Initializes a new instance of InternalServerErrorException.
         /// </summary>
         /// <param name="message">The error message.</param>
-        public InternalServerErrorException(string message) 
+        public InternalServerErrorException(string message)
             : base(500, message)
         {
         }
@@ -239,7 +239,7 @@ namespace Skugga.Core.Exceptions
         /// Initializes a new instance of ServiceUnavailableException.
         /// </summary>
         /// <param name="message">The error message.</param>
-        public ServiceUnavailableException(string message) 
+        public ServiceUnavailableException(string message)
             : base(503, message)
         {
         }
@@ -249,7 +249,7 @@ namespace Skugga.Core.Exceptions
         /// </summary>
         /// <param name="message">The error message.</param>
         /// <param name="retryAfter">How long to wait before retrying.</param>
-        public ServiceUnavailableException(string message, TimeSpan retryAfter) 
+        public ServiceUnavailableException(string message, TimeSpan retryAfter)
             : base(503, message, null, new Dictionary<string, string> { { "Retry-After", ((int)retryAfter.TotalSeconds).ToString() } })
         {
             RetryAfter = retryAfter;

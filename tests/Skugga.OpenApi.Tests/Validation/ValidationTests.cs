@@ -1,8 +1,8 @@
-using Skugga.Core;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Skugga.Core;
 using Xunit;
 
 namespace Skugga.OpenApi.Tests
@@ -23,7 +23,7 @@ namespace Skugga.OpenApi.Tests
             // This test verifies that operations without success responses
             // generate a SKUGGA_OPENAPI_007 warning but still compile.
             // The spec has getUsers with only 400/500 responses.
-            
+
             // If compilation succeeds, validation warnings are working correctly
             // (warnings don't break builds, only inform developers)
             var interfaceType = typeof(IValidationNoSuccessApi);
@@ -39,7 +39,7 @@ namespace Skugga.OpenApi.Tests
             // the method should still be generated for the interface
             var interfaceType = typeof(IValidationNoSuccessApi);
             var getUsersMethod = interfaceType.GetMethod("GetUsers");
-            
+
             Assert.NotNull(getUsersMethod);
         }
 
@@ -50,9 +50,9 @@ namespace Skugga.OpenApi.Tests
             // Operations with success responses should work normally
             var interfaceType = typeof(IValidationNoSuccessApi);
             var getProductsMethod = interfaceType.GetMethod("GetProducts");
-            
+
             Assert.NotNull(getProductsMethod);
-            
+
             // Should return Task<Product[]>
             Assert.True(getProductsMethod.ReturnType.IsGenericType);
             var innerType = getProductsMethod.ReturnType.GetGenericArguments()[0];
@@ -76,10 +76,10 @@ namespace Skugga.OpenApi.Tests
             // Methods without success responses return void (Task with no result)
             // (no valid response schema to generate data from)
             var mock = new IValidationNoSuccessApiMock();
-            
+
             // Method returns Task (not Task<T>), so just await it
             await mock.GetUsers();
-            
+
             // If we get here without exception, the test passes
             Assert.True(true);
         }
@@ -95,7 +95,7 @@ namespace Skugga.OpenApi.Tests
             // With improved diagnostics, empty paths now reports SKUGGA_OPENAPI_008 error
             // and stops generation (no interface or mock is created)
             // This is the correct behavior - an empty spec is an error, not just a warning
-            
+
             // We can't test for interface existence since it won't be generated
             // This test documents the expected behavior change from v1.1 to v1.2
             Assert.True(true, "Empty paths now correctly reports error and stops generation");
@@ -121,7 +121,7 @@ namespace Skugga.OpenApi.Tests
             // Operations with no success response generate warnings but still create methods
             var noSuccessType = typeof(IValidationNoSuccessApi);
             var methods = noSuccessType.GetMethods();
-            
+
             // Should have both methods (getUsers and getProducts)
             Assert.Equal(2, methods.Length);
             Assert.Contains(methods, m => m.Name == "GetUsers");
@@ -135,7 +135,7 @@ namespace Skugga.OpenApi.Tests
             // Validation warnings (like missing operationId, no success response) are informative
             // They should not block code generation
             Assert.NotNull(typeof(IValidationNoSuccessApi));
-            
+
             // Mock should also be generated
             Assert.NotNull(new IValidationNoSuccessApiMock());
         }

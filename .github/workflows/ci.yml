@@ -2,9 +2,9 @@ name: Skugga CI
 
 on:
   push:
-    branches: [ "master", "test", "feature/**" ]
+    branches: [ "master", "development", "test", "feature/**", "maintainance/**" ]
   pull_request:
-    branches: [ "master", "test" ]
+    branches: [ "master", "development", "test" ]
   workflow_dispatch:
 
 jobs:
@@ -44,6 +44,12 @@ jobs:
     - name: Restore Dependencies
       run: dotnet restore Skugga.slnx
 
+    - name: Build Solution (Debug)
+      run: dotnet build Skugga.slnx /p:TreatWarningsAsErrors=false
+
+    - name: Check Formatting
+      run: dotnet format --verify-no-changes Skugga.slnx --no-restore
+
     - name: Build Solution
       run: |
         dotnet build Skugga.slnx \
@@ -68,6 +74,13 @@ jobs:
       with:
         name: test-results-${{ matrix.dotnet-version }}
         path: "**/TestResults/**/*"
+
+    - name: Upload Coverage
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: code-coverage-${{ matrix.dotnet-version }}
+        path: "**/coverage.opencover.xml"
 
     - name: Run Benchmarks (Smoke Test)
       if: matrix.dotnet-version == '10.0.x'

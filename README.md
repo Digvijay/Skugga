@@ -52,7 +52,7 @@ graph TB
 
 > **Industry-First Features:** Skugga is the **only .NET mocking library** offering built-in [Chaos Engineering](#chaos-engineering-🔥) and [Zero-Allocation Testing](#zero-allocation-testing-⚡). While resilience libraries like [Polly](https://github.com/App-vNext/Polly) + [Simmy](https://github.com/Polly-Contrib/Simmy) provide chaos testing for production code, Skugga uniquely integrates chaos directly into your mocks for test-time resilience validation.
 
-### 1. Doppelgänger (OpenAPI Mock Generation) 🤖 **[NEW in v1.2.0]**
+### 1. Doppelgänger (OpenAPI Mock Generation)
 
 > **"Your tests should fail when APIs change, not your production."**
 

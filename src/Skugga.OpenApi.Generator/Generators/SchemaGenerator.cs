@@ -81,7 +81,7 @@ namespace Skugga.OpenApi.Generator
                         }
                     }
                 }
-                
+
                 // Generate the composite class (if it has its own properties or should be generated)
                 if (_typeMapper.ShouldGenerateClass(schema))
                 {
@@ -108,7 +108,7 @@ namespace Skugga.OpenApi.Generator
                         }
                     }
                 }
-                
+
                 // Generate base class if it has discriminator or properties
                 if (schema.Discriminator != null || schema.Properties?.Any() == true)
                 {
@@ -135,7 +135,7 @@ namespace Skugga.OpenApi.Generator
                         }
                     }
                 }
-                
+
                 // Generate base class (empty if no properties, for type compatibility)
                 GenerateClass(sb, className, schema);
                 generatedClasses.Add(className);

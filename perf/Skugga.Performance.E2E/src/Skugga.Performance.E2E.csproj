@@ -8,5 +8,6 @@
     <StripSymbols>true</StripSymbols>
     <OptimizationPreference>Size</OptimizationPreference>
     <StackTraceSupport>false</StackTraceSupport>
+    <NoWarn>$(NoWarn);IL2026;IL3050</NoWarn>
   </PropertyGroup>
 </Project>

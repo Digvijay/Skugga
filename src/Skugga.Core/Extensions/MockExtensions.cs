@@ -21,7 +21,7 @@ namespace Skugga.Core
     public static class MockExtensions
     {
         #region Setup Methods
-        
+
         /// <summary>
         /// Setups a method or property on the mock to return a specific value.
         /// </summary>
@@ -51,10 +51,10 @@ namespace Skugga.Core
                 // Property access: mock.Setup(x => x.Name)
                 return new SetupContext<TMock, TResult>(setup.Handler, "get_" + memberAccess.Member.Name, Array.Empty<object?>());
             }
-            
+
             throw new ArgumentException($"Expression must be a method call or property access, got: {expression.Body.GetType().Name}");
         }
-        
+
         /// <summary>
         /// Setups a void method on the mock.
         /// </summary>
@@ -75,7 +75,7 @@ namespace Skugga.Core
                 var args = methodCall.Arguments.Select(GetArgumentValue).ToArray();
                 return new VoidSetupContext<TMock>(setup.Handler, methodCall.Method.Name, args);
             }
-            
+
             throw new ArgumentException($"Expression must be a method call, got: {expression.Body.GetType().Name}");
         }
 
@@ -105,10 +105,10 @@ namespace Skugga.Core
             {
                 return new SequenceSetupContext<TMock, TResult>(setup.Handler, "get_" + memberAccess.Member.Name, Array.Empty<object?>());
             }
-            
+
             throw new ArgumentException($"Expression must be a method call or property access, got: {expression.Body.GetType().Name}");
         }
-        
+
         #endregion
 
         #region Verification Methods
@@ -152,7 +152,7 @@ namespace Skugga.Core
 
             // Count matching invocations
             int count = setup.Handler.Invocations.Count(inv => inv.Matches(signature, args));
-            
+
             if (!times.Validate(count))
             {
                 throw new MockException($"Expected {times.Description} call(s) to '{signature}', but was called {count} time(s).");
@@ -174,17 +174,17 @@ namespace Skugga.Core
             object?[] args = methodCall.Arguments.Select(GetArgumentValue).ToArray();
 
             int count = setup.Handler.Invocations.Count(inv => inv.Matches(signature, args));
-            
+
             if (!times.Validate(count))
             {
                 throw new MockException($"Expected {times.Description} call(s) to '{signature}', but was called {count} time(s).");
             }
         }
-        
+
         #endregion
 
         #region Property Management
-        
+
         /// <summary>
         /// Sets up a property with automatic backing field for get/set tracking.
         /// </summary>
@@ -201,7 +201,7 @@ namespace Skugga.Core
         {
             SetupProperty(mock, expression, default(TProperty));
         }
-        
+
         /// <summary>
         /// Sets up a property with automatic backing field and a default value.
         /// </summary>
@@ -221,7 +221,7 @@ namespace Skugga.Core
             if (mock is not IMockSetup setup)
                 throw new ArgumentException("Object is not a Skugga Mock");
 
-            if (expression.Body is not MemberExpression memberAccess || 
+            if (expression.Body is not MemberExpression memberAccess ||
                 memberAccess.Member.MemberType != System.Reflection.MemberTypes.Property)
             {
                 throw new ArgumentException("Expression must be a property access");
@@ -230,7 +230,7 @@ namespace Skugga.Core
             var propertyName = memberAccess.Member.Name;
             setup.Handler.SetupPropertyStorage(propertyName, defaultValue);
         }
-        
+
         /// <summary>
         /// Sets up all properties on the interface with automatic backing fields.
         /// </summary>
@@ -251,7 +251,7 @@ namespace Skugga.Core
             // Get all properties from the interface using reflection
             var interfaceType = typeof(TMock);
             var properties = interfaceType.GetProperties();
-            
+
             foreach (var property in properties)
             {
                 // Only setup if not already setup (respect individual SetupProperty calls)
@@ -262,7 +262,7 @@ namespace Skugga.Core
                 }
             }
         }
-        
+
         /// <summary>
         /// Verifies that a property getter was accessed on the mock.
         /// </summary>
@@ -280,7 +280,7 @@ namespace Skugga.Core
             if (mock is not IMockSetup setup)
                 throw new ArgumentException("Object is not a Skugga Mock");
 
-            if (expression.Body is not MemberExpression memberAccess || 
+            if (expression.Body is not MemberExpression memberAccess ||
                 memberAccess.Member.MemberType != System.Reflection.MemberTypes.Property)
             {
                 throw new ArgumentException("Expression must be a property access");
@@ -292,13 +292,13 @@ namespace Skugga.Core
 
             // Count how many times the getter was invoked
             int count = setup.Handler.Invocations.Count(inv => inv.Matches(signature, args));
-            
+
             if (!times.Validate(count))
             {
                 throw new MockException($"Expected {times.Description} call(s) to '{signature}', but was called {count} time(s).");
             }
         }
-        
+
         /// <summary>
         /// Verifies that a property setter was called with a specific value.
         /// Supports argument matchers like It.IsAny&lt;T&gt;() and It.Is&lt;T&gt;(predicate).
@@ -328,7 +328,7 @@ namespace Skugga.Core
 
             // Property setters are tracked as "set_PropertyName" invocations with the value as the argument
             string signature = "set_" + memberAccess.Member.Name;
-            
+
             // Extract the expected value from the value expression
             // This handles constants, variables, and It.* matchers correctly
             object? expectedValue = GetArgumentValue(valueExpression.Body);
@@ -337,13 +337,13 @@ namespace Skugga.Core
             // Count how many times the setter was invoked with the expected value
             // ArgumentMatcher support: if expectedValue is an ArgumentMatcher, Invocation.Matches will use it
             int count = setup.Handler.Invocations.Count(inv => inv.Matches(signature, args));
-            
+
             if (!times.Validate(count))
             {
                 throw new MockException($"Expected {times.Description} call(s) to '{signature}', but was called {count} time(s).");
             }
         }
-        
+
         #endregion
 
         #region Event Management
@@ -366,7 +366,7 @@ namespace Skugga.Core
             // Invoke the event through the handler
             setup.Handler.RaiseEvent(eventName, args);
         }
-        
+
         /// <summary>
         /// Verifies that an event handler was added (subscribed) to the specified event.
         /// </summary>
@@ -383,16 +383,16 @@ namespace Skugga.Core
                 throw new ArgumentException("Object is not a Skugga Mock");
 
             string signature = "add_" + eventName;
-            
+
             // Count event subscriptions
             int count = setup.Handler.Invocations.Count(inv => inv.Signature == signature);
-            
+
             if (!times.Validate(count))
             {
                 throw new VerificationException($"Expected {times.Description} subscription(s) to event '{eventName}', but was subscribed {count} time(s).");
             }
         }
-        
+
         /// <summary>
         /// Verifies that an event handler was removed (unsubscribed) from the specified event.
         /// </summary>
@@ -409,20 +409,20 @@ namespace Skugga.Core
                 throw new ArgumentException("Object is not a Skugga Mock");
 
             string signature = "remove_" + eventName;
-            
+
             // Count event unsubscriptions
             int count = setup.Handler.Invocations.Count(inv => inv.Signature == signature);
-            
+
             if (!times.Validate(count))
             {
                 throw new VerificationException($"Expected {times.Description} unsubscription(s) from event '{eventName}', but was unsubscribed {count} time(s).");
             }
         }
-        
+
         #endregion
 
         #region Advanced Features
-        
+
         /// <summary>
         /// Enables chaos mode on the mock with the specified policy configuration.
         /// Chaos mode randomly injects failures and delays to test resilience.
@@ -439,11 +439,12 @@ namespace Skugga.Core
         /// </example>
         public static void Chaos<T>(this T mock, Action<ChaosPolicy> config)
         {
-             if (mock is IMockSetup setup) {
-                 var policy = new ChaosPolicy();
-                 config(policy);
-                 setup.Handler.SetChaosPolicy(policy);
-             }
+            if (mock is IMockSetup setup)
+            {
+                var policy = new ChaosPolicy();
+                config(policy);
+                setup.Handler.SetChaosPolicy(policy);
+            }
         }
 
         /// <summary>
@@ -464,7 +465,7 @@ namespace Skugga.Core
         {
             if (mock is not IMockSetup setup)
                 throw new ArgumentException("Object is not a Skugga Mock");
-            
+
             return setup.Handler.ChaosStatistics;
         }
 
@@ -484,14 +485,14 @@ namespace Skugga.Core
         {
             if (mock is not IMockSetup mockSetup)
                 throw new ArgumentException("Object is not a Skugga mock", nameof(mock));
-            
+
             if (!typeof(TInterface).IsInterface)
                 throw new ArgumentException($"Type {typeof(TInterface).Name} is not an interface", nameof(TInterface));
-            
+
             mockSetup.Handler.AddInterface(typeof(TInterface));
             return (TInterface)mock;
         }
-        
+
         /// <summary>
         /// Returns a setup context for configuring protected members.
         /// Use string-based method/property names to set up protected members.
@@ -509,10 +510,10 @@ namespace Skugga.Core
         {
             if (mock is not IMockSetup mockSetup)
                 throw new ArgumentException("Object is not a Skugga mock", nameof(mock));
-            
+
             return new ProtectedMockSetup(mockSetup.Handler);
         }
-        
+
         #endregion
 
         #region Helper Methods
@@ -540,9 +541,9 @@ namespace Skugga.Core
         private static object? GetArgumentValue(Expression expr)
         {
             // Handle constant values (e.g., 42, "test", null)
-            if (expr is ConstantExpression c) 
+            if (expr is ConstantExpression c)
                 return c.Value;
-            
+
             // Handle member access (variable capture by closure): () => variable
             // The expression tree may wrap variables in a closure class
             if (expr is MemberExpression memberExpr)
@@ -560,7 +561,7 @@ namespace Skugga.Core
                     // If evaluation fails, treat as unsupported
                 }
             }
-            
+
             // Handle unary expressions: !value, -number, etc.
             if (expr is UnaryExpression unaryExpr)
             {
@@ -571,7 +572,7 @@ namespace Skugga.Core
                 }
                 catch { }
             }
-            
+
             // Handle binary expressions: a + b, x * y, etc.
             if (expr is BinaryExpression binaryExpr)
             {
@@ -582,7 +583,7 @@ namespace Skugga.Core
                 }
                 catch { }
             }
-            
+
             // Handle conditional expressions: condition ? a : b
             if (expr is ConditionalExpression conditionalExpr)
             {
@@ -593,7 +594,7 @@ namespace Skugga.Core
                 }
                 catch { }
             }
-            
+
             // Handle array/indexer access: array[0], dict[key]
             if (expr is System.Linq.Expressions.IndexExpression or System.Linq.Expressions.MethodCallExpression { Method.Name: "get_Item" })
             {
@@ -604,20 +605,20 @@ namespace Skugga.Core
                 }
                 catch { }
             }
-            
+
             // Detect It.* matcher calls and convert to ArgumentMatcher
-            if (expr is MethodCallExpression methodCall && 
+            if (expr is MethodCallExpression methodCall &&
                 methodCall.Method.DeclaringType?.Name == "It")
             {
                 var methodName = methodCall.Method.Name;
                 var matcherType = methodCall.Method.ReturnType;
-                
+
                 // It.IsAny<T>()
                 if (methodName == "IsAny")
                 {
                     return new ArgumentMatcher(matcherType, _ => true, $"It.IsAny<{matcherType.Name}>()");
                 }
-                
+
                 // It.Is<T>(predicate) - NOTE: Predicate evaluation happens at compile-time via generator
                 if (methodName == "Is" && methodCall.Arguments.Count == 1)
                 {
@@ -627,12 +628,12 @@ namespace Skugga.Core
                     {
                         var compiledPredicate = lambda.Compile();
                         return new ArgumentMatcher(
-                            matcherType, 
+                            matcherType,
                             v => v != null && (bool)compiledPredicate.DynamicInvoke(v)!,
                             $"It.Is<{matcherType.Name}>(predicate)");
                     }
                 }
-                
+
                 // It.IsIn<T>(values)
                 if (methodName == "IsIn" && methodCall.Arguments.Count == 1)
                 {
@@ -649,17 +650,17 @@ namespace Skugga.Core
                             $"It.IsIn({string.Join(", ", values.Select(v => v?.ToString() ?? "null"))})");
                     }
                 }
-                
+
                 // It.IsNotNull<T>()
                 if (methodName == "IsNotNull")
                 {
                     return new ArgumentMatcher(matcherType, v => v != null, $"It.IsNotNull<{matcherType.Name}>()");
                 }
-                
+
                 // It.IsRegex(pattern)
                 if (methodName == "IsRegex" && methodCall.Arguments.Count == 1)
                 {
-                    if (methodCall.Arguments[0] is ConstantExpression patternExpr && 
+                    if (methodCall.Arguments[0] is ConstantExpression patternExpr &&
                         patternExpr.Value is string pattern)
                     {
                         var regex = new System.Text.RegularExpressions.Regex(pattern);
@@ -670,7 +671,7 @@ namespace Skugga.Core
                     }
                 }
             }
-            
+
             // Handle method calls that might return matchers (Match.Create) or other values
             // Try to evaluate the method call to see if it's a matcher
             if (expr is MethodCallExpression methodCallExpr)
@@ -680,28 +681,28 @@ namespace Skugga.Core
                     methodCallExpr.Method.Name == "Create")
                 {
                     var matcherType = methodCallExpr.Method.ReturnType;
-                    
+
                     // Match.Create<T>(predicate) or Match.Create<T>(predicate, description)
                     if (methodCallExpr.Arguments.Count >= 1)
                     {
                         var predicateExpr = methodCallExpr.Arguments[0];
-                        string description = methodCallExpr.Arguments.Count == 2 && 
+                        string description = methodCallExpr.Arguments.Count == 2 &&
                                            methodCallExpr.Arguments[1] is ConstantExpression descExpr &&
                                            descExpr.Value is string desc
                             ? desc
                             : $"Match.Create<{matcherType.Name}>(predicate)";
-                        
+
                         if (predicateExpr is LambdaExpression lambda)
                         {
                             var compiledPredicate = lambda.Compile();
                             return new ArgumentMatcher(
-                                matcherType, 
+                                matcherType,
                                 v => v != null && (bool)compiledPredicate.DynamicInvoke(v)!,
                                 description);
                         }
                     }
                 }
-                
+
                 // For other method calls (like helper methods that return Match.Create results),
                 // try to evaluate them. This handles cases like IsLargeString() which returns Match.Create<string>(...)
                 if (methodCallExpr.Method.DeclaringType?.Name != "It")
@@ -710,14 +711,14 @@ namespace Skugga.Core
                     {
                         var lambda = Expression.Lambda<Func<object>>(Expression.Convert(methodCallExpr, typeof(object)));
                         var result = lambda.Compile()();
-                        
+
                         // If the result is an ArgumentMatcher (shouldn't be directly), return it
                         // Otherwise, the method call returned a value (like Match.Create's default(T)!)
                         // In that case, we need to walk the method body to extract the Match.Create call
-                        
+
                         // Actually, when Match.Create returns default(T)!, we won't get a matcher here
                         // We need to look inside the method being called to find the Match.Create call
-                        if (methodCallExpr.Method.ReturnType != typeof(void) && 
+                        if (methodCallExpr.Method.ReturnType != typeof(void) &&
                             methodCallExpr.Object == null) // Static or has no instance
                         {
                             // Try to get the method body and extract Match.Create from it
@@ -727,7 +728,7 @@ namespace Skugga.Core
                                 // Invoke the method to get its expression body
                                 // For methods like "public static string IsLarge() => Match.Create<string>(...)"
                                 // We can't easily introspect the method body, so we need a different approach
-                                
+
                                 // Actually, the generator should handle this. Let's check if generator
                                 // can inline the helper method calls
                             }
@@ -739,7 +740,7 @@ namespace Skugga.Core
                     }
                 }
             }
-            
+
             // COMPILE-TIME ONLY: Cannot extract non-constant arguments at runtime without reflection
             // Source generator MUST intercept Setup/Verify and emit AddSetup calls directly
             // If you see this error, use constants or It.* matchers
@@ -752,7 +753,7 @@ namespace Skugga.Core
                 "3. Ensure source generator is intercepting (see project setup)\n" +
                 "Note: Variables, properties, and calculations require generator interception.");
         }
-        
+
         /// <summary>
         /// Gets the default CLR value for a type.
         /// Used when setting up all properties on a mock.
@@ -765,7 +766,7 @@ namespace Skugga.Core
             }
             return null;
         }
-        
+
         #endregion
     }
 }

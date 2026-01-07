@@ -29,7 +29,7 @@ public class ProductsControllerTests
         mockRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(products);
         mockPricing.Setup(p => p.CalculateDiscount(It.IsAny<decimal>(), It.IsAny<string>())).Returns(0m);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -45,13 +45,13 @@ public class ProductsControllerTests
     public async Task GetById_ExistingId_ReturnsProduct()
     {
         // Arrange
-        var product = new Product 
-        { 
-            Id = 1, 
-            Name = "Laptop", 
-            Price = 999.99m, 
-            StockQuantity = 10, 
-            Category = "Electronics" 
+        var product = new Product
+        {
+            Id = 1,
+            Name = "Laptop",
+            Price = 999.99m,
+            StockQuantity = 10,
+            Category = "Electronics"
         };
 
         var mockRepo = Mock.Create<IProductRepository>();
@@ -63,7 +63,7 @@ public class ProductsControllerTests
         mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(product);
         mockPricing.Setup(p => p.CalculateDiscount(999.99m, "Electronics")).Returns(50m);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -88,7 +88,7 @@ public class ProductsControllerTests
 
         mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Product?)null);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -117,7 +117,7 @@ public class ProductsControllerTests
         mockRepo.Setup(r => r.GetByCategoryAsync("Electronics")).ReturnsAsync(products);
         mockPricing.Setup(p => p.CalculateDiscount(It.IsAny<decimal>(), "Electronics")).Returns(0m);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -153,7 +153,7 @@ public class ProductsControllerTests
             .ReturnsAsync((Product p) => { p.Id = 3; return p; });
         mockPricing.Setup(p => p.CalculateDiscount(It.IsAny<decimal>(), It.IsAny<string>())).Returns(0m);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -186,7 +186,7 @@ public class ProductsControllerTests
 
         mockPricing.Setup(p => p.ValidatePrice(-10m)).Returns(false);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -201,13 +201,13 @@ public class ProductsControllerTests
     public async Task Update_PriceChanged_SendsNotification()
     {
         // Arrange
-        var existingProduct = new Product 
-        { 
-            Id = 1, 
-            Name = "Laptop", 
-            Price = 999.99m, 
-            StockQuantity = 10, 
-            Category = "Electronics" 
+        var existingProduct = new Product
+        {
+            Id = 1,
+            Name = "Laptop",
+            Price = 999.99m,
+            StockQuantity = 10,
+            Category = "Electronics"
         };
 
         var request = new CreateProductRequest
@@ -227,7 +227,7 @@ public class ProductsControllerTests
         mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingProduct);
         mockRepo.Setup(r => r.UpdateAsync(It.IsAny<Product>())).ReturnsAsync(true);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -235,7 +235,7 @@ public class ProductsControllerTests
 
         // Assert
         mockNotifications.Verify(
-            n => n.SendPriceChangeNotificationAsync(1, 999.99m, 899.99m), 
+            n => n.SendPriceChangeNotificationAsync(1, 999.99m, 899.99m),
             Times.Once());
     }
 
@@ -259,7 +259,7 @@ public class ProductsControllerTests
             Category = "Test"
         };
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -273,13 +273,13 @@ public class ProductsControllerTests
     public async Task ReserveStock_SufficientStock_SendsLowStockAlert()
     {
         // Arrange
-        var product = new Product 
-        { 
-            Id = 1, 
-            Name = "Laptop", 
-            Price = 999.99m, 
-            StockQuantity = 15, 
-            Category = "Electronics" 
+        var product = new Product
+        {
+            Id = 1,
+            Name = "Laptop",
+            Price = 999.99m,
+            StockQuantity = 15,
+            Category = "Electronics"
         };
 
         var mockRepo = Mock.Create<IProductRepository>();
@@ -293,7 +293,7 @@ public class ProductsControllerTests
         mockInventory.Setup(i => i.ReserveStockAsync(1, 10)).ReturnsAsync(true);
         mockInventory.Setup(i => i.GetAvailableStockAsync(1)).ReturnsAsync(5); // Low stock
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -302,7 +302,7 @@ public class ProductsControllerTests
         // Assert
         Assert.IsType<OkResult>(result);
         mockNotifications.Verify(
-            n => n.SendLowStockAlertAsync(1, 5), 
+            n => n.SendLowStockAlertAsync(1, 5),
             Times.Once());
     }
 
@@ -310,13 +310,13 @@ public class ProductsControllerTests
     public async Task ReserveStock_InsufficientStock_ReturnsBadRequest()
     {
         // Arrange
-        var product = new Product 
-        { 
-            Id = 1, 
-            Name = "Laptop", 
-            Price = 999.99m, 
-            StockQuantity = 3, 
-            Category = "Electronics" 
+        var product = new Product
+        {
+            Id = 1,
+            Name = "Laptop",
+            Price = 999.99m,
+            StockQuantity = 3,
+            Category = "Electronics"
         };
 
         var mockRepo = Mock.Create<IProductRepository>();
@@ -328,7 +328,7 @@ public class ProductsControllerTests
         mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(product);
         mockInventory.Setup(i => i.CheckStockAsync(1, 10)).ReturnsAsync(false);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -344,13 +344,13 @@ public class ProductsControllerTests
     public async Task Delete_ExistingProduct_ReturnsNoContent()
     {
         // Arrange
-        var product = new Product 
-        { 
-            Id = 1, 
-            Name = "Laptop", 
-            Price = 999.99m, 
-            StockQuantity = 10, 
-            Category = "Electronics" 
+        var product = new Product
+        {
+            Id = 1,
+            Name = "Laptop",
+            Price = 999.99m,
+            StockQuantity = 10,
+            Category = "Electronics"
         };
 
         var mockRepo = Mock.Create<IProductRepository>();
@@ -362,7 +362,7 @@ public class ProductsControllerTests
         mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(product);
         mockRepo.Setup(r => r.DeleteAsync(1)).ReturnsAsync(true);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act
@@ -377,13 +377,13 @@ public class ProductsControllerTests
     public async Task PricingService_CalculatesDifferentDiscountsByCategory()
     {
         // Arrange - Demonstrates It.Is with predicates
-        var product = new Product 
-        { 
-            Id = 1, 
-            Name = "Laptop", 
-            Price = 1000m, 
-            StockQuantity = 10, 
-            Category = "Electronics" 
+        var product = new Product
+        {
+            Id = 1,
+            Name = "Laptop",
+            Price = 1000m,
+            StockQuantity = 10,
+            Category = "Electronics"
         };
 
         var mockRepo = Mock.Create<IProductRepository>();
@@ -393,14 +393,14 @@ public class ProductsControllerTests
         var mockLogger = NullLogger<ProductsController>.Instance;
 
         mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(product);
-        
+
         // Different discounts for different categories
         mockPricing.Setup(p => p.CalculateDiscount(
-            It.IsAny<decimal>(), 
+            It.IsAny<decimal>(),
             It.Is((string cat) => cat == "Electronics")))
             .Returns(100m);
 
-        var controller = new ProductsController(mockRepo, mockInventory, 
+        var controller = new ProductsController(mockRepo, mockInventory,
             mockPricing, mockNotifications, mockLogger);
 
         // Act

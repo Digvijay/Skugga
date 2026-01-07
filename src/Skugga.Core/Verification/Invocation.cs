@@ -31,12 +31,12 @@ namespace Skugga.Core
         /// Gets the method signature (e.g., "GetData" or "get_Name" for properties).
         /// </summary>
         public string Signature { get; }
-        
+
         /// <summary>
         /// Gets the arguments passed to the method during invocation.
         /// </summary>
         public object?[] Args { get; }
-        
+
         /// <summary>
         /// Initializes a new invocation record.
         /// </summary>
@@ -47,7 +47,7 @@ namespace Skugga.Core
             Signature = signature;
             Args = args;
         }
-        
+
         /// <summary>
         /// Determines if this invocation matches the specified signature and arguments.
         /// </summary>
@@ -77,9 +77,9 @@ namespace Skugga.Core
         public bool Matches(string signature, object?[] args)
         {
             // Quick checks: signature and argument count must match
-            if (Signature != signature || Args.Length != args.Length) 
+            if (Signature != signature || Args.Length != args.Length)
                 return false;
-            
+
             // Check each argument
             for (int i = 0; i < Args.Length; i++)
             {
@@ -97,11 +97,11 @@ namespace Skugga.Core
                         return false;
                 }
             }
-            
+
             return true;
         }
     }
-    
+
     /// <summary>
     /// Specifies the number of times a method is expected to be called for verification.
     /// </summary>
@@ -130,7 +130,7 @@ namespace Skugga.Core
     public class Times
     {
         private readonly Func<int, bool> _validator;
-        
+
         /// <summary>
         /// Gets a human-readable description of the expected call count.
         /// </summary>
@@ -139,7 +139,7 @@ namespace Skugga.Core
         /// Examples: "exactly 1", "at least 2", "between 1 and 5"
         /// </remarks>
         public string Description { get; }
-        
+
         /// <summary>
         /// Initializes a new Times instance with a custom validator.
         /// </summary>
@@ -150,14 +150,14 @@ namespace Skugga.Core
             _validator = validator;
             Description = description;
         }
-        
+
         /// <summary>
         /// Validates if the actual call count matches the expectation.
         /// </summary>
         /// <param name="actualCalls">The actual number of times the method was called</param>
         /// <returns>True if the count meets the expectation; otherwise false</returns>
         public bool Validate(int actualCalls) => _validator(actualCalls);
-        
+
         /// <summary>
         /// Expects exactly one call.
         /// </summary>
@@ -172,7 +172,7 @@ namespace Skugga.Core
         /// </code>
         /// </example>
         public static Times Once() => new Times(c => c == 1, "exactly 1");
-        
+
         /// <summary>
         /// Expects no calls.
         /// </summary>
@@ -188,7 +188,7 @@ namespace Skugga.Core
         /// </code>
         /// </example>
         public static Times Never() => new Times(c => c == 0, "exactly 0");
-        
+
         /// <summary>
         /// Expects exactly n calls.
         /// </summary>
@@ -206,7 +206,7 @@ namespace Skugga.Core
         /// </code>
         /// </example>
         public static Times Exactly(int callCount) => new Times(c => c == callCount, $"exactly {callCount}");
-        
+
         /// <summary>
         /// Expects at least n calls.
         /// </summary>
@@ -225,7 +225,7 @@ namespace Skugga.Core
         /// </code>
         /// </example>
         public static Times AtLeast(int callCount) => new Times(c => c >= callCount, $"at least {callCount}");
-        
+
         /// <summary>
         /// Expects at most n calls.
         /// </summary>
@@ -242,7 +242,7 @@ namespace Skugga.Core
         /// </code>
         /// </example>
         public static Times AtMost(int callCount) => new Times(c => c <= callCount, $"at most {callCount}");
-        
+
         /// <summary>
         /// Expects between min and max calls (inclusive).
         /// </summary>
@@ -260,7 +260,7 @@ namespace Skugga.Core
         /// mock.Verify(x => x.Process(), Times.Between(1, 3)); // Pass - called 2 times
         /// </code>
         /// </example>
-        public static Times Between(int callCountFrom, int callCountTo) => 
+        public static Times Between(int callCountFrom, int callCountTo) =>
             new Times(c => c >= callCountFrom && c <= callCountTo, $"between {callCountFrom} and {callCountTo}");
     }
 }

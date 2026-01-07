@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using Xunit;
 using Skugga.OpenApi.Tests.Generation.StatefulUsers;
 using Skugga.OpenApi.Tests.Generation.StatelessUsers;
+using Xunit;
 
 namespace Skugga.OpenApi.Tests.Generation
 {
@@ -40,7 +40,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mockType = typeof(IStatefulUserApiMock);
             var entityStoreField = mockType.GetField("_entityStore", BindingFlags.NonPublic | BindingFlags.Instance);
-            
+
             Assert.NotNull(entityStoreField);
             Assert.Contains("Dictionary", entityStoreField.FieldType.Name);
         }
@@ -52,7 +52,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mockType = typeof(IStatefulUserApiMock);
             var idCountersField = mockType.GetField("_idCounters", BindingFlags.NonPublic | BindingFlags.Instance);
-            
+
             Assert.NotNull(idCountersField);
             Assert.Contains("Dictionary", idCountersField.FieldType.Name);
         }
@@ -64,7 +64,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mockType = typeof(IStatefulUserApiMock);
             var stateLockField = mockType.GetField("_stateLock", BindingFlags.NonPublic | BindingFlags.Instance);
-            
+
             Assert.NotNull(stateLockField);
             Assert.Equal(typeof(object), stateLockField.FieldType);
         }
@@ -76,7 +76,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mockType = typeof(IStatefulUserApiMock);
             var resetStateMethod = mockType.GetMethod("ResetState", BindingFlags.Public | BindingFlags.Instance);
-            
+
             Assert.NotNull(resetStateMethod);
             Assert.Equal(typeof(void), resetStateMethod.ReturnType);
             Assert.Empty(resetStateMethod.GetParameters());
@@ -88,13 +88,13 @@ namespace Skugga.OpenApi.Tests.Generation
         public void StatefulMock_HasCrudMethods()
         {
             var interfaceType = typeof(IStatefulUserApi);
-            
+
             var createMethod = interfaceType.GetMethod("CreateUser");
             var readMethod = interfaceType.GetMethod("GetUser");
             var listMethod = interfaceType.GetMethod("ListUsers");
             var updateMethod = interfaceType.GetMethod("UpdateUser");
             var deleteMethod = interfaceType.GetMethod("DeleteUser");
-            
+
             Assert.NotNull(createMethod);
             Assert.NotNull(readMethod);
             Assert.NotNull(listMethod);
@@ -109,7 +109,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mockType = typeof(IStatelessUserApiMock);
             var entityStoreField = mockType.GetField("_entityStore", BindingFlags.NonPublic | BindingFlags.Instance);
-            
+
             Assert.Null(entityStoreField);
         }
 
@@ -120,7 +120,7 @@ namespace Skugga.OpenApi.Tests.Generation
         {
             var mockType = typeof(IStatelessUserApiMock);
             var resetStateMethod = mockType.GetMethod("ResetState", BindingFlags.Public | BindingFlags.Instance);
-            
+
             Assert.Null(resetStateMethod);
         }
 
@@ -130,15 +130,15 @@ namespace Skugga.OpenApi.Tests.Generation
         public async System.Threading.Tasks.Task StatefulMock_CreateUser_ReturnsUser()
         {
             var mock = new IStatefulUserApiMock();
-            
+
             var userInput = new StatefulUsers.UserInput
             {
                 Name = "Test User",
                 Email = "test@example.com"
             };
-            
+
             var result = await mock.CreateUser(userInput);
-            
+
             Assert.NotNull(result);
         }
 
@@ -148,16 +148,16 @@ namespace Skugga.OpenApi.Tests.Generation
         public async System.Threading.Tasks.Task StatefulMock_ResetState_ClearsData()
         {
             var mock = new IStatefulUserApiMock();
-            
+
             var userInput = new StatefulUsers.UserInput
             {
                 Name = "Test User",
                 Email = "test@example.com"
             };
             await mock.CreateUser(userInput);
-            
+
             mock.ResetState();
-            
+
             Assert.True(true);
         }
 
@@ -167,9 +167,9 @@ namespace Skugga.OpenApi.Tests.Generation
         public async System.Threading.Tasks.Task StatefulMock_ListUsers_ReturnsArray()
         {
             var mock = new IStatefulUserApiMock();
-            
+
             var result = await mock.ListUsers();
-            
+
             Assert.NotNull(result);
         }
 
@@ -179,7 +179,7 @@ namespace Skugga.OpenApi.Tests.Generation
         public async System.Threading.Tasks.Task StatefulMock_GetUser_ThrowsFor404Scenario()
         {
             var mock = new IStatefulUserApiMock();
-            
+
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
                 await mock.GetUser("nonexistent-id");

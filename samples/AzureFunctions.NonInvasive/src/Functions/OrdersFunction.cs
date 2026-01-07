@@ -1,9 +1,9 @@
+using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using OrdersApi.Models;
 using OrdersApi.Services;
-using System.Net;
 
 namespace OrdersApi.Functions;
 
@@ -34,7 +34,7 @@ public class OrdersFunction
         _logger.LogInformation("Getting order {OrderId}", orderId);
 
         var order = await _orderService.GetOrderByIdAsync(orderId);
-        
+
         if (order == null)
         {
             var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);

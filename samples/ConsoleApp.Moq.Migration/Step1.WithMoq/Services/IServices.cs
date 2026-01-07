@@ -22,7 +22,7 @@ public interface IPaymentService
 
 public interface INotificationService
 {
-    void SendEmail(string to, string subject, string message);
+    void SendEmail(string recipientEmail, string subject, string message);
     void LogActivity(string activity);
     Task SendSmsAsync(string phoneNumber, string message);
     bool IsServiceAvailable();

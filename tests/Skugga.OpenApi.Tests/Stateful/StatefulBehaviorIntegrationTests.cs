@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using Xunit;
 using Skugga.Core;
 using Skugga.Core.Exceptions;
 using Skugga.OpenApi.Tests.Generation.StatefulUsers;
+using Xunit;
 
 namespace Skugga.OpenApi.Tests.Stateful
 {
@@ -33,11 +33,11 @@ namespace Skugga.OpenApi.Tests.Stateful
         public async Task GeneratedMock_ReturnsChargeResult()
         {
             var mock = new IPaymentApiMock();
-            
+
             // CreateCharge now takes both query params AND request body
             var chargeRequest = new ChargeRequest { Amount = 100, Currency = "USD" };
             var charge = await mock.CreateCharge(100, "USD", chargeRequest);
-            
+
             Assert.NotNull(charge);
             Assert.NotNull(charge.TransactionId);
             Assert.Equal(100, charge.Amount); // Honors query parameter
@@ -51,11 +51,11 @@ namespace Skugga.OpenApi.Tests.Stateful
         public async Task GeneratedMock_UpdateAccountCompletes()
         {
             var mock = new IPaymentApiMock();
-            
+
             // UpdateAccount now takes both query param AND request body
             var accountUpdate = new AccountUpdate { Balance = 500 };
             var result = await mock.UpdateAccount("acc_123", 500, accountUpdate);
-            
+
             Assert.NotNull(result);
             Assert.Equal("acc_123", result.Id);
             Assert.Equal(500, result.Balance); // Honors query parameter
@@ -69,11 +69,11 @@ namespace Skugga.OpenApi.Tests.Stateful
         public async Task GeneratedMock_MultipleChargesGenerated()
         {
             var mock = new IPaymentApiMock();
-            
+
             var charge1 = await mock.CreateCharge(100, "USD", new ChargeRequest { Amount = 100, Currency = "USD" });
             var charge2 = await mock.CreateCharge(200, "EUR", new ChargeRequest { Amount = 200, Currency = "EUR" });
             var charge3 = await mock.CreateCharge(50, "GBP", new ChargeRequest { Amount = 50, Currency = "GBP" });
-            
+
             // Each charge gets unique data
             Assert.NotNull(charge1.TransactionId);
             Assert.NotNull(charge2.TransactionId);
@@ -91,16 +91,16 @@ namespace Skugga.OpenApi.Tests.Stateful
         public async Task GeneratedMock_HandlesMultipleOperations()
         {
             var mock = new IPaymentApiMock();
-            
+
             // Multiple operations work
             var accountUpdate = new AccountUpdate { Balance = 100 };
             await mock.UpdateAccount("acc_1", 100, accountUpdate);
-            
+
             var newUpdate = new AccountUpdate { Balance = 200 };
             await mock.UpdateAccount("acc_2", 200, newUpdate);
-            
+
             var charge = await mock.CreateCharge(50, "GBP", new ChargeRequest { Amount = 50, Currency = "GBP" });
-            
+
             Assert.NotNull(charge);
         }
 
@@ -112,11 +112,11 @@ namespace Skugga.OpenApi.Tests.Stateful
         public async Task StatefulMock_Throws404ForNonExistentAccount()
         {
             var mock = new IPaymentApiMock();
-            
+
             // Try to get account that was never created
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 mock.GetAccount("acc_doesnotexist"));
-            
+
             // Stateful mock throws 404 for missing entities
             Assert.Contains("404", ex.Message);
             Assert.Contains("not found", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -132,16 +132,16 @@ namespace Skugga.OpenApi.Tests.Stateful
         {
             // Test that stateful mock uses the posted data instead of generating example data
             var mock = new IPaymentApiMock();
-            
+
             var chargeRequest = new ChargeRequest
             {
                 Amount = 150.0,
                 Currency = "EUR"
             };
-            
+
             // Create charge with specific data
             var charge = await mock.CreateCharge(150.0, "EUR", chargeRequest);
-            
+
             // Verify the created charge has the data from the input
             Assert.NotNull(charge);
             Assert.Equal(150.0, charge.Amount);
@@ -157,15 +157,15 @@ namespace Skugga.OpenApi.Tests.Stateful
         {
             // Test that PUT operations use the posted data to update existing entities
             var mock = new IPaymentApiMock();
-            
+
             // First create an account
             var initialUpdate = new AccountUpdate { Balance = 100.0 };
             await mock.UpdateAccount("test-account", 100.0, initialUpdate);
-            
+
             // Update with new data
             var newUpdate = new AccountUpdate { Balance = 250.0 };
             await mock.UpdateAccount("test-account", 250.0, newUpdate);
-            
+
             // Verify the account was updated
             var retrieved = await mock.GetAccount("test-account");
             Assert.NotNull(retrieved);
@@ -181,23 +181,23 @@ namespace Skugga.OpenApi.Tests.Stateful
         {
             // Test that GET operations return the saved data, not generated examples
             var mock = new IPaymentApiMock();
-            
+
             var chargeRequest = new ChargeRequest
             {
                 Amount = 75.50,
                 Currency = "GBP"
             };
-            
+
             // Create charge
             var createdCharge = await mock.CreateCharge(75.50, "GBP", chargeRequest);
-            
+
             // Since we don't have a get charge operation, let's test account operations
             var accountUpdate = new AccountUpdate { Balance = 500.0 };
             await mock.UpdateAccount("acc-123", 500.0, accountUpdate);
-            
+
             // Get the account back
             var retrievedAccount = await mock.GetAccount("acc-123");
-            
+
             // Verify we get back the exact same data that was posted
             Assert.NotNull(retrievedAccount);
             Assert.Equal("acc-123", retrievedAccount.Id);
@@ -213,17 +213,17 @@ namespace Skugga.OpenApi.Tests.Stateful
         {
             // Test that multiple POST operations preserve all the posted data
             var mock = new IPaymentApiMock();
-            
+
             var charge1 = new ChargeRequest { Amount = 100.0, Currency = "USD" };
             var charge2 = new ChargeRequest { Amount = 200.0, Currency = "EUR" };
-            
+
             var result1 = await mock.CreateCharge(100.0, "USD", charge1);
             var result2 = await mock.CreateCharge(200.0, "EUR", charge2);
-            
+
             // Verify both charges have their respective data
             Assert.Equal(100.0, result1.Amount);
             Assert.Equal(200.0, result2.Amount);
-            
+
             // Verify they have different transaction IDs
             Assert.NotEqual(result1.TransactionId, result2.TransactionId);
         }
@@ -237,10 +237,10 @@ namespace Skugga.OpenApi.Tests.Stateful
         {
             // Test that parameters are honored even when there's no request body
             var mock = new IPaymentApiMock();
-            
+
             // Create charge with specific amount via query parameter
             var charge = await mock.CreateCharge(999.99, "JPY", new ChargeRequest { Amount = 100, Currency = "USD" });
-            
+
             // Body parameters take precedence, so we get the body amount (100), not query (999.99)
             Assert.NotNull(charge);
             Assert.Equal(100, charge.Amount); // Honors body parameter over query
@@ -256,11 +256,11 @@ namespace Skugga.OpenApi.Tests.Stateful
         {
             // Test that body parameters are honored when both query and body exist
             var mock = new IPaymentApiMock();
-            
+
             // Create account with conflicting balance values
             var accountUpdate = new AccountUpdate { Balance = 777.77 };
             var result = await mock.UpdateAccount("test-acc", 555.55, accountUpdate);
-            
+
             // Should honor the body parameter (777.77) over query parameter (555.55)
             // because body parameters take precedence in the current implementation
             Assert.NotNull(result);
@@ -270,7 +270,7 @@ namespace Skugga.OpenApi.Tests.Stateful
 
         #endregion
     }
-    
+
     /// <summary>
     /// THE DOPPELGÄNGER WORKFLOW: ONE LINE generates everything needed for stateful API testing!
     /// 
