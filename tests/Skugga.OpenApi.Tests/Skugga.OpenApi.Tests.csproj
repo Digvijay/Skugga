@@ -7,6 +7,10 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     
+    <!-- Enable source generators and emit files to help CI tools -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)/Generated</CompilerGeneratedFilesOutputPath>
+    
     <!-- Fix assembly version conflicts -->
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
@@ -37,14 +41,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Skugga.Core\Skugga.Core.csproj" />
-    <ProjectReference Include="..\..\src\Skugga.Generator\Skugga.Generator.csproj" 
+    <ProjectReference Include="../../src/Skugga.Core/Skugga.Core.csproj" />
+    <ProjectReference Include="../../src/Skugga.Generator/Skugga.Generator.csproj" 
                       OutputItemType="Analyzer" 
                       ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\..\src\Skugga.OpenApi.Generator\Skugga.OpenApi.Generator.csproj" 
+    <ProjectReference Include="../../src/Skugga.OpenApi.Generator/Skugga.OpenApi.Generator.csproj" 
                       OutputItemType="Analyzer" 
-                      ReferenceOutputAssembly="true" />
-    <ProjectReference Include="..\..\src\Skugga.OpenApi.Tasks\Skugga.OpenApi.Tasks.csproj" />
+                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../src/Skugga.OpenApi.Tasks/Skugga.OpenApi.Tasks.csproj" />
   </ItemGroup>
 
   <!-- Example: Add a local OpenAPI spec to be processed -->
@@ -80,10 +84,11 @@
   -->
 
   <!-- Import the MSBuild targets for URL downloading (at end so ItemGroup evaluation happens after) -->
-  <!-- Override task assembly path for local development - use Release -->
+  <!-- Override task assembly path based on configuration -->
   <PropertyGroup>
-    <SkuggaOpenApiTasksAssembly>$(MSBuildThisFileDirectory)..\..\src\Skugga.OpenApi.Tasks\bin\Release\netstandard2.0\Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
+    <SkuggaOpenApiTasksAssembly Condition="'$(Configuration)' == 'Release'">$(MSBuildThisFileDirectory)../../src/Skugga.OpenApi.Tasks/bin/Release/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
+    <SkuggaOpenApiTasksAssembly Condition="'$(Configuration)' != 'Release'">$(MSBuildThisFileDirectory)../../src/Skugga.OpenApi.Tasks/bin/Debug/netstandard2.0/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
   </PropertyGroup>
-  <Import Project="..\..\src\Skugga.OpenApi.Tasks\build\Skugga.OpenApi.Tasks.targets" />
+  <Import Project="../../src/Skugga.OpenApi.Tasks/build/Skugga.OpenApi.Tasks.targets" />
 
 </Project>

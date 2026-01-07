@@ -44,10 +44,8 @@ jobs:
     - name: Restore Dependencies
       run: dotnet restore Skugga.slnx
 
-    - name: Build Generators
-      run: |
-        dotnet build src/Skugga.Generator/Skugga.Generator.csproj -c Release
-        dotnet build src/Skugga.OpenApi.Generator/Skugga.OpenApi.Generator.csproj -c Release
+    - name: Build Solution (Debug)
+      run: dotnet build Skugga.slnx /p:TreatWarningsAsErrors=false
 
     - name: Check Formatting
       run: dotnet format --verify-no-changes Skugga.slnx --no-restore

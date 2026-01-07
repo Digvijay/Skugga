@@ -51,56 +51,56 @@
 
   <ItemGroup>
     <!-- Reference all generators for local development -->
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Skugga.Generator\Skugga.Generator.csproj" 
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../Skugga.Generator/Skugga.Generator.csproj" 
                       OutputItemType="Analyzer" 
                       ReferenceOutputAssembly="false" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Skugga.Core.Generators\Skugga.Core.Generators.csproj" 
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../Skugga.Core.Generators/Skugga.Core.Generators.csproj" 
                       OutputItemType="Analyzer" 
                       ReferenceOutputAssembly="false" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Skugga.OpenApi.Generator\Skugga.OpenApi.Generator.csproj" 
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../Skugga.OpenApi.Generator/Skugga.OpenApi.Generator.csproj" 
                       OutputItemType="Analyzer" 
                       ReferenceOutputAssembly="false" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Skugga.OpenApi.Tasks\Skugga.OpenApi.Tasks.csproj" 
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../Skugga.OpenApi.Tasks/Skugga.OpenApi.Tasks.csproj" 
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Package all generators in the analyzer directory -->
-    <None Include="$(MSBuildThisFileDirectory)..\Skugga.Generator\bin\$(Configuration)\netstandard2.0\Skugga.Generator.dll" 
+    <None Include="$(MSBuildThisFileDirectory)../Skugga.Generator/bin/$(Configuration)/netstandard2.0/Skugga.Generator.dll" 
           Pack="true" 
           PackagePath="analyzers/dotnet/cs" 
           Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\Skugga.Core.Generators\bin\$(Configuration)\netstandard2.0\Skugga.Core.Generators.dll" 
+    <None Include="$(MSBuildThisFileDirectory)../Skugga.Core.Generators/bin/$(Configuration)/netstandard2.0/Skugga.Core.Generators.dll" 
           Pack="true" 
           PackagePath="analyzers/dotnet/cs" 
           Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\Skugga.OpenApi.Generator\bin\$(Configuration)\netstandard2.0\Skugga.OpenApi.Generator.dll" 
+    <None Include="$(MSBuildThisFileDirectory)../Skugga.OpenApi.Generator/bin/$(Configuration)/netstandard2.0/Skugga.OpenApi.Generator.dll" 
           Pack="true" 
           PackagePath="analyzers/dotnet/cs" 
           Visible="false" />
     
     <!-- Package OpenApi Tasks DLL -->
-    <None Include="$(MSBuildThisFileDirectory)..\Skugga.OpenApi.Tasks\bin\$(Configuration)\netstandard2.0\Skugga.OpenApi.Tasks.dll" 
+    <None Include="$(MSBuildThisFileDirectory)../Skugga.OpenApi.Tasks/bin/$(Configuration)/netstandard2.0/Skugga.OpenApi.Tasks.dll" 
           Pack="true" 
           PackagePath="tasks/netstandard2.0" 
           Visible="false" />
     
     <!-- Include build targets -->
-    <None Include="build\Skugga.targets" 
+    <None Include="build/Skugga.targets" 
           Pack="true" 
           PackagePath="build" 
           Visible="false" />
-    <None Include="build\Skugga.targets" 
+    <None Include="build/Skugga.targets" 
           Pack="true" 
           PackagePath="buildTransitive" 
           Visible="false" />
     
     <!-- Include OpenApi Tasks targets -->
-    <None Include="$(MSBuildThisFileDirectory)..\Skugga.OpenApi.Tasks\build\Skugga.OpenApi.Tasks.targets" 
+    <None Include="$(MSBuildThisFileDirectory)../Skugga.OpenApi.Tasks/build/Skugga.OpenApi.Tasks.targets" 
           Pack="true" 
           PackagePath="build" 
           Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\Skugga.OpenApi.Tasks\buildTransitive\Skugga.OpenApi.Tasks.targets" 
+    <None Include="$(MSBuildThisFileDirectory)../Skugga.OpenApi.Tasks/buildTransitive/Skugga.OpenApi.Tasks.targets" 
           Pack="true" 
           PackagePath="buildTransitive" 
           Visible="false" />
@@ -108,9 +108,9 @@
 
   <Target Name="GetDependencyTargetPaths">
     <ItemGroup>
-      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)..\Skugga.Generator\bin\$(Configuration)\netstandard2.0\Skugga.Generator.dll" IncludeRuntimeDependency="false" />
-      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)..\Skugga.Core.Generators\bin\$(Configuration)\netstandard2.0\Skugga.Core.Generators.dll" IncludeRuntimeDependency="false" />
-      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)..\Skugga.OpenApi.Generator\bin\$(Configuration)\netstandard2.0\Skugga.OpenApi.Generator.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)../Skugga.Generator/bin/$(Configuration)/netstandard2.0/Skugga.Generator.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)../Skugga.Core.Generators/bin/$(Configuration)/netstandard2.0/Skugga.Core.Generators.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)../Skugga.OpenApi.Generator/bin/$(Configuration)/netstandard2.0/Skugga.OpenApi.Generator.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>
 

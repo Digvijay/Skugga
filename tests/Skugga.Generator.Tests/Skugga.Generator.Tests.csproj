@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Skugga.Generator\Skugga.Generator.csproj" />
+    <ProjectReference Include="../../src/Skugga.Generator/Skugga.Generator.csproj" />
   </ItemGroup>
 
 </Project>

@@ -22,9 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Skugga.Core\Skugga.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Skugga.Generator\Skugga.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\Step2.WithSkugga\Step2-WithSkugga.csproj" />
+    <ProjectReference Include="../../../src/Skugga.Core/Skugga.Core.csproj" />
+    <ProjectReference Include="../../../src/Skugga.Generator/Skugga.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../Step2.WithSkugga/Step2-WithSkugga.csproj" />
   </ItemGroup>
 
 </Project>
