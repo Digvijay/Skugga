@@ -5,7 +5,7 @@ All notable changes to Skugga will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - Upcoming
+## [1.3.0] - 2026-01-07
 
 ### Added
 - **Project Governance & Support**:
@@ -13,17 +13,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `SUPPORT.md` with clear support channels
   - Added `.editorconfig` enforcing high-quality coding standards (aligned with Sannr)
   - Added `docs/AOT_COMPATIBILITY_ANALYSIS.md` deeply analyzing AOT constraints and solutions
+- **CI/CD & Security Enhancements**:
+  - Integrated **GitHub CodeQL** for automated security and quality analysis
+  - Integrated **CycloneDX SBOM** generation into release pipeline for supply chain security
+  - Added `IsAotCompatible` metadata to NuGet packages for SDK-level AOT verification
+  - Added automated **Source Formatting Validation** in CI pipeline
+  - Added **Code Coverage Artifacts** upload in CI for better visibility
 
 ### Changed
 - **Build & Quality Standards**:
   - Enabled rigorous code analysis (`AnalysisLevel=latest`, `EnforceCodeStyleInBuild=true`)
   - Suppressed legacy technical debt warnings to allow incremental improvements
-  - Applied consistent formatting across `src/` (C# standard styles)
-  - Updated `GitVersion.yml` for v1.3.0 release planning
+  - Applied consistent formatting across the entire codebase
+  - Updated `GitVersion.yml` for v1.3.0 release
+- **Samples & Demos**:
+  - Standardized all sample projects to use centralized package versions
+  - Verified runtime execution for all 7 major demo categories
 
 ### Fixed
 - Resolved multiple `CA1310` (StringComparison) violations for better globalization support
 - Aligned repository structure with Sannr enterprise standards
+- Fixed build failures in test projects related to naming conventions and localization
 
 ## [1.2.0] - 2026-01-05
 
@@ -140,6 +150,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal memory footprint
 - Distroless container support
 
-[Unreleased]: https://github.com/Digvijay/Skugga/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/Digvijay/Skugga/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/Digvijay/Skugga/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/Digvijay/Skugga/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Digvijay/Skugga/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Digvijay/Skugga/releases/tag/v1.0.0
