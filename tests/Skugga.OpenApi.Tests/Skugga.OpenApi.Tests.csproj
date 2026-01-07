@@ -43,14 +43,14 @@
                       ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Skugga.OpenApi.Generator\Skugga.OpenApi.Generator.csproj" 
                       OutputItemType="Analyzer" 
-                      ReferenceOutputAssembly="false" />
+                      ReferenceOutputAssembly="true" />
     <ProjectReference Include="..\..\src\Skugga.OpenApi.Tasks\Skugga.OpenApi.Tasks.csproj" />
   </ItemGroup>
 
   <!-- Example: Add a local OpenAPI spec to be processed -->
   <ItemGroup>
-    <AdditionalFiles Include="specs\petstore.json" />
-    <AdditionalFiles Include="specs\advanced-features.json" />
+    <AdditionalFiles Include="specs/petstore.json" />
+    <AdditionalFiles Include="specs/advanced-features.json" />
     <AdditionalFiles Include="specs/allof-test.json" />
     <AdditionalFiles Include="specs/swagger2-test.json" />
     <AdditionalFiles Include="specs/validation-no-success-response.json" />
