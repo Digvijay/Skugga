@@ -48,8 +48,8 @@ namespace Skugga.Core
     /// Console.WriteLine($"Triggered {stats.ChaosTriggeredCount} failures out of {stats.TotalInvocations} calls");
     /// </code>
     /// </example>
-    public class ChaosPolicy 
-    { 
+    public class ChaosPolicy
+    {
         /// <summary>
         /// Gets or sets the probability (0.0 to 1.0) that a mocked method will fail.
         /// </summary>
@@ -69,7 +69,7 @@ namespace Skugga.Core
         /// </para>
         /// </remarks>
         public double FailureRate { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the array of exceptions to randomly throw when chaos triggers.
         /// </summary>
@@ -98,7 +98,7 @@ namespace Skugga.Core
         /// </code>
         /// </example>
         public Exception[]? PossibleExceptions { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the delay in milliseconds to simulate slow responses or timeouts.
         /// </summary>
@@ -129,7 +129,7 @@ namespace Skugga.Core
         /// </code>
         /// </example>
         public int TimeoutMilliseconds { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the seed for the random number generator.
         /// </summary>
@@ -163,7 +163,7 @@ namespace Skugga.Core
         /// </example>
         public int? Seed { get; set; }
     }
-    
+
     /// <summary>
     /// Statistics about chaos mode behavior during test execution.
     /// Provides insights into failure rates and patterns.
@@ -193,7 +193,7 @@ namespace Skugga.Core
         /// Incremented on every method call, regardless of whether chaos triggered.
         /// </remarks>
         public int TotalInvocations { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the number of times chaos mode triggered a failure.
         /// </summary>
@@ -201,7 +201,7 @@ namespace Skugga.Core
         /// Incremented when random failure triggers and an exception is thrown.
         /// </remarks>
         public int ChaosTriggeredCount { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the number of times a timeout/delay was applied.
         /// </summary>
@@ -210,7 +210,7 @@ namespace Skugga.Core
         /// Note: This counts delays, not failures.
         /// </remarks>
         public int TimeoutTriggeredCount { get; set; }
-        
+
         /// <summary>
         /// Gets the actual failure rate observed during execution.
         /// </summary>
@@ -224,7 +224,7 @@ namespace Skugga.Core
         /// </para>
         /// </remarks>
         public double ActualFailureRate => TotalInvocations > 0 ? (double)ChaosTriggeredCount / TotalInvocations : 0;
-        
+
         /// <summary>
         /// Resets all statistics to zero.
         /// </summary>

@@ -38,7 +38,7 @@ namespace Skugga.Core.Exceptions
         /// <param name="fieldPath">The path to the field that violated the contract.</param>
         /// <param name="expected">The expected value or constraint.</param>
         /// <param name="actual">The actual value that was received.</param>
-        public ContractViolationException(string message, string? fieldPath, string? expected, string? actual) 
+        public ContractViolationException(string message, string? fieldPath, string? expected, string? actual)
             : base(message)
         {
             FieldPath = fieldPath;
@@ -51,7 +51,7 @@ namespace Skugga.Core.Exceptions
         /// </summary>
         /// <param name="message">The error message.</param>
         /// <param name="innerException">The exception that caused this violation.</param>
-        public ContractViolationException(string message, Exception innerException) 
+        public ContractViolationException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

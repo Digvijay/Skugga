@@ -19,7 +19,7 @@ The Skugga team takes security bugs seriously. We appreciate your efforts to res
 **Please DO NOT report security vulnerabilities through public GitHub issues.**
 
 Instead, please report them via email to:
-- **Email**: security@[your-domain].com (or create a GitHub Security Advisory)
+- **Email**: security@digvijay dot dev (or create a GitHub Security Advisory)
 
 To report a vulnerability:
 

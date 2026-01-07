@@ -204,7 +204,7 @@ namespace Skugga.Core
         {
             return string.Empty;
         }
-        
+
         /// <summary>
         /// Provides matchers for ref/out parameters.
         /// </summary>
@@ -245,7 +245,7 @@ namespace Skugga.Core
             public static T IsAny => default(T)!;
         }
     }
-    
+
     /// <summary>
     /// Provides factory methods for creating custom reusable matchers.
     /// </summary>
@@ -302,7 +302,7 @@ namespace Skugga.Core
         {
             return default(T)!;
         }
-        
+
         /// <summary>
         /// Creates a custom matcher with a description for error messages.
         /// </summary>
@@ -333,7 +333,7 @@ namespace Skugga.Core
             return default(T)!;
         }
     }
-    
+
     /// <summary>
     /// Internal class representing a matcher for verifying or matching method arguments.
     /// Created during compilation when It.* or Match.* methods are intercepted.
@@ -348,17 +348,17 @@ namespace Skugga.Core
         /// Gets the type being matched.
         /// </summary>
         public Type MatchType { get; }
-        
+
         /// <summary>
         /// Gets the predicate function that determines if a value matches.
         /// </summary>
         public Func<object?, bool> Predicate { get; }
-        
+
         /// <summary>
         /// Gets the description of what this matcher matches (for error messages).
         /// </summary>
         public string Description { get; }
-        
+
         /// <summary>
         /// Initializes a new ArgumentMatcher.
         /// </summary>
@@ -371,7 +371,7 @@ namespace Skugga.Core
             Predicate = predicate;
             Description = description;
         }
-        
+
         /// <summary>
         /// Determines if the specified value matches this matcher.
         /// </summary>
@@ -388,7 +388,7 @@ namespace Skugga.Core
             // Check type compatibility first (unless value is null)
             if (value != null && !MatchType.IsAssignableFrom(value.GetType()))
                 return false;
-            
+
             // Always run the predicate - it decides whether to accept null
             return Predicate(value);
         }

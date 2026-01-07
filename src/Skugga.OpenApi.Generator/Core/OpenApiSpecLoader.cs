@@ -70,7 +70,7 @@ namespace Skugga.OpenApi.Generator
                 var normalizedFilePath = NormalizePath(filePath);
 
                 // For URLs: accept any file in the cache directory (JSON or YAML)
-                if (isUrl && filePath.Contains("/skugga-openapi-cache/") && 
+                if (isUrl && filePath.Contains("/skugga-openapi-cache/") &&
                     (filePath.EndsWith(".json") || filePath.EndsWith(".yaml") || filePath.EndsWith(".yml")))
                 {
                     var text = file.GetText();

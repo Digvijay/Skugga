@@ -1,8 +1,8 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Skugga.Core
 {
@@ -32,27 +32,27 @@ namespace Skugga.Core
         // Core storage for setups and invocations
         private readonly List<MockSetup> _setups = new();
         private readonly List<Invocation> _invocations = new();
-        
+
         // Chaos mode support for resilience testing
         private ChaosPolicy? _chaosPolicy;
         private Random _rng = new();
         private readonly ChaosStatistics _chaosStats = new();
-        
+
         // Property backing store for automatic get/set tracking via SetupProperty()
         private readonly Dictionary<string, object?> _propertyStorage = new();
-        
+
         // Event handler storage for subscription tracking and event raising
         private readonly Dictionary<string, List<Delegate>> _eventHandlers = new();
-        
+
         // Additional interfaces added via As<T>() for multi-interface mocks
         private readonly HashSet<Type> _additionalInterfaces = new();
-        
+
         // Default value provider for un-setup members
         private DefaultValueProvider? _defaultValueProvider;
-        
+
         // Track if user explicitly set strategy (null = not set, use backwards-compatible behavior)
         private DefaultValue? _explicitDefaultValueStrategy = null;
-        
+
         /// <summary>
         /// Gets or sets the mock behavior (Loose or Strict).
         /// </summary>
@@ -68,7 +68,7 @@ namespace Skugga.Core
         /// </para>
         /// </remarks>
         public MockBehavior Behavior { get; set; } = MockBehavior.Loose;
-        
+
         /// <summary>
         /// Gets or sets the default value strategy for un-setup members.
         /// </summary>
@@ -84,12 +84,12 @@ namespace Skugga.Core
         /// For custom behavior, set DefaultValueProvider directly instead.
         /// </para>
         /// </remarks>
-        public DefaultValue DefaultValueStrategy 
-        { 
-            get => _explicitDefaultValueStrategy ?? DefaultValue.Empty; 
-            set => _explicitDefaultValueStrategy = value; 
+        public DefaultValue DefaultValueStrategy
+        {
+            get => _explicitDefaultValueStrategy ?? DefaultValue.Empty;
+            set => _explicitDefaultValueStrategy = value;
         }
-        
+
         /// <summary>
         /// Gets or sets a custom default value provider.
         /// </summary>
@@ -103,12 +103,12 @@ namespace Skugga.Core
         /// (or CLR defaults if neither is set, for backwards compatibility).
         /// </para>
         /// </remarks>
-        public DefaultValueProvider? DefaultValueProvider 
-        { 
-            get => _defaultValueProvider; 
+        public DefaultValueProvider? DefaultValueProvider
+        {
+            get => _defaultValueProvider;
             set => _defaultValueProvider = value;
         }
-        
+
         /// <summary>
         /// Gets statistics about chaos mode behavior during test execution.
         /// </summary>
@@ -117,7 +117,7 @@ namespace Skugga.Core
         /// Reset when a new chaos policy is set.
         /// </remarks>
         public ChaosStatistics ChaosStatistics => _chaosStats;
-        
+
         /// <summary>
         /// Gets all recorded invocations for verification.
         /// </summary>
@@ -128,7 +128,7 @@ namespace Skugga.Core
         public IReadOnlyList<Invocation> Invocations => _invocations;
 
         #region Additional Interfaces (As<T> support)
-        
+
         /// <summary>
         /// Adds an additional interface that the mock should implement.
         /// </summary>
@@ -145,7 +145,7 @@ namespace Skugga.Core
                 _additionalInterfaces.Add(interfaceType);
             }
         }
-        
+
         /// <summary>
         /// Gets all additional interfaces that have been added to the mock via As&lt;T&gt;().
         /// </summary>
@@ -161,11 +161,11 @@ namespace Skugga.Core
                 return new HashSet<Type>(_additionalInterfaces);
             }
         }
-        
+
         #endregion
-        
+
         #region Setup Management
-        
+
         /// <summary>
         /// Adds a method setup with return value and optional callback.
         /// </summary>
@@ -184,7 +184,7 @@ namespace Skugga.Core
             _setups.Add(setup);
             return setup;
         }
-        
+
         /// <summary>
         /// Adds or updates a callback for the most recent matching setup.
         /// </summary>
@@ -208,7 +208,7 @@ namespace Skugga.Core
                 _setups.Add(new MockSetup(signature, args, null, callback));
             }
         }
-        
+
         /// <summary>
         /// Adds or updates a callback (no parameters) for the most recent matching setup.
         /// </summary>
@@ -219,11 +219,11 @@ namespace Skugga.Core
         {
             AddCallbackToLastSetup(signature, args, _ => callback());
         }
-        
+
         #endregion
-        
+
         #region Chaos Mode
-        
+
         /// <summary>
         /// Configures chaos mode for resilience testing.
         /// </summary>
@@ -238,18 +238,18 @@ namespace Skugga.Core
         /// for deterministic chaos behavior across test runs.
         /// </para>
         /// </remarks>
-        public void SetChaosPolicy(ChaosPolicy policy) 
-        { 
+        public void SetChaosPolicy(ChaosPolicy policy)
+        {
             _chaosPolicy = policy;
             // Initialize RNG with seed if provided for reproducible chaos
             if (policy.Seed.HasValue)
                 _rng = new Random(policy.Seed.Value);
         }
-        
+
         #endregion
-        
+
         #region Property Storage (SetupProperty support)
-        
+
         /// <summary>
         /// Sets up a property with automatic backing field for get/set tracking.
         /// </summary>
@@ -263,7 +263,7 @@ namespace Skugga.Core
         {
             _propertyStorage[propertyName] = defaultValue;
         }
-        
+
         /// <summary>
         /// Gets a property value from the backing store.
         /// </summary>
@@ -273,7 +273,7 @@ namespace Skugga.Core
         {
             return _propertyStorage.TryGetValue(propertyName, out var value) ? value : null;
         }
-        
+
         /// <summary>
         /// Sets a property value in the backing store.
         /// </summary>
@@ -283,7 +283,7 @@ namespace Skugga.Core
         {
             _propertyStorage[propertyName] = value;
         }
-        
+
         /// <summary>
         /// Checks if a property has been setup with backing storage.
         /// </summary>
@@ -293,11 +293,11 @@ namespace Skugga.Core
         {
             return _propertyStorage.ContainsKey(propertyName);
         }
-        
+
         #endregion
-        
+
         #region Event Handling
-        
+
         /// <summary>
         /// Adds an event handler to the specified event.
         /// </summary>
@@ -314,11 +314,11 @@ namespace Skugga.Core
                 _eventHandlers[eventName] = new List<Delegate>();
             }
             _eventHandlers[eventName].Add(handler);
-            
+
             // Track event subscription as an invocation for verification
             _invocations.Add(new Invocation("add_" + eventName, new object?[] { handler }));
         }
-        
+
         /// <summary>
         /// Removes an event handler from the specified event.
         /// </summary>
@@ -334,11 +334,11 @@ namespace Skugga.Core
             {
                 handlers.Remove(handler);
             }
-            
+
             // Track event unsubscription as an invocation for verification
             _invocations.Add(new Invocation("remove_" + eventName, new object?[] { handler }));
         }
-        
+
         /// <summary>
         /// Raises the specified event with the given arguments.
         /// </summary>
@@ -375,11 +375,11 @@ namespace Skugga.Core
                 }
             }
         }
-        
+
         #endregion
-        
+
         #region Invocation and Matching
-        
+
         /// <summary>
         /// Invokes a method on the mock, applies setups, chaos, and records the invocation.
         /// </summary>
@@ -408,14 +408,14 @@ namespace Skugga.Core
         {
             // Always record invocation for verification, even if it fails
             _invocations.Add(new Invocation(signature, args));
-            
+
             #region Chaos Mode Application
-            
+
             // Apply chaos policy if configured
             if (_chaosPolicy != null)
             {
                 _chaosStats.TotalInvocations++;
-                
+
                 // Simulate timeout/delay if configured
                 // Useful for testing timeout handling in application code
                 if (_chaosPolicy.TimeoutMilliseconds > 0)
@@ -423,24 +423,24 @@ namespace Skugga.Core
                     _chaosStats.TimeoutTriggeredCount++;
                     System.Threading.Thread.Sleep(_chaosPolicy.TimeoutMilliseconds);
                 }
-                
+
                 // Trigger failure based on failure rate (0.0 to 1.0)
                 // RNG.NextDouble() returns [0.0, 1.0), so failure rate of 0.5 = 50% chance
                 if (_rng.NextDouble() < _chaosPolicy.FailureRate)
                 {
                     _chaosStats.ChaosTriggeredCount++;
-                    
+
                     // Only throw if exceptions are configured
                     // Throws one of the configured exceptions randomly
                     if (_chaosPolicy.PossibleExceptions?.Length > 0)
                         throw _chaosPolicy.PossibleExceptions[_rng.Next(_chaosPolicy.PossibleExceptions.Length)];
                 }
             }
-            
+
             #endregion
-            
+
             #region Setup Matching and Execution
-            
+
             // Find the first matching setup (setups are checked in order)
             foreach (var setup in _setups)
             {
@@ -451,47 +451,47 @@ namespace Skugga.Core
                     {
                         setup.Sequence.RecordInvocation(setup.SequenceStep, signature);
                     }
-                    
+
                     // Execute callback if present (before returning value or throwing exception)
                     setup.ExecuteCallback(args);
-                    
+
                     // Raise event if configured via .Raises()
                     if (setup.EventToRaise != null && setup.EventArgs != null)
                     {
                         RaiseEvent(setup.EventToRaise, setup.EventArgs);
                     }
-                    
+
                     // Throw exception if configured via .Throws() or error scenario methods
                     if (setup.Exception != null)
                     {
                         throw setup.Exception;
                     }
-                    
+
                     // If setup has out/ref parameters (static or dynamic) or callback,
                     // return the setup itself so generated code can extract those values.
                     // Generated code pattern:
                     //   var result = handler.Invoke(...);
                     //   if (result is MockSetup setup) { /* apply out/ref values */ }
-                    if (setup.OutValues != null || setup.RefValues != null || 
+                    if (setup.OutValues != null || setup.RefValues != null ||
                         setup.OutValueFactories != null || setup.RefValueFactories != null ||
                         setup.RefOutCallback != null)
                     {
                         return setup;
                     }
-                    
+
                     // Return sequential value if using SetupSequence()
                     if (setup.SequentialValues != null)
                         return setup.GetNextSequentialValue();
-                    
+
                     // Return factory-generated value if ValueFactory is set, otherwise static Value
                     return setup.ValueFactory != null ? setup.ValueFactory(args) : setup.Value;
                 }
             }
-            
+
             #endregion
-            
+
             #region Unmatched Invocation Handling
-            
+
             // No matching setup found
             if (Behavior == MockBehavior.Strict)
                 throw new MockException($"[Strict Mode] Call to '{signature}' was not setup.");
@@ -499,14 +499,14 @@ namespace Skugga.Core
             // In Loose mode, return null here
             // Generated code will call GetDefaultValueFor<T> to convert null to appropriate default
             return null;
-            
+
             #endregion
         }
-        
+
         #endregion
-        
+
         #region Default Value Providers
-        
+
         /// <summary>
         /// Gets the default value for a specific type using the configured default value provider.
         /// </summary>
@@ -533,7 +533,7 @@ namespace Skugga.Core
         public T? GetDefaultValueFor<T>(object mock)
         {
             var type = typeof(T);
-            
+
             // Special handling for Task and Task<T> - always return completed tasks
             // This prevents tests from hanging when un-setup async methods are called
             if (type == typeof(System.Threading.Tasks.Task))
@@ -550,30 +550,30 @@ namespace Skugga.Core
                 var result = fromResultMethod.Invoke(null, new object?[] { GetDefaultForType(resultType, mock) });
                 return (T)result!;
             }
-            
+
             // If custom provider is set, use it (takes precedence over strategy)
             if (_defaultValueProvider != null)
             {
                 var value = _defaultValueProvider.GetDefaultValue(typeof(T), mock);
                 return value == null ? default(T) : (T)value;
             }
-            
+
             // If no explicit strategy was set, return CLR defaults for backwards compatibility
             // This ensures existing tests don't break
             if (_explicitDefaultValueStrategy == null)
             {
                 return default(T);
             }
-            
+
             // Otherwise use strategy-based provider (Empty or Mock)
-            DefaultValueProvider provider = _explicitDefaultValueStrategy == DefaultValue.Mock 
-                ? new MockDefaultValueProvider() 
+            DefaultValueProvider provider = _explicitDefaultValueStrategy == DefaultValue.Mock
+                ? new MockDefaultValueProvider()
                 : new EmptyDefaultValueProvider();
-            
+
             var providerResult = provider.GetDefaultValue(typeof(T), mock);
             return providerResult == null ? default(T) : (T)providerResult;
         }
-        
+
         /// <summary>
         /// Helper method to get default value for any type (used by Task&lt;T&gt; handling).
         /// </summary>
@@ -585,8 +585,8 @@ namespace Skugga.Core
         /// The attribute tells the AOT compiler to preserve the parameterless constructor.
         /// </remarks>
         private object? GetDefaultForType(
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] 
-            Type type, 
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+            Type type,
             object mock)
         {
             // If custom provider is set, use it
@@ -594,22 +594,22 @@ namespace Skugga.Core
             {
                 return _defaultValueProvider.GetDefaultValue(type, mock);
             }
-            
+
             // If no explicit strategy, use AOT-safe default construction
             if (_explicitDefaultValueStrategy == null)
             {
                 // AOT-safe: DynamicallyAccessedMembers attribute ensures constructor is preserved
                 return type.IsValueType ? Activator.CreateInstance(type) : null;
             }
-            
+
             // Use strategy-based provider
-            DefaultValueProvider provider = _explicitDefaultValueStrategy == DefaultValue.Mock 
-                ? new MockDefaultValueProvider() 
+            DefaultValueProvider provider = _explicitDefaultValueStrategy == DefaultValue.Mock
+                ? new MockDefaultValueProvider()
                 : new EmptyDefaultValueProvider();
-            
+
             return provider.GetDefaultValue(type, mock);
         }
-        
+
         #endregion
     }
 }

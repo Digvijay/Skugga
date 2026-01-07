@@ -37,33 +37,33 @@ namespace Skugga.Core
         /// Gets the mock handler for this setup.
         /// </summary>
         public MockHandler Handler { get; }
-        
+
         /// <summary>
         /// Gets the method signature being setup.
         /// </summary>
         public string Signature { get; }
-        
+
         /// <summary>
         /// Gets the expected arguments for this setup.
         /// </summary>
         public object?[] Args { get; }
-        
+
         /// <summary>
         /// Gets or sets the underlying MockSetup instance (created when Returns/Callback is called).
         /// </summary>
         internal MockSetup? Setup { get; set; }
-        
+
         /// <summary>
         /// Initializes a new setup context.
         /// </summary>
         /// <param name="handler">The mock handler</param>
         /// <param name="signature">The method signature</param>
         /// <param name="args">The expected arguments</param>
-        public SetupContext(MockHandler handler, string signature, object?[] args) 
-        { 
-            Handler = handler; 
-            Signature = signature; 
-            Args = args; 
+        public SetupContext(MockHandler handler, string signature, object?[] args)
+        {
+            Handler = handler;
+            Signature = signature;
+            Args = args;
         }
     }
 
@@ -91,33 +91,33 @@ namespace Skugga.Core
         /// Gets the mock handler for this setup.
         /// </summary>
         public MockHandler Handler { get; }
-        
+
         /// <summary>
         /// Gets the method signature being setup.
         /// </summary>
         public string Signature { get; }
-        
+
         /// <summary>
         /// Gets the expected arguments for this setup.
         /// </summary>
         public object?[] Args { get; }
-        
+
         /// <summary>
         /// Gets or sets the underlying MockSetup instance (created when Callback is called).
         /// </summary>
         internal MockSetup? Setup { get; set; }
-        
+
         /// <summary>
         /// Initializes a new void setup context.
         /// </summary>
         /// <param name="handler">The mock handler</param>
         /// <param name="signature">The method signature</param>
         /// <param name="args">The expected arguments</param>
-        public VoidSetupContext(MockHandler handler, string signature, object?[] args) 
-        { 
-            Handler = handler; 
-            Signature = signature; 
-            Args = args; 
+        public VoidSetupContext(MockHandler handler, string signature, object?[] args)
+        {
+            Handler = handler;
+            Signature = signature;
+            Args = args;
         }
     }
 
@@ -158,40 +158,40 @@ namespace Skugga.Core
         /// Gets the mock handler for this setup.
         /// </summary>
         public MockHandler Handler { get; }
-        
+
         /// <summary>
         /// Gets the method signature being setup.
         /// </summary>
         public string Signature { get; }
-        
+
         /// <summary>
         /// Gets the expected arguments for this setup.
         /// </summary>
         public object?[] Args { get; }
-        
+
         /// <summary>
         /// Gets or sets the underlying MockSetup instance.
         /// </summary>
         internal MockSetup? Setup { get; set; }
-        
+
         /// <summary>
         /// Accumulates the sequential values to return.
         /// </summary>
         private readonly List<object?> _values = new();
-        
+
         /// <summary>
         /// Initializes a new sequence setup context.
         /// </summary>
         /// <param name="handler">The mock handler</param>
         /// <param name="signature">The method signature</param>
         /// <param name="args">The expected arguments</param>
-        public SequenceSetupContext(MockHandler handler, string signature, object?[] args) 
-        { 
-            Handler = handler; 
-            Signature = signature; 
-            Args = args; 
+        public SequenceSetupContext(MockHandler handler, string signature, object?[] args)
+        {
+            Handler = handler;
+            Signature = signature;
+            Args = args;
         }
-        
+
         /// <summary>
         /// Adds the next return value in the sequence.
         /// </summary>
@@ -211,7 +211,7 @@ namespace Skugga.Core
         public SequenceSetupContext<TMock, TResult> Returns(TResult value)
         {
             _values.Add(value);
-            
+
             // Create or update the setup with the sequential values array
             if (Setup == null)
             {
@@ -222,10 +222,10 @@ namespace Skugga.Core
             {
                 Setup.SequentialValues = _values.ToArray();
             }
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// Specifies that the sequence should throw an exception on the next invocation.
         /// </summary>
@@ -254,7 +254,7 @@ namespace Skugga.Core
         {
             // Use SequenceException as a marker to indicate an exception should be thrown
             _values.Add(new SequenceException(exception));
-            
+
             if (Setup == null)
             {
                 Setup = Handler.AddSetup(Signature, Args, default(TResult), null);
@@ -264,11 +264,11 @@ namespace Skugga.Core
             {
                 Setup.SequentialValues = _values.ToArray();
             }
-            
+
             return this;
         }
     }
-    
+
     /// <summary>
     /// Internal marker class to indicate an exception should be thrown in a sequence.
     /// </summary>
@@ -282,7 +282,7 @@ namespace Skugga.Core
         /// Gets the exception to throw.
         /// </summary>
         public Exception Exception { get; }
-        
+
         /// <summary>
         /// Initializes a new SequenceException marker.
         /// </summary>

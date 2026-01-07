@@ -22,9 +22,9 @@ namespace Skugga.Core.Validation
         /// <param name="requiredProperties">List of required property names (for objects).</param>
         /// <param name="enumValues">Valid enum values (if applicable).</param>
         public static void ValidateValue(
-            object? value, 
-            Type expectedType, 
-            string fieldPath, 
+            object? value,
+            Type expectedType,
+            string fieldPath,
             string[]? requiredProperties = null,
             string[]? enumValues = null)
         {
@@ -75,12 +75,12 @@ namespace Skugga.Core.Validation
         {
             var type = obj.GetType();
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            
+
             foreach (var requiredProp in requiredProperties)
             {
-                var prop = properties.FirstOrDefault(p => 
+                var prop = properties.FirstOrDefault(p =>
                     string.Equals(p.Name, requiredProp, StringComparison.OrdinalIgnoreCase));
-                
+
                 if (prop == null)
                 {
                     throw new ContractViolationException(
@@ -106,7 +106,7 @@ namespace Skugga.Core.Validation
         /// Validates an array/list against item schema.
         /// </summary>
         public static void ValidateArray<T>(
-            IEnumerable<T>? array, 
+            IEnumerable<T>? array,
             string fieldPath,
             Type expectedItemType,
             string[]? itemRequiredProperties = null)
@@ -124,7 +124,7 @@ namespace Skugga.Core.Validation
             foreach (var item in array)
             {
                 var itemPath = $"{fieldPath}[{index}]";
-                
+
                 if (item == null)
                 {
                     throw new ContractViolationException(
@@ -184,7 +184,7 @@ namespace Skugga.Core.Validation
         /// Validates numeric constraints (minimum, maximum, etc.).
         /// </summary>
         public static void ValidateNumericConstraints(
-            double value, 
+            double value,
             string fieldPath,
             double? minimum = null,
             double? maximum = null,

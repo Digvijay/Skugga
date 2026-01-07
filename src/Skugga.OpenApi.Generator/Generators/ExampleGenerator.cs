@@ -39,7 +39,7 @@ namespace Skugga.OpenApi.Generator
                     return GenerateFromExample(namedExample.Value, typeName, schema);
                 }
             }
-            
+
             // Try to get example from media type (first example or direct example)
             if (mediaType?.Examples != null && mediaType.Examples.Any())
             {
