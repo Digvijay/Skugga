@@ -5,7 +5,25 @@ All notable changes to Skugga will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.0] - Upcoming
+
+### Added
+- **Project Governance & Support**:
+  - Added `CODE_OF_CONDUCT.md` (Contributor Covenant v2.1)
+  - Added `SUPPORT.md` with clear support channels
+  - Added `.editorconfig` enforcing high-quality coding standards (aligned with Sannr)
+  - Added `docs/AOT_COMPATIBILITY_ANALYSIS.md` deeply analyzing AOT constraints and solutions
+
+### Changed
+- **Build & Quality Standards**:
+  - Enabled rigorous code analysis (`AnalysisLevel=latest`, `EnforceCodeStyleInBuild=true`)
+  - Suppressed legacy technical debt warnings to allow incremental improvements
+  - Applied consistent formatting across `src/` (C# standard styles)
+  - Updated `GitVersion.yml` for v1.3.0 release planning
+
+### Fixed
+- Resolved multiple `CA1310` (StringComparison) violations for better globalization support
+- Aligned repository structure with Sannr enterprise standards
 
 ## [1.2.0] - 2026-01-05
 
