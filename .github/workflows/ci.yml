@@ -41,6 +41,9 @@ jobs:
         echo "::notice::SemVer: ${{ steps.gitversion.outputs.semVer }}"
         echo "::notice::FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
 
+    - name: Check Formatting
+      run: dotnet format --verify-no-changes Skugga.slnx
+
     - name: Restore Dependencies
       run: dotnet restore Skugga.slnx
 
@@ -68,6 +71,13 @@ jobs:
       with:
         name: test-results-${{ matrix.dotnet-version }}
         path: "**/TestResults/**/*"
+
+    - name: Upload Coverage
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: code-coverage-${{ matrix.dotnet-version }}
+        path: "**/coverage.opencover.xml"
 
     - name: Run Benchmarks (Smoke Test)
       if: matrix.dotnet-version == '10.0.x'

@@ -18,6 +18,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     
+    <!-- AOT Compatibility -->
+    <IsAotCompatible Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">true</IsAotCompatible>
+    
     <!-- Enable high quality analysis -->
     <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>Recommended</AnalysisMode>
