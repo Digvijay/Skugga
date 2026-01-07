@@ -49,7 +49,7 @@ public class OrderProcessor
 
         // Process payment
         bool paymentSuccess = _paymentService.ProcessPayment(order.TotalAmount, "CreditCard");
-        
+
         if (!paymentSuccess)
         {
             // Release inventory if payment fails

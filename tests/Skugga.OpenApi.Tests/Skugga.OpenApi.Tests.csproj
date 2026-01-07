@@ -43,7 +43,7 @@
                       ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Skugga.OpenApi.Generator\Skugga.OpenApi.Generator.csproj" 
                       OutputItemType="Analyzer" 
-                      ReferenceOutputAssembly="true" />
+                      ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Skugga.OpenApi.Tasks\Skugga.OpenApi.Tasks.csproj" />
   </ItemGroup>
 

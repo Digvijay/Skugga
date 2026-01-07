@@ -1,8 +1,8 @@
-using Xunit;
-using Skugga.Performance.E2E.Api;
-using Skugga.Performance.E2E.Domain;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Skugga.Core;
+using Skugga.Performance.E2E.Api;
+using Skugga.Performance.E2E.Domain;
+using Xunit;
 
 namespace Skugga.Performance.E2E.Tests
 {

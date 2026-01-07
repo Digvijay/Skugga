@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Xunit;
+using Skugga.Core;
 using Skugga.Performance.E2E.Api;
 using Skugga.Performance.E2E.Domain;
-using Skugga.Core;
+using Xunit;
 
 namespace Skugga.Performance.E2E.Tests
 {
@@ -20,10 +20,10 @@ namespace Skugga.Performance.E2E.Tests
         {
             var mock = Mock.Create<IUserRepository>();
             mock.Setup(x => x.GetUserRole(userId)).Returns($"Role_{userId}");
-            
+
             var handler = new UserHandler(mock);
             var result = handler.GetUser(userId);
-            
+
             Assert.NotNull(result);
         }
     }

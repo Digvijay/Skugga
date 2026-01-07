@@ -36,7 +36,7 @@ public class OrderProcessorTests
         // Setup - Basic Returns
         orderServiceMock.Setup(x => x.ValidateOrder(order)).Returns(true);
         orderServiceMock.Setup(x => x.GetPrice(101)).Returns(49.995m);
-        
+
         // Setup - Returns with argument matchers
         inventoryServiceMock.Setup(x => x.CheckStock(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
         paymentServiceMock.Setup(x => x.ProcessPayment(It.IsAny<decimal>(), It.IsAny<string>())).Returns(true);
@@ -76,7 +76,7 @@ public class OrderProcessorTests
         };
 
         orderServiceMock.Setup(x => x.ValidateOrder(It.IsAny<Order>())).Returns(true);
-        
+
         // Demonstrates It.Is with predicate
         inventoryServiceMock
             .Setup(x => x.CheckStock(It.Is<int>(id => id == 101), It.Is<int>(qty => qty > 5)))
@@ -93,7 +93,7 @@ public class OrderProcessorTests
 
         // Assert
         Assert.False(result);
-        
+
         // Demonstrates Verify with Times.Never
         paymentServiceMock.Verify(x => x.ProcessPayment(It.IsAny<decimal>(), It.IsAny<string>()), Times.Never());
     }
@@ -128,7 +128,7 @@ public class OrderProcessorTests
 
         // Assert
         Assert.False(result);
-        
+
         // Demonstrates Verify with Times.Once - inventory should be released
         inventoryServiceMock.Verify(x => x.ReleaseStock(101, 2), Times.Once());
     }
@@ -202,7 +202,7 @@ public class OrderProcessorTests
         // Assert
         Assert.NotNull(order);
         Assert.Equal(100, order.Id);
-        
+
         // Demonstrates Verify with async methods
         orderServiceMock.Verify(x => x.FetchOrderAsync(100), Times.Once());
         paymentServiceMock.Verify(x => x.GetPaymentStatusAsync(100), Times.Once());
@@ -358,10 +358,10 @@ public class OrderProcessorTests
         orderServiceMock.Setup(x => x.ValidateOrder(It.Is<Order>(o => o.TotalAmount > 100))).Returns(true);
         orderServiceMock.Setup(x => x.GetPrice(201)).Returns(59.99m);
         orderServiceMock.Setup(x => x.GetPrice(202)).Returns(79.99m);
-        
+
         inventoryServiceMock.Setup(x => x.CheckStock(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
         paymentServiceMock.Setup(x => x.ProcessPayment(It.IsAny<decimal>(), "CreditCard")).Returns(true);
-        
+
         notificationServiceMock
             .Setup(x => x.LogActivity(It.IsAny<string>()))
             .Callback((string activity) => loggedActivities.Add(activity));
@@ -378,7 +378,7 @@ public class OrderProcessorTests
         // Assert - Multiple verification styles
         Assert.True(result);
         Assert.Contains(loggedActivities, a => a.Contains("processed successfully"));
-        
+
         orderServiceMock.Verify(x => x.ValidateOrder(order), Times.Once());
         inventoryServiceMock.Verify(x => x.ReserveStock(It.IsAny<int>(), It.IsAny<int>()), Times.Exactly(2));
         paymentServiceMock.Verify(x => x.SendReceipt("vip@example.com"), Times.Once());
