@@ -38,7 +38,7 @@ jobs:
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Generate SBOM
-        run: dotnet-CycloneDX src/Skugga.Core/Skugga.Core.csproj -o nupkg -j -n Skugga -v ${{ steps.get_version.outputs.VERSION }}
+        run: dotnet-CycloneDX src/Skugga.Core/Skugga.Core.csproj -o nupkg -j -sn Skugga -sv ${{ steps.get_version.outputs.VERSION }}
 
       - name: Restore Dependencies
         run: dotnet restore Skugga.slnx
