@@ -1,7 +1,7 @@
-using Xunit;
-using Skugga.Core;
 using System.Linq;
 using System.Threading.Tasks;
+using Skugga.Core;
+using Xunit;
 
 namespace Skugga.OpenApi.Tests.Yaml
 {
@@ -44,12 +44,12 @@ namespace Skugga.OpenApi.Tests.Yaml
         {
             // Create mock from YAML spec - use the OpenAPI-generated mock directly
             var mock = new IYamlSimpleApiMock();
-            
+
             // Test listUsers method
             var users = await mock.ListUsers(status: "active");
             Assert.NotNull(users);
             Assert.NotEmpty(users);
-            
+
             var firstUser = users.First();
             Assert.Equal("Alice", firstUser.Name);
             Assert.Equal("alice@example.com", firstUser.Email);
@@ -62,10 +62,10 @@ namespace Skugga.OpenApi.Tests.Yaml
         {
             // Verify enum parameter from YAML works correctly
             var mock = new IYamlSimpleApiMock();
-            
+
             var activeUsers = await mock.ListUsers(status: "active");
             Assert.NotNull(activeUsers);
-            
+
             var inactiveUsers = await mock.ListUsers(status: "inactive");
             Assert.NotNull(inactiveUsers);
         }
@@ -76,7 +76,7 @@ namespace Skugga.OpenApi.Tests.Yaml
         {
             // Test path parameter from YAML
             var mock = new IYamlSimpleApiMock();
-            
+
             var user = await mock.GetUser(userId: 1);
             Assert.NotNull(user);
             Assert.Equal(1, user.Id);
@@ -110,12 +110,12 @@ namespace Skugga.OpenApi.Tests.Yaml
         {
             // Create mock from YML spec
             var mock = new IYamlPetstoreApiMock();
-            
+
             // Test listPets method
             var pets = await mock.ListPets();
             Assert.NotNull(pets);
             Assert.NotEmpty(pets);
-            
+
             var firstPet = pets.First();
             Assert.Equal(1, firstPet.Id);
             Assert.Equal("Fluffy", firstPet.Name);
@@ -128,7 +128,7 @@ namespace Skugga.OpenApi.Tests.Yaml
         {
             // Test getting a specific pet from YML spec
             var mock = new IYamlPetstoreApiMock();
-            
+
             var pet = await mock.GetPet(petId: 1);
             Assert.NotNull(pet);
             Assert.Equal(1, pet.Id);
@@ -143,7 +143,7 @@ namespace Skugga.OpenApi.Tests.Yaml
             // Verify that schemas from YAML are generated with correct properties
             var userType = typeof(IYamlSimpleApi).Assembly.GetTypes()
                 .FirstOrDefault(t => t.Name == "YamlSimple_User");
-            
+
             Assert.NotNull(userType);
             Assert.NotNull(userType.GetProperty("Id"));
             Assert.NotNull(userType.GetProperty("Name"));
@@ -158,7 +158,7 @@ namespace Skugga.OpenApi.Tests.Yaml
             // Verify that schemas from YML are generated with correct properties
             var petType = typeof(IYamlPetstoreApi).Assembly.GetTypes()
                 .FirstOrDefault(t => t.Name == "YamlPetstore_Pet");
-            
+
             Assert.NotNull(petType);
             Assert.NotNull(petType.GetProperty("Id"));
             Assert.NotNull(petType.GetProperty("Name"));
@@ -172,10 +172,10 @@ namespace Skugga.OpenApi.Tests.Yaml
             // Verify both .yaml and .yml extensions work
             var yamlInterface = typeof(IYamlSimpleApi);
             var ymlInterface = typeof(IYamlPetstoreApi);
-            
+
             Assert.NotNull(yamlInterface);
             Assert.NotNull(ymlInterface);
-            
+
             // Both should have generated methods
             Assert.NotEmpty(yamlInterface.GetMethods());
             Assert.NotEmpty(ymlInterface.GetMethods());

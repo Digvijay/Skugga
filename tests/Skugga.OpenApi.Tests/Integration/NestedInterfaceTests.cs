@@ -31,7 +31,7 @@ namespace Skugga.OpenApi.Tests
             // Methods should be generated for nested interface
             var interfaceType = typeof(INestedPetStoreApi);
             var methods = interfaceType.GetMethods();
-            
+
             Assert.NotEmpty(methods);
         }
 
@@ -42,7 +42,7 @@ namespace Skugga.OpenApi.Tests
             // Mock should be generated for nested interface
             var mock = new INestedPetStoreApiMock();
             Assert.NotNull(mock);
-            
+
             // Verify it implements the interface
             INestedPetStoreApi api = mock;
             Assert.NotNull(api);

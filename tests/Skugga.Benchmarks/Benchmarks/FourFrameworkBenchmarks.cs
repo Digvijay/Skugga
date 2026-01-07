@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
-using Skugga.Core;
+using FakeItEasy;
 using Moq;
 using NSubstitute;
-using FakeItEasy;
+using Skugga.Core;
 
 // Unique interfaces for 4-framework comparison
 public interface ICounter { int Increment(); int GetValue(); }
@@ -22,7 +22,7 @@ public class FourFrameworkBenchmarks
     {
         var output = new System.Text.StringBuilder();
         var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        
+
         output.AppendLine("# Four-Framework Comparison Benchmarks\n");
         output.AppendLine($"**Test Date:** {timestamp}  ");
         output.AppendLine($"**Frameworks:** Skugga vs Moq vs NSubstitute vs FakeItEasy  ");
@@ -31,23 +31,23 @@ public class FourFrameworkBenchmarks
         output.AppendLine($"**OS:** macOS 15.7  ");
         output.AppendLine($"**Runtime:** .NET 10.0.1\n");
         output.AppendLine("---\n");
-        
+
         Console.WriteLine(output.ToString());
 
         var results = new (string Name, double Skugga, double Moq, double NSub, double Fake)[]
         {
-            Benchmark("1. Mock Creation", 
+            Benchmark("1. Mock Creation",
                 CreateMock_Skugga, CreateMock_Moq, CreateMock_NSubstitute, CreateMock_FakeItEasy),
-            Benchmark("2. Simple Setup + Invoke", 
+            Benchmark("2. Simple Setup + Invoke",
                 SimpleSetup_Skugga, SimpleSetup_Moq, SimpleSetup_NSubstitute, SimpleSetup_FakeItEasy),
-            Benchmark("3. Multiple Setups", 
+            Benchmark("3. Multiple Setups",
                 MultipleSetups_Skugga, MultipleSetups_Moq, MultipleSetups_NSubstitute, MultipleSetups_FakeItEasy),
-            Benchmark("4. Property-like Method", 
+            Benchmark("4. Property-like Method",
                 PropertyMethod_Skugga, PropertyMethod_Moq, PropertyMethod_NSubstitute, PropertyMethod_FakeItEasy)
         };
 
         PrintResults(results, output);
-        
+
         // Save to file
         var benchmarkDir = Path.Combine(Directory.GetCurrentDirectory(), "benchmarks");
         Directory.CreateDirectory(benchmarkDir);
@@ -57,10 +57,10 @@ public class FourFrameworkBenchmarks
     }
 
     private static (string Name, double Skugga, double Moq, double NSub, double Fake) Benchmark(
-        string name, 
-        Action<int> skuggaAction, 
-        Action<int> moqAction, 
-        Action<int> nsubAction, 
+        string name,
+        Action<int> skuggaAction,
+        Action<int> moqAction,
+        Action<int> nsubAction,
         Action<int> fakeAction)
     {
         // Warmup
@@ -92,7 +92,7 @@ public class FourFrameworkBenchmarks
         fakeAction(Iterations);
         swFake.Stop();
 
-        return (name, swSkugga.Elapsed.TotalMilliseconds, swMoq.Elapsed.TotalMilliseconds, 
+        return (name, swSkugga.Elapsed.TotalMilliseconds, swMoq.Elapsed.TotalMilliseconds,
                 swNSub.Elapsed.TotalMilliseconds, swFake.Elapsed.TotalMilliseconds);
     }
 
@@ -118,14 +118,14 @@ public class FourFrameworkBenchmarks
         output.AppendLine("-".PadRight(120, '-'));
         output.AppendLine($"{"TOTAL",-30} {totalSkugga,15:F2} {totalMoq,15:F2} {totalNSub,15:F2} {totalFake,15:F2}");
         output.AppendLine();
-        
+
         output.AppendLine("SPEEDUP vs Skugga (baseline):");
-        output.AppendLine($"  Moq:           {(totalMoq/totalSkugga),6:F2}x slower");
-        output.AppendLine($"  NSubstitute:   {(totalNSub/totalSkugga),6:F2}x slower");
-        output.AppendLine($"  FakeItEasy:    {(totalFake/totalSkugga),6:F2}x slower");
+        output.AppendLine($"  Moq:           {(totalMoq / totalSkugga),6:F2}x slower");
+        output.AppendLine($"  NSubstitute:   {(totalNSub / totalSkugga),6:F2}x slower");
+        output.AppendLine($"  FakeItEasy:    {(totalFake / totalSkugga),6:F2}x slower");
         output.AppendLine();
         output.AppendLine("=".PadRight(120, '='));
-        
+
         Console.Write(output.ToString());
     }
 

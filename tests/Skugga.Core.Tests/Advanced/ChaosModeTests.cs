@@ -129,7 +129,7 @@ public class ChaosModeTests
         // Arrange
         var mock = Mock.Create<IService>();
         mock.Setup(x => x.GetData()).Returns("data");
-        
+
         var exceptions = new Exception[]
         {
             new TimeoutException(),
@@ -219,7 +219,7 @@ public class ChaosModeTests
 
         act.Should().NotThrow();
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void Chaos_WithConfigurableSeed_ShouldBeReproducible()
@@ -233,7 +233,7 @@ public class ChaosModeTests
             policy.Seed = 12345;
             policy.PossibleExceptions = new[] { new InvalidOperationException() };
         });
-        
+
         var mock2 = Mock.Create<IService>();
         mock2.Setup(x => x.Calculate()).Returns(42);
         mock2.Chaos(policy =>
@@ -242,24 +242,24 @@ public class ChaosModeTests
             policy.Seed = 12345;
             policy.PossibleExceptions = new[] { new InvalidOperationException() };
         });
-        
+
         // Act - execute same calls on both mocks
         var results1 = new List<bool>(); // true = success, false = failure
         var results2 = new List<bool>();
-        
+
         for (int i = 0; i < 20; i++)
         {
-            try { mock1.Calculate(); results1.Add(true); } 
+            try { mock1.Calculate(); results1.Add(true); }
             catch { results1.Add(false); }
-            
-            try { mock2.Calculate(); results2.Add(true); } 
+
+            try { mock2.Calculate(); results2.Add(true); }
             catch { results2.Add(false); }
         }
-        
+
         // Assert - both mocks should have identical behavior
         results1.Should().Equal(results2, "same seed should produce same results");
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void Chaos_WithTimeout_ShouldDelayExecution()
@@ -272,17 +272,17 @@ public class ChaosModeTests
             policy.FailureRate = 0.0; // No failures, just timeout
             policy.TimeoutMilliseconds = 100;
         });
-        
+
         // Act
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var result = mock.GetData();
         sw.Stop();
-        
+
         // Assert - should take at least the timeout duration
         result.Should().Be("data");
         sw.ElapsedMilliseconds.Should().BeGreaterOrEqualTo(100);
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void Chaos_Statistics_ShouldTrackInvocations()
@@ -296,23 +296,23 @@ public class ChaosModeTests
             policy.PossibleExceptions = new[] { new InvalidOperationException() };
             policy.Seed = 42; // Fixed seed for deterministic test
         });
-        
+
         var handler = (mock as IMockSetup)?.Handler;
         handler.Should().NotBeNull();
-        
+
         // Act - make multiple calls
         for (int i = 0; i < 10; i++)
         {
             try { mock.Calculate(); } catch { }
         }
-        
+
         // Assert - statistics should be tracked
         var stats = handler!.ChaosStatistics;
         stats.TotalInvocations.Should().Be(10);
         stats.ChaosTriggeredCount.Should().BeGreaterThan(0);
         stats.ActualFailureRate.Should().BeGreaterThan(0);
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void Chaos_Statistics_CanBeReset()
@@ -321,23 +321,23 @@ public class ChaosModeTests
         var mock = Mock.Create<IService>();
         mock.Setup(x => x.GetData()).Returns("data");
         mock.Chaos(policy => policy.FailureRate = 0.0);
-        
+
         var handler = (mock as IMockSetup)?.Handler;
-        
+
         // Act - invoke and reset
         mock.GetData();
         mock.GetData();
         var stats = handler!.ChaosStatistics;
         stats.TotalInvocations.Should().Be(2);
-        
+
         stats.Reset();
-        
+
         // Assert
         stats.TotalInvocations.Should().Be(0);
         stats.ChaosTriggeredCount.Should().Be(0);
         stats.TimeoutTriggeredCount.Should().Be(0);
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void Chaos_WithTimeout_ShouldTrackTimeoutStatistics()
@@ -350,13 +350,13 @@ public class ChaosModeTests
             policy.FailureRate = 0.0;
             policy.TimeoutMilliseconds = 10;
         });
-        
+
         var handler = (mock as IMockSetup)?.Handler;
-        
+
         // Act
         mock.GetData();
         mock.GetData();
-        
+
         // Assert
         var stats = handler!.ChaosStatistics;
         stats.TimeoutTriggeredCount.Should().Be(2);

@@ -1,8 +1,8 @@
-using Xunit;
-using Skugga.Core;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Skugga.Core;
+using Xunit;
 
 namespace Skugga.OpenApi.Tests.Linting
 {
@@ -70,7 +70,7 @@ namespace Skugga.OpenApi.Tests.Linting
             // - contact (SKUGGA_LINT_001: warn)
             // - description (SKUGGA_LINT_002: warn)
             // - license (SKUGGA_LINT_003: info)
-            
+
             // Note: These diagnostics are reported during source generation
             // and can be verified by examining compiler output or using
             // source generator testing utilities
@@ -220,7 +220,7 @@ namespace Skugga.OpenApi.Tests.Linting
             // Note: Currently linting is always enabled at generator level
             // This test documents potential future enhancement to add
             // an EnableLinting property to the attribute
-            
+
             Assert.True(true); // Placeholder for future enhancement
         }
     }
@@ -259,7 +259,7 @@ namespace Skugga.OpenApi.Tests.Linting
         public async Task LintingWarnings_DontAffectGeneratedCode()
         {
             var mock = new INonImpactApiMock();
-            
+
             // Methods should work exactly the same regardless of linting warnings
             // The actual method name depends on the API spec - using a real method
             Assert.NotNull(mock);

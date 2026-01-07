@@ -29,14 +29,14 @@ namespace Skugga.OpenApi.Tests
         {
             var interfaceType = typeof(ISwagger2TestApi);
             var methods = interfaceType.GetMethods();
-            
+
             // Should have GetUser and CreateUser methods
             Assert.NotEmpty(methods);
             Assert.True(methods.Length >= 2, $"Expected at least 2 methods, found {methods.Length}");
-            
+
             var getUserMethod = interfaceType.GetMethod("GetUser");
             var createUserMethod = interfaceType.GetMethod("CreateUser");
-            
+
             Assert.NotNull(getUserMethod);
             Assert.NotNull(createUserMethod);
         }
@@ -47,7 +47,7 @@ namespace Skugga.OpenApi.Tests
         {
             var mock = new ISwagger2TestApiMock();
             Assert.NotNull(mock);
-            
+
             // Verify it implements the interface
             ISwagger2TestApi api = mock;
             Assert.NotNull(api);
@@ -58,11 +58,11 @@ namespace Skugga.OpenApi.Tests
         public async Task Swagger2_Mock_ReturnsValidData()
         {
             var mock = new ISwagger2TestApiMock();
-            
+
             // Test GET method
             var user = await mock.GetUser("user123");
             Assert.NotNull(user);
-            
+
             // Test POST method - pass the user object, not the Task
             var newUser = await mock.CreateUser(user);
             Assert.NotNull(newUser);

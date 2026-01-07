@@ -1,7 +1,7 @@
-using Skugga.Core;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Skugga.Core;
 using Xunit;
 
 namespace Skugga.OpenApi.Tests
@@ -26,9 +26,9 @@ namespace Skugga.OpenApi.Tests
             // Standard application/json should be used when available
             var interfaceType = typeof(IContentTypeApi);
             var method = interfaceType.GetMethod("GetStandard");
-            
+
             Assert.NotNull(method);
-            
+
             // Should return Task<ContentTypeUser>
             Assert.True(method.ReturnType.IsGenericType);
             var innerType = method.ReturnType.GetGenericArguments()[0];
@@ -42,9 +42,9 @@ namespace Skugga.OpenApi.Tests
             // Vendor-specific JSON formats (application/vnd.api+json) should work
             var interfaceType = typeof(IContentTypeApi);
             var method = interfaceType.GetMethod("GetVendorJson");
-            
+
             Assert.NotNull(method);
-            
+
             // Should return Task<ContentTypeUser>
             Assert.True(method.ReturnType.IsGenericType);
             var innerType = method.ReturnType.GetGenericArguments()[0];
@@ -58,9 +58,9 @@ namespace Skugga.OpenApi.Tests
             // HAL+JSON format (application/hal+json) should be recognized
             var interfaceType = typeof(IContentTypeApi);
             var method = interfaceType.GetMethod("GetHalJson");
-            
+
             Assert.NotNull(method);
-            
+
             // Should return Task<ContentTypeUser>
             Assert.True(method.ReturnType.IsGenericType);
             var innerType = method.ReturnType.GetGenericArguments()[0];
@@ -74,9 +74,9 @@ namespace Skugga.OpenApi.Tests
             // Legacy text/json format should be handled
             var interfaceType = typeof(IContentTypeApi);
             var method = interfaceType.GetMethod("GetTextJson");
-            
+
             Assert.NotNull(method);
-            
+
             // Should return Task<ContentTypeUser>
             Assert.True(method.ReturnType.IsGenericType);
             var innerType = method.ReturnType.GetGenericArguments()[0];
@@ -91,9 +91,9 @@ namespace Skugga.OpenApi.Tests
             // even if listed after other types in the spec
             var interfaceType = typeof(IContentTypeApi);
             var method = interfaceType.GetMethod("GetMixedPriority");
-            
+
             Assert.NotNull(method);
-            
+
             // Should return Task<ContentTypeUser> (not null/object)
             Assert.True(method.ReturnType.IsGenericType);
             var innerType = method.ReturnType.GetGenericArguments()[0];
@@ -107,9 +107,9 @@ namespace Skugga.OpenApi.Tests
             // Any content type containing "json" should be recognized
             var interfaceType = typeof(IContentTypeApi);
             var method = interfaceType.GetMethod("GetGenericJson");
-            
+
             Assert.NotNull(method);
-            
+
             // Should return Task<ContentTypeUser>
             Assert.True(method.ReturnType.IsGenericType);
             var innerType = method.ReturnType.GetGenericArguments()[0];
@@ -123,9 +123,9 @@ namespace Skugga.OpenApi.Tests
             // When no JSON content type exists, fallback to first content with schema
             var interfaceType = typeof(IContentTypeApi);
             var method = interfaceType.GetMethod("GetFallback");
-            
+
             Assert.NotNull(method);
-            
+
             // Should still return Task<ContentTypeUser> (from XML schema)
             Assert.True(method.ReturnType.IsGenericType);
             var innerType = method.ReturnType.GetGenericArguments()[0];
@@ -142,7 +142,7 @@ namespace Skugga.OpenApi.Tests
         {
             var mock = new IContentTypeApiMock();
             var user = await mock.GetStandard();
-            
+
             Assert.NotNull(user);
         }
 
@@ -152,7 +152,7 @@ namespace Skugga.OpenApi.Tests
         {
             var mock = new IContentTypeApiMock();
             var user = await mock.GetVendorJson();
-            
+
             Assert.NotNull(user);
         }
 
@@ -162,7 +162,7 @@ namespace Skugga.OpenApi.Tests
         {
             var mock = new IContentTypeApiMock();
             var user = await mock.GetHalJson();
-            
+
             Assert.NotNull(user);
         }
 
@@ -172,7 +172,7 @@ namespace Skugga.OpenApi.Tests
         {
             var mock = new IContentTypeApiMock();
             var user = await mock.GetTextJson();
-            
+
             Assert.NotNull(user);
         }
 
@@ -182,7 +182,7 @@ namespace Skugga.OpenApi.Tests
         {
             var mock = new IContentTypeApiMock();
             var user = await mock.GetMixedPriority();
-            
+
             Assert.NotNull(user);
         }
 
@@ -192,20 +192,20 @@ namespace Skugga.OpenApi.Tests
         {
             // All methods should return the same ContentTypeUser type regardless of content type
             var mock = new IContentTypeApiMock();
-            
+
             var standard = await mock.GetStandard();
             var vendor = await mock.GetVendorJson();
             var hal = await mock.GetHalJson();
             var text = await mock.GetTextJson();
             var mixed = await mock.GetMixedPriority();
-            
+
             // All should be ContentTypeUser type
             Assert.NotNull(standard);
             Assert.NotNull(vendor);
             Assert.NotNull(hal);
             Assert.NotNull(text);
             Assert.NotNull(mixed);
-            
+
             Assert.Equal(standard.GetType(), vendor.GetType());
             Assert.Equal(standard.GetType(), hal.GetType());
             Assert.Equal(standard.GetType(), text.GetType());
@@ -223,7 +223,7 @@ namespace Skugga.OpenApi.Tests
             // Verify that User schema is generated and shared across all methods
             var interfaceType = typeof(IContentTypeApi);
             var methods = interfaceType.GetMethods();
-            
+
             // All methods should return Task<ContentTypeUser>
             foreach (var method in methods)
             {
@@ -240,12 +240,12 @@ namespace Skugga.OpenApi.Tests
             // Verify ContentTypeUser schema has expected properties from spec
             var mock = new IContentTypeApiMock();
             var user = await mock.GetStandard();
-            
+
             Assert.NotNull(user);
-            
+
             var userType = user.GetType();
             var properties = userType.GetProperties();
-            
+
             // Should have id, name, email properties
             Assert.Contains(properties, p => p.Name == "Id");
             Assert.Contains(properties, p => p.Name == "Name");

@@ -74,7 +74,7 @@ public class AssertAllocationsTests
         // Assert
         act.Should().NotThrow();
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void AtMost_WithinThreshold_ShouldNotThrow()
@@ -84,11 +84,11 @@ public class AssertAllocationsTests
         {
             var list = new List<int>(10);
         }, maxBytes: 1000);
-        
+
         // Assert
         act.Should().NotThrow();
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void AtMost_ExceedingThreshold_ShouldThrow()
@@ -100,12 +100,12 @@ public class AssertAllocationsTests
             for (int i = 0; i < 1000; i++)
                 list.Add(i);
         }, maxBytes: 100);
-        
+
         // Assert
         act.Should().Throw<Exception>()
             .WithMessage("*Allocated*bytes*Expected at most 100*");
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void Measure_ShouldReturnDetailedReport()
@@ -115,14 +115,14 @@ public class AssertAllocationsTests
         {
             var list = new List<int> { 1, 2, 3, 4, 5 };
         }, "TestAction");
-        
+
         // Assert
         report.Should().NotBeNull();
         report.ActionName.Should().Be("TestAction");
         report.BytesAllocated.Should().BeGreaterThan(0);
         report.DurationMilliseconds.Should().BeGreaterOrEqualTo(0);
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void Measure_WithNoAllocation_ShouldReportZeroBytes()
@@ -133,49 +133,49 @@ public class AssertAllocationsTests
             var x = 1 + 1;
             _ = x;
         }, "NoAllocAction");
-        
+
         // Assert - Measure itself may trigger some GC overhead, so be lenient
         report.BytesAllocated.Should().BeLessThan(100, "simple value type operations should allocate very little");
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void Threshold_ShouldCreateConfiguration()
     {
         // Arrange & Act
         var threshold = AssertAllocations.Threshold("MyAction", maxBytes: 500, maxMilliseconds: 100);
-        
+
         // Assert
         threshold.Should().NotBeNull();
         threshold.ActionName.Should().Be("MyAction");
         threshold.MaxBytes.Should().Be(500);
         threshold.MaxMilliseconds.Should().Be(100);
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void MeetsThreshold_WithinLimits_ShouldNotThrow()
     {
         // Arrange
         var threshold = AssertAllocations.Threshold("FastAction", maxBytes: 1000, maxMilliseconds: 1000);
-        
+
         // Act & Assert
         var act = () => AssertAllocations.MeetsThreshold(() =>
         {
             var x = 1 + 1;
             _ = x;
         }, threshold);
-        
+
         act.Should().NotThrow();
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void MeetsThreshold_ExceedingBytes_ShouldThrow()
     {
         // Arrange
         var threshold = AssertAllocations.Threshold("MemoryHungry", maxBytes: 100, maxMilliseconds: 10000);
-        
+
         // Act & Assert
         var act = () => AssertAllocations.MeetsThreshold(() =>
         {
@@ -183,28 +183,28 @@ public class AssertAllocationsTests
             for (int i = 0; i < 1000; i++)
                 list.Add(i);
         }, threshold);
-        
+
         act.Should().Throw<Exception>()
             .WithMessage("*MemoryHungry*Allocated*bytes*Threshold*");
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void MeetsThreshold_ExceedingTime_ShouldThrow()
     {
         // Arrange
         var threshold = AssertAllocations.Threshold("SlowAction", maxBytes: 100000, maxMilliseconds: 10);
-        
+
         // Act & Assert
         var act = () => AssertAllocations.MeetsThreshold(() =>
         {
             System.Threading.Thread.Sleep(50);
         }, threshold);
-        
+
         act.Should().Throw<Exception>()
             .WithMessage("*SlowAction*Took*ms*Threshold*");
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void AllocationReport_ToString_ShouldFormatProperly()
@@ -219,10 +219,10 @@ public class AssertAllocationsTests
             Gen1Collections = 0,
             Gen2Collections = 0
         };
-        
+
         // Act
         var result = report.ToString();
-        
+
         // Assert
         result.Should().Contain("TestAction");
         result.Should().Contain("1024");

@@ -1,5 +1,5 @@
-using Skugga.Core;
 using System.Reflection;
+using Skugga.Core;
 
 namespace Skugga.Core.Tests;
 
@@ -438,7 +438,7 @@ public class AutoScribeTests
         // Cleanup
         Console.SetOut(Console.Out);
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void ExportToJson_ShouldFormatRecordingsProperly()
@@ -446,25 +446,25 @@ public class AutoScribeTests
         // Arrange
         var recordings = new List<RecordedCall>
         {
-            new RecordedCall 
-            { 
-                MethodName = "Add", 
-                Arguments = new object?[] { 1, 2 }, 
+            new RecordedCall
+            {
+                MethodName = "Add",
+                Arguments = new object?[] { 1, 2 },
                 Result = 3,
                 DurationMilliseconds = 10
             },
-            new RecordedCall 
-            { 
-                MethodName = "GetName", 
-                Arguments = Array.Empty<object?>(), 
+            new RecordedCall
+            {
+                MethodName = "GetName",
+                Arguments = Array.Empty<object?>(),
                 Result = "Test",
                 DurationMilliseconds = 5
             }
         };
-        
+
         // Act
         var json = AutoScribe.ExportToJson(recordings);
-        
+
         // Assert
         json.Should().Contain("\"Method\":\"Add\"");
         json.Should().Contain("\"Args\":[\"1\",\"2\"]");
@@ -472,7 +472,7 @@ public class AutoScribeTests
         json.Should().Contain("\"Duration\":10");
         json.Should().Contain("\"Method\":\"GetName\"");
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void ExportToCsv_ShouldFormatRecordingsProperly()
@@ -480,31 +480,31 @@ public class AutoScribeTests
         // Arrange
         var recordings = new List<RecordedCall>
         {
-            new RecordedCall 
-            { 
-                MethodName = "Add", 
-                Arguments = new object?[] { 1, 2 }, 
+            new RecordedCall
+            {
+                MethodName = "Add",
+                Arguments = new object?[] { 1, 2 },
                 Result = 3,
                 DurationMilliseconds = 10
             },
-            new RecordedCall 
-            { 
-                MethodName = "Multiply", 
-                Arguments = new object?[] { 3, 4 }, 
+            new RecordedCall
+            {
+                MethodName = "Multiply",
+                Arguments = new object?[] { 3, 4 },
                 Result = 12,
                 DurationMilliseconds = 8
             }
         };
-        
+
         // Act
         var csv = AutoScribe.ExportToCsv(recordings);
-        
+
         // Assert
         csv.Should().Contain("Method,Arguments,Result,Duration(ms)");
         csv.Should().Contain("Add,\"1;2\",3,10");
         csv.Should().Contain("Multiply,\"3;4\",12,8");
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void ReplayContext_ShouldVerifyCallSequence()
@@ -516,13 +516,13 @@ public class AutoScribeTests
             new RecordedCall { MethodName = "Add", Arguments = new object?[] { 5, 7 }, Result = 12 }
         };
         var replay = AutoScribe.CreateReplayContext(recordings);
-        
+
         // Act & Assert
         replay.VerifyNextCall("Add", new object?[] { 1, 2 }).Should().BeTrue();
         replay.VerifyNextCall("Add", new object?[] { 5, 7 }).Should().BeTrue();
         replay.VerifyNextCall("Add", new object?[] { 1, 1 }).Should().BeFalse();
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void ReplayContext_GetNextExpectedCall_ShouldReturnInOrder()
@@ -535,14 +535,14 @@ public class AutoScribeTests
             new RecordedCall { MethodName = "Third", Arguments = Array.Empty<object?>() }
         };
         var replay = AutoScribe.CreateReplayContext(recordings);
-        
+
         // Act & Assert
         replay.GetNextExpectedCall()?.MethodName.Should().Be("First");
         replay.GetNextExpectedCall()?.MethodName.Should().Be("Second");
         replay.GetNextExpectedCall()?.MethodName.Should().Be("Third");
         replay.GetNextExpectedCall().Should().BeNull();
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void ReplayContext_Reset_ShouldRestartSequence()
@@ -554,17 +554,17 @@ public class AutoScribeTests
             new RecordedCall { MethodName = "Method2", Arguments = Array.Empty<object?>() }
         };
         var replay = AutoScribe.CreateReplayContext(recordings);
-        
+
         // Act - consume all calls
         replay.GetNextExpectedCall();
         replay.GetNextExpectedCall();
         replay.GetNextExpectedCall().Should().BeNull();
-        
+
         // Reset and verify
         replay.Reset();
         replay.GetNextExpectedCall()?.MethodName.Should().Be("Method1");
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void RecordedCall_ShouldIncludeTimestamp()
@@ -577,11 +577,11 @@ public class AutoScribeTests
             Result = null,
             DurationMilliseconds = 100
         };
-        
+
         // Assert
         call.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
-    
+
     [Fact]
     [Trait("Category", "Advanced")]
     public void ReplayContext_Recordings_ShouldBeReadOnly()
@@ -592,7 +592,7 @@ public class AutoScribeTests
             new RecordedCall { MethodName = "Test", Arguments = Array.Empty<object?>() }
         };
         var replay = AutoScribe.CreateReplayContext(recordings);
-        
+
         // Act & Assert
         replay.Recordings.Should().NotBeNull();
         replay.Recordings.Count.Should().Be(1);

@@ -1,6 +1,6 @@
 using System.Linq;
-using Xunit;
 using Skugga.Core;
+using Xunit;
 
 namespace Skugga.Core.Tests;
 
@@ -93,10 +93,10 @@ public class MatchCreateTests
     {
         // Arrange
         var mock = Mock.Create<IValidator>();
-        
+
         // Setup with Match.Create
         mock.Setup(x => x.Format(Match.Create<string>(s => s.StartsWith("prefix")))).Returns("matched");
-        
+
         // Setup with It.IsAny for comparison
         mock.Setup(x => x.Process(It.IsAny<int>())).Returns(999);
 
@@ -112,7 +112,7 @@ public class MatchCreateTests
     {
         // Arrange
         var mock = Mock.Create<IValidator>();
-        
+
         // Multiple range matchers
         mock.Setup(x => x.Process(Match.Create<int>(i => i >= 0 && i <= 10, "0-10"))).Returns(1);
         mock.Setup(x => x.Process(Match.Create<int>(i => i >= 11 && i <= 20, "11-20"))).Returns(2);
@@ -131,11 +131,11 @@ public class MatchCreateTests
     {
         // Arrange
         var mock = Mock.Create<IValidator>();
-        
+
         // Complex predicate: uppercase AND contains digits
-        mock.Setup(x => x.Format(Match.Create<string>(s => 
-            s != null && 
-            s == s.ToUpper() && 
+        mock.Setup(x => x.Format(Match.Create<string>(s =>
+            s != null &&
+            s == s.ToUpper() &&
             s.Any(char.IsDigit)))).Returns("complex match");
 
         // Act & Assert

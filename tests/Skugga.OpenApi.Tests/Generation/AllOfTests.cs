@@ -30,10 +30,10 @@ namespace Skugga.OpenApi.Tests
         {
             var interfaceType = typeof(IAllOfTestApi);
             var methods = interfaceType.GetMethods();
-            var methodNames = string.Join(", ", methods.Select(m => m.Name));            Console.WriteLine($"Methods found: {methodNames}");
-            Console.WriteLine($"Method count: {methods.Length}");            
+            var methodNames = string.Join(", ", methods.Select(m => m.Name)); Console.WriteLine($"Methods found: {methodNames}");
+            Console.WriteLine($"Method count: {methods.Length}");
             var method = interfaceType.GetMethod("GetProduct");
-            
+
             Assert.NotNull(method); // Will fail with method names in output
         }
 
@@ -44,7 +44,7 @@ namespace Skugga.OpenApi.Tests
             // The mock should return a non-null Product with merged examples
             var mock = new IAllOfTestApiMock();
             var product = await mock.GetProduct(123);
-            
+
             Assert.NotNull(product);
         }
 
@@ -55,10 +55,10 @@ namespace Skugga.OpenApi.Tests
             // The mock should have properties from both BaseEntity and Product
             var mock = new IAllOfTestApiMock();
             var product = await mock.GetProduct(123);
-            
+
             // From BaseEntity
             Assert.NotEqual(0, product.Id);
-            
+
             // From Product
             Assert.NotNull(product.Name);
             Assert.NotEqual(0, product.Price);

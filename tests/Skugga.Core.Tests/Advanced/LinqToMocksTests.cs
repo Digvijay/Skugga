@@ -1,5 +1,5 @@
-using Xunit;
 using Skugga.Core;
+using Xunit;
 
 namespace Skugga.Core.Tests;
 
@@ -39,10 +39,10 @@ public class LinqToMocksTests
     {
         // Arrange
         var foo = Mock.Create<IFoo>();
-        
+
         // Act
         var mock = Mock.Get(foo);
-        
+
         // Assert
         Assert.NotNull(mock);
         Assert.Same(((IMockSetup)foo).Handler, mock.Handler);
@@ -55,10 +55,10 @@ public class LinqToMocksTests
         // Arrange
         var foo = Mock.Create<IFoo>();
         foo.Setup(f => f.Name).Returns("test");
-        
+
         // Act
         var name = foo.Name; // Access property
-        
+
         // Assert - can verify via Mock.Get
         var mock = Mock.Get(foo);
         Assert.NotNull(mock);
@@ -72,12 +72,12 @@ public class LinqToMocksTests
         // Arrange
         var foo = Mock.Create<IFoo>();
         foo.Setup(f => f.Name).Returns("initial");
-        
+
         // Act - get mock and add more setup
         var mock = Mock.Get(foo);
         Assert.NotNull(mock);
         foo.Setup(f => f.Count).Returns(99);
-        
+
         // Assert
         Assert.Equal("initial", foo.Name);
         Assert.Equal(99, foo.Count);
@@ -89,7 +89,7 @@ public class LinqToMocksTests
     {
         // Arrange
         var notAMock = new object();
-        
+
         // Act & Assert
         var ex = Assert.Throws<ArgumentException>(() => Mock.Get(notAMock));
         Assert.Contains("not a Skugga mock", ex.Message);
@@ -101,11 +101,11 @@ public class LinqToMocksTests
     {
         // Arrange
         var foo = Mock.Create<IFoo>();
-        
+
         // Act
         var mockViaGet = Mock.Get(foo);
         var mockViaCast = (IMockSetup)foo;
-        
+
         // Assert - both ways give same Handler
         Assert.Same(mockViaGet.Handler, mockViaCast.Handler);
     }
@@ -119,7 +119,7 @@ public class LinqToMocksTests
         foo.Setup(f => f.Name).Returns("bar");
         foo.Setup(f => f.Count).Returns(42);
         foo.Setup(f => f.GetValue()).Returns(100);
-        
+
         // Assert - same result as Mock.Of would provide
         Assert.Equal("bar", foo.Name);
         Assert.Equal(42, foo.Count);
@@ -131,30 +131,30 @@ public class LinqToMocksTests
     public void Get_IntegrationTest_CreateSetupGetVerify()
     {
         // This test demonstrates the complete workflow that replaces Mock.Of usage
-        
+
         // Step 1: Create mock
         var foo = Mock.Create<IFoo>();
-        
+
         // Step 2: Setup behavior
         foo.Setup(f => f.Name).Returns("integration");
         foo.Setup(f => f.Count).Returns(999);
         foo.Setup(f => f.GetValue()).Returns(777);
-        
+
         // Step 3: Use the mock
         var name = foo.Name;
         var count = foo.Count;
         var value = foo.GetValue();
-        
+
         // Step 4: Retrieve via Mock.Get for verification (proves it's the same mock)
         var mockSetup = Mock.Get(foo);
         Assert.NotNull(mockSetup);
         Assert.Same(((IMockSetup)foo).Handler, mockSetup.Handler);
-        
+
         // Step 5: Verify calls (use original mock, not mockSetup)
         foo.Verify(f => f.Name, Times.Once());
         foo.Verify(f => f.Count, Times.Once());
         foo.Verify(f => f.GetValue(), Times.Once());
-        
+
         // Step 6: Verify values
         Assert.Equal("integration", name);
         Assert.Equal(999, count);
@@ -168,14 +168,14 @@ public class LinqToMocksTests
         // Arrange
         var foo1 = Mock.Create<IFoo>();
         var foo2 = Mock.Create<IFoo>();
-        
+
         foo1.Setup(f => f.Name).Returns("first");
         foo2.Setup(f => f.Name).Returns("second");
-        
+
         // Act
         var mock1 = Mock.Get(foo1);
         var mock2 = Mock.Get(foo2);
-        
+
         // Assert - each has independent handler
         Assert.NotSame(mock1.Handler, mock2.Handler);
         Assert.Equal("first", foo1.Name);

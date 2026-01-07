@@ -186,7 +186,7 @@ public class MockTests
     {
         // This test verifies the runtime fallback works
         // In production, interceptors would be used, but the fallback ensures compatibility
-        
+
         // Arrange & Act
         var mock = Mock.Create<ITestService>();
 

@@ -1,5 +1,5 @@
-using Skugga.Core;
 using FluentAssertions;
+using Skugga.Core;
 using Xunit;
 
 namespace Skugga.Core.Tests;

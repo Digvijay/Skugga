@@ -1,5 +1,5 @@
-using Xunit;
 using Skugga.Core;
+using Xunit;
 
 namespace Skugga.Core.Tests;
 
@@ -20,7 +20,7 @@ public class ProtectedMembersTests
         protected virtual string FormatCore(int value) => value.ToString();
         protected int ProtectedProperty { get; set; }
     }
-    
+
     // Abstract class with protected property
     public abstract class AbstractConfig
     {
@@ -34,12 +34,12 @@ public class ProtectedMembersTests
     {
         // Arrange
         var mock = Mock.Create<AbstractService>();
-        
+
         // Act - use Protected() to setup protected method
         mock.Protected()
             .Setup<int>("ExecuteCore", It.IsAny<string>())
             .Returns(42);
-        
+
         // Assert - the generator should create an override that calls Handler.Invoke
         // For now, we're testing the API compiles and can be called
         var protectedSetup = mock.Protected();
@@ -52,12 +52,12 @@ public class ProtectedMembersTests
     {
         // Arrange
         var mock = Mock.Create<AbstractService>();
-        
+
         // Act
         mock.Protected()
             .Setup<int>("ExecuteCore", "test")
             .Returns(100);
-        
+
         // Assert - API works
         Assert.NotNull(mock);
     }
@@ -68,12 +68,12 @@ public class ProtectedMembersTests
     {
         // Arrange
         var mock = Mock.Create<AbstractService>();
-        
+
         // Act
         mock.Protected()
             .Setup("ProcessCore")
             .Callback(() => { /* Callback logic here */ });
-        
+
         // Assert
         Assert.NotNull(mock);
         // Note: Actual callback execution would be tested once generator support is added
@@ -85,12 +85,12 @@ public class ProtectedMembersTests
     {
         // Arrange
         var mock = Mock.Create<AbstractConfig>();
-        
+
         // Act
         mock.Protected()
             .SetupGet<string>("DatabaseConnection")
             .Returns("Server=localhost");
-        
+
         // Assert - API works
         Assert.NotNull(mock);
     }
@@ -101,20 +101,20 @@ public class ProtectedMembersTests
     {
         // Arrange
         var mock = Mock.Create<AbstractService>();
-        
+
         // Act - setup multiple protected members
         mock.Protected()
             .Setup<int>("ExecuteCore", "input1")
             .Returns(1);
-            
+
         mock.Protected()
             .Setup<int>("ExecuteCore", "input2")
             .Returns(2);
-            
+
         mock.Protected()
             .Setup<string>("FormatCore", 42)
             .Returns("forty-two");
-        
+
         // Assert
         Assert.NotNull(mock);
     }
@@ -126,13 +126,13 @@ public class ProtectedMembersTests
         // Arrange
         var mock = Mock.Create<AbstractService>();
         var executionCount = 0;
-        
+
         // Act
         mock.Protected()
             .Setup<int>("ExecuteCore", It.IsAny<string>())
             .Callback(() => executionCount++)
             .Returns(99);
-        
+
         // Assert
         Assert.NotNull(mock);
         Assert.Equal(0, executionCount); // Not yet called (would be called when method invoked)
@@ -144,7 +144,7 @@ public class ProtectedMembersTests
     {
         // Arrange
         var notAMock = new object();
-        
+
         // Act & Assert
         var ex = Assert.Throws<ArgumentException>(() => notAMock.Protected());
         Assert.Contains("not a Skugga mock", ex.Message);
@@ -156,15 +156,15 @@ public class ProtectedMembersTests
     {
         // Arrange
         var mock = Mock.Create<AbstractService>();
-        
+
         // Act - mix protected and regular setup
         mock.Protected()
             .Setup<int>("ExecuteCore", "test")
             .Returns(42);
-        
+
         // If AbstractService had public members, we could set them up normally:
         // mock.Setup(x => x.PublicMethod()).Returns(value);
-        
+
         // Assert
         Assert.NotNull(mock);
     }
@@ -175,10 +175,10 @@ public class ProtectedMembersTests
     {
         // Arrange
         var mock = Mock.Create<AbstractService>();
-        
+
         // Act
         var protectedSetup = mock.Protected();
-        
+
         // Assert
         Assert.NotNull(protectedSetup);
         Assert.IsAssignableFrom<IProtectedMockSetup>(protectedSetup);

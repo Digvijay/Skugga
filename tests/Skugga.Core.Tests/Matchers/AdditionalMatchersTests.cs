@@ -339,7 +339,7 @@ public class AdditionalMatchersTests
 
         // Act & Assert
         mock.Process(5).Should().Be("allowed");
-        
+
         // Unmatched call should throw in strict mode
         Assert.Throws<MockException>(() => mock.Process(-5));
     }

@@ -1,5 +1,5 @@
-using Xunit;
 using Skugga.Core;
+using Xunit;
 
 namespace Skugga.Core.Tests;
 
@@ -46,7 +46,7 @@ public class MultipleInterfaceTests
     {
         // Arrange
         var mock = Mock.Create<IFoo>();
-        
+
         // Act
         try
         {
@@ -57,9 +57,9 @@ public class MultipleInterfaceTests
         {
             // Expected: generated mock doesn't implement IBar at runtime
         }
-        
+
         var additionalInterfaces = ((IMockSetup)mock).Handler.GetAdditionalInterfaces();
-        
+
         // Assert - interface is tracked even though cast fails
         Assert.Contains(typeof(IBar), additionalInterfaces);
     }
@@ -70,13 +70,13 @@ public class MultipleInterfaceTests
     {
         // Arrange
         var mock = Mock.Create<IFoo>();
-        
+
         // Act - these will throw InvalidCastException but still track
         try { mock.As<IBar>(); } catch (InvalidCastException) { }
         try { mock.As<IBaz>(); } catch (InvalidCastException) { }
-        
+
         var additionalInterfaces = ((IMockSetup)mock).Handler.GetAdditionalInterfaces();
-        
+
         // Assert
         Assert.Equal(2, additionalInterfaces.Count);
         Assert.Contains(typeof(IBar), additionalInterfaces);
@@ -89,7 +89,7 @@ public class MultipleInterfaceTests
     {
         // Arrange
         var mock = Mock.Create<IFoo>();
-        
+
         // Act & Assert
         var ex = Assert.Throws<ArgumentException>(() => mock.As<string>());
         Assert.Contains("not an interface", ex.Message);
@@ -101,7 +101,7 @@ public class MultipleInterfaceTests
     {
         // Arrange
         var notAMock = new object();
-        
+
         // Act & Assert
         var ex = Assert.Throws<ArgumentException>(() => notAMock.As<IBar>());
         Assert.Contains("not a Skugga mock", ex.Message);
@@ -113,19 +113,19 @@ public class MultipleInterfaceTests
     {
         // Arrange
         var mock = Mock.Create<IFoo>();
-        
+
         // Act - chaining will fail on first cast
-        try 
-        { 
-            mock.As<IBar>(); 
-        } 
-        catch (InvalidCastException) 
+        try
+        {
+            mock.As<IBar>();
+        }
+        catch (InvalidCastException)
         {
             // Expected
         }
-        
+
         var additionalInterfaces = ((IMockSetup)mock).Handler.GetAdditionalInterfaces();
-        
+
         // Assert - IBar is tracked
         Assert.Contains(typeof(IBar), additionalInterfaces);
     }
@@ -136,13 +136,13 @@ public class MultipleInterfaceTests
     {
         // Arrange
         var mock = Mock.Create<IFoo>();
-        
+
         // Act - add same interface twice (both will throw but still track)
         try { mock.As<IBar>(); } catch (InvalidCastException) { }
         try { mock.As<IBar>(); } catch (InvalidCastException) { }
-        
+
         var additionalInterfaces = ((IMockSetup)mock).Handler.GetAdditionalInterfaces();
-        
+
         // Assert - HashSet ensures only one entry
         Assert.Single(additionalInterfaces, t => t == typeof(IBar));
     }
