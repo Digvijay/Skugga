@@ -672,7 +672,7 @@ Skugga achieves **100% practical parity** with Moq's core API (937 tests coverin
 | **Verify with Matchers** | ✅ | ✅ | Works with all matcher types |
 | **Events (Raise)** | ✅ | ✅ | Identical API |
 | **Partial Mocks** | ✅ | ✅ | Override specific methods via interceptors |
-| **Mock.Of<T>(expr)** | ✅ | ❌ | **AOT limitation** - use `Mock.Create` + explicit `Setup` calls |
+| **Mock.Of<T>(expr)** | ✅ | ✅ | Functional style setup with LINQ expressions |
 | **Native AOT Support** | ❌ | ✅ | Moq crashes in AOT, Skugga is AOT-first |
 | **Zero Reflection** | ❌ | ✅ | Skugga uses compile-time generation |
 | **AutoScribe** | ❌ | ✅ | Self-writing tests (Skugga exclusive) |
@@ -796,7 +796,24 @@ skuggaMock.Setup(x => x.Handle(It.IsIn("red", "green"))).Returns("color");
 skuggaMock.Setup(x => x.Validate(It.IsRegex("^\\d+$"))).Returns(true);
 ```
 
-**10. Multiple Interfaces**
+**10. LINQ to Mocks**
+```csharp
+// Moq
+var service = Mock.Of<IService>(x => x.Id == 1 && x.Name == "Test");
+
+// Skugga - Identical
+var service = Mock.Of<IService>(x => x.Id == 1 && x.Name == "Test");
+```
+
+**11. Ref & Out Parameters**
+```csharp
+// Skugga uses a simplified API for ref/out values
+mock.Setup(x => x.TryParse("123", out It.Ref<int>.IsAny))
+    .OutValue(123)
+    .Returns(true);
+```
+
+**12. Multiple Interfaces**
 ```csharp
 // Moq
 var moqMock = new Mock<IEmailService>();

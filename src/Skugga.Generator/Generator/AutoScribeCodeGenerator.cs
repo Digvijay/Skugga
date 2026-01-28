@@ -135,11 +135,12 @@ internal static class AutoScribeCodeGenerator
     /// </summary>
     public static void GenerateMethodRecording(StringBuilder sb, IMethodSymbol method, string returnType)
     {
-        var isAsync = method.ReturnType.Name == "Task" &&
-                     method.ReturnType is INamedTypeSymbol namedType &&
-                     namedType.TypeArguments.Length > 0;
+        var returnTypeSymbol = method.ReturnType;
+        var isTask = returnTypeSymbol.Name == "Task" || returnTypeSymbol.Name == "ValueTask";
+        var isGenericTask = isTask && returnTypeSymbol is INamedTypeSymbol nt && nt.TypeArguments.Length > 0;
+        var isVoidTask = isTask && !isGenericTask;
 
-        var hasReturnValue = !method.ReturnsVoid && returnType != "Task";
+        var hasReturnValue = !method.ReturnsVoid && !isTask;
 
         // Build parameter array for recording
         var paramArray = method.Parameters.Length == 0
@@ -149,16 +150,25 @@ internal static class AutoScribeCodeGenerator
         sb.AppendLine("            // Record the call");
         sb.AppendLine($"            var callArgs = {paramArray};");
 
-        if (hasReturnValue)
+        if (isGenericTask)
         {
-            sb.AppendLine($"            var result = {(isAsync ? "await " : "")}_real.{method.Name}({string.Join(", ", method.Parameters.Select(p => p.Name))});");
-            sb.AppendLine($"            var setupCode = $\"mock.Setup(x => x.{method.Name}({string.Join(", ", method.Parameters.Select(p => "{" + p.Name + "}"))})).Returns{(isAsync ? "Async" : "")}({{SerializeValue(result)}})\";");
+            sb.AppendLine($"            var result = await _real.{method.Name}({string.Join(", ", method.Parameters.Select(p => p.Name))});");
+            sb.AppendLine($"            var setupCode = $\"mock.Setup(x => x.{method.Name}({string.Join(", ", method.Parameters.Select(p => "{" + p.Name + "}"))})).ReturnsAsync({{SerializeValue(result)}})\";");
             sb.AppendLine("            Console.WriteLine($\"// [AutoScribe] Call {_callCount}: {setupCode};\");");
             sb.AppendLine("            _callLog.Add(setupCode);");
             sb.AppendLine("            _callCount++;");
-            sb.AppendLine("            return result;");
+            sb.AppendLine("            return result!;");
         }
-        else if (returnType == "Task")
+        else if (hasReturnValue)
+        {
+            sb.AppendLine($"            var result = _real.{method.Name}({string.Join(", ", method.Parameters.Select(p => p.Name))});");
+            sb.AppendLine($"            var setupCode = $\"mock.Setup(x => x.{method.Name}({string.Join(", ", method.Parameters.Select(p => "{" + p.Name + "}"))})).Returns({{SerializeValue(result)}})\";");
+            sb.AppendLine("            Console.WriteLine($\"// [AutoScribe] Call {_callCount}: {setupCode};\");");
+            sb.AppendLine("            _callLog.Add(setupCode);");
+            sb.AppendLine("            _callCount++;");
+            sb.AppendLine("            return result!;");
+        }
+        else if (isVoidTask)
         {
             sb.AppendLine($"            await _real.{method.Name}({string.Join(", ", method.Parameters.Select(p => p.Name))});");
             sb.AppendLine($"            var setupCode = $\"mock.Setup(x => x.{method.Name}({string.Join(", ", method.Parameters.Select(p => "{" + p.Name + "}"))}));\";");

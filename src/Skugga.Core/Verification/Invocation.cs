@@ -19,7 +19,7 @@ namespace Skugga.Core
     /// <code>
     /// var mock = Mock.Create&lt;IService&gt;();
     /// mock.GetData(42); // Creates Invocation("GetData", [42])
-    /// 
+    ///
     /// // Verify checks invocations list for matches
     /// mock.Verify(x => x.GetData(42), Times.Once());
     /// mock.Verify(x => x.GetData(It.IsAny&lt;int&gt;()), Times.Once());
@@ -36,6 +36,11 @@ namespace Skugga.Core
         /// Gets the arguments passed to the method during invocation.
         /// </summary>
         public object?[] Args { get; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this invocation has been verified.
+        /// </summary>
+        public bool IsVerified { get; set; }
 
         /// <summary>
         /// Initializes a new invocation record.
@@ -68,13 +73,25 @@ namespace Skugga.Core
         /// <code>
         /// // Exact match
         /// mock.Verify(x => x.Process(42), Times.Once());
-        /// 
+        ///
         /// // Matcher-based
         /// mock.Verify(x => x.Process(It.IsAny&lt;int&gt;()), Times.Once());
         /// mock.Verify(x => x.Process(It.Is&lt;int&gt;(n => n > 0)), Times.Once());
         /// </code>
         /// </remarks>
         public bool Matches(string signature, object?[] args)
+        {
+            return Matches(signature, args, null);
+        }
+
+        /// <summary>
+        /// Determines if this invocation matches the specified signature and arguments.
+        /// </summary>
+        /// <param name="signature">The method signature to match</param>
+        /// <param name="args">The arguments to match (may include ArgumentMatcher instances)</param>
+        /// <param name="refOutParameterIndices">Optional set of parameter indices to ignore during matching (for ref/out parameters)</param>
+        /// <returns>True if the signature and all arguments match; otherwise false</returns>
+        public bool Matches(string signature, object?[] args, HashSet<int>? refOutParameterIndices)
         {
             // Quick checks: signature and argument count must match
             if (Signature != signature || Args.Length != args.Length)
@@ -83,22 +100,46 @@ namespace Skugga.Core
             // Check each argument
             for (int i = 0; i < Args.Length; i++)
             {
-                // If the expected arg is a matcher, use its Matches() method
-                if (args[i] is ArgumentMatcher matcher)
-                {
-                    if (!matcher.Matches(Args[i]))
-                        return false;
-                }
-                else
-                {
-                    // Standard equality check for non-matcher arguments
-                    // Note: null args match only null, non-null must use Equals()
-                    if (args[i] != null && !args[i]!.Equals(Args[i]))
-                        return false;
-                }
+                // Skip matching for ref/out parameters - they always match regardless of value
+                if (refOutParameterIndices != null && refOutParameterIndices.Contains(i))
+                    continue;
+
+                if (!AreArgumentsEquivalent(args[i], Args[i]))
+                    return false;
             }
 
             return true;
+        }
+
+        private static bool AreArgumentsEquivalent(object? expected, object? actual)
+        {
+            // If the expected arg is a matcher, use its Matches() method
+            if (expected is ArgumentMatcher matcher)
+            {
+                return matcher.Matches(actual);
+            }
+
+            // Handle arrays (including params)
+            if (expected is Array expectedArray && actual is Array actualArray)
+            {
+                if (expectedArray.Length != actualArray.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < expectedArray.Length; i++)
+                {
+                    if (!AreArgumentsEquivalent(expectedArray.GetValue(i), actualArray.GetValue(i)))
+                        return false;
+                }
+                return true;
+            }
+
+            // Standard equality check for non-matcher arguments
+            if (expected == null)
+                return actual == null;
+
+            return expected.Equals(actual);
         }
     }
 
@@ -115,10 +156,10 @@ namespace Skugga.Core
     /// <code>
     /// var mock = Mock.Create&lt;IService&gt;();
     /// mock.Setup(x => x.GetData()).Returns("test");
-    /// 
+    ///
     /// mock.GetData();
     /// mock.GetData();
-    /// 
+    ///
     /// // Various verification patterns
     /// mock.Verify(x => x.GetData(), Times.Exactly(2)); // Pass
     /// mock.Verify(x => x.GetData(), Times.AtLeast(1)); // Pass

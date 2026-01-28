@@ -29,7 +29,7 @@ namespace Skugga.Core.Tests;
 /// var mock = Mock.Create&lt;IService&gt;();
 /// mock.Chaos(0.3); // 30% failure rate
 /// mock.Setup(m => m.GetData()).Returns("data");
-/// 
+///
 /// // Test will randomly fail ~30% of the time
 /// var data = mock.GetData(); // May throw ChaosException
 /// </code>

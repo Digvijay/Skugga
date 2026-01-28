@@ -23,7 +23,7 @@ namespace Skugga.Core.Generators;
 /// Example generated code:
 /// <code>
 /// public static SetupContext&lt;TMock, TResult&gt; Returns&lt;TMock, TResult, TArg1, TArg2, TArg3, TArg4&gt;(
-///     this SetupContext&lt;TMock, TResult&gt; context, 
+///     this SetupContext&lt;TMock, TResult&gt; context,
 ///     Func&lt;TArg1, TArg2, TArg3, TArg4, TResult&gt; valueFunction)
 /// {
 ///     // Implementation that wraps valueFunction with argument extraction
@@ -80,11 +80,12 @@ public class SetupExtensionsGenerator : ISourceGenerator
             GenerateReturnsOverload(sb, argCount);
         }
 
-        // Generate ReturnsAsync overloads for async methods (3-8 arguments)
+        // Generate ReturnsAsync overloads for async methods (Task and ValueTask) (3-8 arguments)
         // Manual overloads exist for 0-2 arguments
         for (int argCount = 3; argCount <= maxArgs; argCount++)
         {
-            GenerateReturnsAsyncOverload(sb, argCount);
+            GenerateReturnsAsyncOverload(sb, argCount, false); // Task
+            GenerateReturnsAsyncOverload(sb, argCount, true);  // ValueTask
         }
 
         // Generate Callback overloads for non-void methods (4-8 arguments)
@@ -118,7 +119,7 @@ public class SetupExtensionsGenerator : ISourceGenerator
     /// For argCount=4, generates:
     /// <code>
     /// public static SetupContext&lt;TMock, TResult&gt; Returns&lt;TMock, TResult, TArg1, TArg2, TArg3, TArg4&gt;(
-    ///     this SetupContext&lt;TMock, TResult&gt; context, 
+    ///     this SetupContext&lt;TMock, TResult&gt; context,
     ///     Func&lt;TArg1, TArg2, TArg3, TArg4, TResult&gt; valueFunction)
     /// </code>
     /// </example>
@@ -163,29 +164,31 @@ public class SetupExtensionsGenerator : ISourceGenerator
     /// Users can write:
     /// <code>mock.Setup(m => m.GetAsync(x)).ReturnsAsync(args => value)</code>
     /// </remarks>
-    private void GenerateReturnsAsyncOverload(StringBuilder sb, int argCount)
+    private void GenerateReturnsAsyncOverload(StringBuilder sb, int argCount, bool forValueTask)
     {
         // Create type parameter list: TArg1, TArg2, ..., TArgN
         var typeParams = string.Join(", ", Enumerable.Range(1, argCount).Select(i => $"TArg{i}"));
 
         // Create argument extraction for async wrapper
         var funcParams = string.Join(", ", Enumerable.Range(1, argCount).Select(i => $"(TArg{i})args[{i - 1}]!"));
+        var taskType = forValueTask ? "ValueTask<TResult>" : "Task<TResult>";
+        var taskWrapper = forValueTask ? $"new ValueTask<TResult>(valueFunction({funcParams}))" : $"Task.FromResult(valueFunction({funcParams}))";
 
         sb.AppendLine();
         sb.AppendLine("        /// <summary>");
-        sb.AppendLine($"        /// Configures the setup to return a Task<TResult> computed from {argCount} method arguments (async shorthand).");
+        sb.AppendLine($"        /// Configures the setup to return a {taskType} computed from {argCount} method arguments (async shorthand).");
         sb.AppendLine("        /// </summary>");
-        sb.AppendLine($"        public static SetupContext<TMock, Task<TResult>> ReturnsAsync<TMock, TResult, {typeParams}>(");
-        sb.AppendLine($"            this SetupContext<TMock, Task<TResult>> context, Func<{typeParams}, TResult> valueFunction)");
+        sb.AppendLine($"        public static SetupContext<TMock, {taskType}> ReturnsAsync<TMock, TResult, {typeParams}>(");
+        sb.AppendLine($"            this SetupContext<TMock, {taskType}> context, Func<{typeParams}, TResult> valueFunction)");
         sb.AppendLine("        {");
         sb.AppendLine("            if (context.Setup == null)");
         sb.AppendLine("            {");
-        sb.AppendLine("                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, default(Task<TResult>), null);");
-        sb.AppendLine($"                context.Setup.ValueFactory = args => Task.FromResult(valueFunction({funcParams}));");
+        sb.AppendLine($"                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, default({taskType}), null);");
+        sb.AppendLine($"                context.Setup.ValueFactory = args => {taskWrapper};");
         sb.AppendLine("            }");
         sb.AppendLine("            else");
         sb.AppendLine("            {");
-        sb.AppendLine($"                context.Setup.ValueFactory = args => Task.FromResult(valueFunction({funcParams}));");
+        sb.AppendLine($"                context.Setup.ValueFactory = args => {taskWrapper};");
         sb.AppendLine("            }");
         sb.AppendLine("            return context;");
         sb.AppendLine("        }");

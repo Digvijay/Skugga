@@ -42,13 +42,13 @@ public class Program
             Console.WriteLine("SKUGGA PERFORMANCE BENCHMARKS");
             Console.WriteLine("═".PadRight(100, '═'));
             Console.WriteLine();
-            
+
             Console.WriteLine("PART 1: Comprehensive Moq vs Skugga Feature Comparison");
             MoqVsSkuggaBenchmarks.RunAll();
-            
+
             Console.WriteLine("\n\nPART 2: Common Scenarios Across All 4 Frameworks");
             FourFrameworkBenchmarks.RunAll();
-            
+
             Console.WriteLine("\n" + "═".PadRight(100, '═'));
             Console.WriteLine("ℹ️  Benchmark results saved to /benchmarks directory");
             Console.WriteLine("ℹ️  To run FEATURE DEMOS, use Debug mode:");

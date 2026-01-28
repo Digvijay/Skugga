@@ -7,7 +7,7 @@ namespace Skugga.Core
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>Empty</b>: Returns CLR default values (null for reference types, 0 for value types, 
+    /// <b>Empty</b>: Returns CLR default values (null for reference types, 0 for value types,
     /// empty collections). This is the standard behavior.
     /// </para>
     /// <para>
@@ -21,7 +21,7 @@ namespace Skugga.Core
     /// // Empty default - properties return null
     /// var mock = Mock.Create&lt;IRepository&gt;(DefaultValue.Empty);
     /// var config = mock.Configuration; // Returns null
-    /// 
+    ///
     /// // Mock default - properties return mocks (recursive mocking)
     /// var mock = Mock.Create&lt;IRepository&gt;(DefaultValue.Mock);
     /// var config = mock.Configuration; // Returns a mock of IConfiguration

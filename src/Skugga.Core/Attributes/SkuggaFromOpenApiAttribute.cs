@@ -30,7 +30,7 @@ namespace Skugga.Core
     /// <code>
     /// [SkuggaFromOpenApi("https://api.stripe.com/v1/swagger.json")]
     /// public partial interface IStripeClient { }
-    /// 
+    ///
     /// // In your test:
     /// var mock = Mock.Create&lt;IStripeClient&gt;();
     /// var invoice = mock.GetInvoice("inv_123"); // Returns realistic data from spec
@@ -144,20 +144,20 @@ namespace Skugga.Core
         /// <code>
         /// [SkuggaFromOpenApi("api.json", StatefulBehavior = true)]
         /// public partial interface IUserApi { }
-        /// 
+        ///
         /// var mock = Mock.Create&lt;IUserApi&gt;();
-        /// 
+        ///
         /// // POST creates user with ID 1
         /// var user = mock.CreateUser(new User { Name = "Alice" });
         /// Assert.Equal(1, user.Id);
-        /// 
+        ///
         /// // GET retrieves created user
         /// var retrieved = mock.GetUser(1);
         /// Assert.Equal("Alice", retrieved.Name);
-        /// 
+        ///
         /// // PUT updates user
         /// mock.UpdateUser(1, new User { Name = "Alice Updated" });
-        /// 
+        ///
         /// // DELETE removes user
         /// mock.DeleteUser(1);
         /// Assert.Throws&lt;NotFoundException&gt;(() => mock.GetUser(1));
@@ -191,12 +191,12 @@ namespace Skugga.Core
         /// <code>
         /// [SkuggaFromOpenApi("api.json", ValidateContracts = true)]
         /// public partial interface IStripeApi { }
-        /// 
+        ///
         /// var client = new StripeClient();
-        /// 
+        ///
         /// // Automatically validates response matches schema
         /// var invoice = await client.GetInvoice("inv_123");
-        /// 
+        ///
         /// // If API returns { id: 123 } instead of { id: "inv_123" }
         /// // Throws: ContractViolationException: Field 'id' expected type 'string', got 'integer'
         /// </code>
@@ -235,20 +235,20 @@ namespace Skugga.Core
         /// <code>
         /// [SkuggaFromOpenApi("api.json", AutomaticallyHandleAuth = true)]
         /// public partial interface IGitHubApi { }
-        /// 
+        ///
         /// var mock = new IGitHubApiMock();
-        /// 
+        ///
         /// // Configure test scenario: expired token
         /// mock.ConfigureSecurity(tokenExpired: true);
-        /// 
+        ///
         /// // This will throw UnauthorizedException
-        /// await Assert.ThrowsAsync&lt;UnauthorizedException&gt;(() =&gt; 
+        /// await Assert.ThrowsAsync&lt;UnauthorizedException&gt;(() =&gt;
         ///     mock.GetRepository("owner", "repo"));
-        /// 
+        ///
         /// // Reset to valid token
         /// mock.ConfigureSecurity(tokenExpired: false);
         /// var repo = await mock.GetRepository("owner", "repo"); // Works
-        /// 
+        ///
         /// // Access generated tokens for assertions
         /// var token = mock.GenerateAccessToken(); // "Bearer eyJ..."
         /// Assert.StartsWith("Bearer ", token);

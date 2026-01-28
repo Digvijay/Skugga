@@ -24,6 +24,7 @@ namespace Skugga.Core
     /// <item><description>Out/ref parameter support (static and dynamic)</description></item>
     /// <item><description>Event raising on invocation</description></item>
     /// <item><description>Sequential ordering (InSequence)</description></item>
+    /// <item><description>Verifiability for MockRepository/VerifyAll (IsVerifiable)</description></item>
     /// </list>
     /// </remarks>
     public class MockSetup
@@ -91,6 +92,11 @@ namespace Skugga.Core
         /// Tracks the current index in SequentialValues for sequential returns.
         /// </summary>
         private int _sequentialIndex = 0;
+
+        /// <summary>
+        /// Sentinel value returned by MockHandler.Invoke to indicate that the base implementation should be called.
+        /// </summary>
+        public static readonly object CallBaseMarker = new object();
 
         #region Event Support
 
@@ -167,8 +173,18 @@ namespace Skugga.Core
         /// These parameters are ignored during matching since their values are outputs, not inputs.
         /// </remarks>
         public HashSet<int>? RefOutParameterIndices { get; set; }
-
         #endregion
+        /// <summary>
+        /// Gets or sets whether this setup is required to be called for Verify().
+        /// </summary>
+        public bool IsVerifiable { get; set; }
+
+        /// <summary>
+        /// Gets the number of times this setup has been matched by an invocation.
+        /// </summary>
+        public int CallCount { get; internal set; }
+
+
 
         /// <summary>
         /// Initializes a new MockSetup with the specified configuration.
@@ -207,7 +223,9 @@ namespace Skugga.Core
         {
             // Quick checks: signature and argument count must match
             if (Signature != sig || Args.Length != args.Length)
+            {
                 return false;
+            }
 
             // Check each argument
             for (int i = 0; i < Args.Length; i++)
@@ -217,21 +235,42 @@ namespace Skugga.Core
                 if (RefOutParameterIndices != null && RefOutParameterIndices.Contains(i))
                     continue;
 
-                // If the setup arg is a matcher (e.g., It.IsAny<T>()), use its Matches() method
-                if (Args[i] is ArgumentMatcher matcher)
-                {
-                    if (!matcher.Matches(args[i]))
-                        return false;
-                }
-                else
-                {
-                    // Standard equality check for non-matcher arguments
-                    if (Args[i] != null && !Args[i]!.Equals(args[i]))
-                        return false;
-                }
+                if (!AreArgumentsEquivalent(Args[i], args[i]))
+                    return false;
             }
 
             return true;
+        }
+
+        private static bool AreArgumentsEquivalent(object? expected, object? actual)
+        {
+            // If the expected arg (from setup) is a matcher, use its Matches() method
+            if (expected is ArgumentMatcher matcher)
+            {
+                return matcher.Matches(actual);
+            }
+
+            // Handle arrays (including params)
+            if (expected is Array expectedArray && actual is Array actualArray)
+            {
+                if (expectedArray.Length != actualArray.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < expectedArray.Length; i++)
+                {
+                    if (!AreArgumentsEquivalent(expectedArray.GetValue(i), actualArray.GetValue(i)))
+                        return false;
+                }
+                return true;
+            }
+
+            // Standard equality check for non-matcher arguments
+            if (expected == null)
+                return actual == null;
+
+            return expected.Equals(actual);
         }
 
         /// <summary>

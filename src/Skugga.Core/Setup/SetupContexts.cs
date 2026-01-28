@@ -49,9 +49,9 @@ namespace Skugga.Core
         public object?[] Args { get; }
 
         /// <summary>
-        /// Gets or sets the underlying MockSetup instance (created when Returns/Callback is called).
+        /// Gets the underlying MockSetup instance.
         /// </summary>
-        internal MockSetup? Setup { get; set; }
+        public MockSetup? Setup { get; internal set; }
 
         /// <summary>
         /// Initializes a new setup context.
@@ -59,11 +59,13 @@ namespace Skugga.Core
         /// <param name="handler">The mock handler</param>
         /// <param name="signature">The method signature</param>
         /// <param name="args">The expected arguments</param>
-        public SetupContext(MockHandler handler, string signature, object?[] args)
+        /// <param name="setup">Optional pre-created setup</param>
+        public SetupContext(MockHandler handler, string signature, object?[] args, MockSetup? setup = null)
         {
             Handler = handler;
             Signature = signature;
             Args = args;
+            Setup = setup;
         }
     }
 
@@ -103,9 +105,9 @@ namespace Skugga.Core
         public object?[] Args { get; }
 
         /// <summary>
-        /// Gets or sets the underlying MockSetup instance (created when Callback is called).
+        /// Gets the underlying MockSetup instance.
         /// </summary>
-        internal MockSetup? Setup { get; set; }
+        public MockSetup? Setup { get; internal set; }
 
         /// <summary>
         /// Initializes a new void setup context.
@@ -113,11 +115,13 @@ namespace Skugga.Core
         /// <param name="handler">The mock handler</param>
         /// <param name="signature">The method signature</param>
         /// <param name="args">The expected arguments</param>
-        public VoidSetupContext(MockHandler handler, string signature, object?[] args)
+        /// <param name="setup">Optional pre-created setup</param>
+        public VoidSetupContext(MockHandler handler, string signature, object?[] args, MockSetup? setup = null)
         {
             Handler = handler;
             Signature = signature;
             Args = args;
+            Setup = setup;
         }
     }
 
@@ -144,7 +148,7 @@ namespace Skugga.Core
     ///     .Returns(2)
     ///     .Throws(new InvalidOperationException())
     ///     .Returns(3);
-    /// 
+    ///
     /// mock.GetNext(); // 1
     /// mock.GetNext(); // 2
     /// mock.GetNext(); // throws InvalidOperationException
@@ -243,7 +247,7 @@ namespace Skugga.Core
         ///     .Returns(false)  // First attempt fails
         ///     .Returns(false)  // Second attempt fails
         ///     .Returns(true);  // Third attempt succeeds
-        /// 
+        ///
         /// mock.SetupSequence(x => x.GetData())
         ///     .Returns("data1")
         ///     .Throws(new TimeoutException())  // Simulates timeout

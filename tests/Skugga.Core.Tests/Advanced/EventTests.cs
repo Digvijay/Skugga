@@ -293,7 +293,7 @@ public class EventTests
         var mock = Mock.Create<IStandardEvents>();
 
         // Act & Assert
-        var ex = Assert.Throws<VerificationException>(() =>
+        var ex = Assert.Throws<MockException>(() =>
             mock.VerifyAdd(nameof(IStandardEvents.StandardEvent), Times.Once()));
 
         Assert.Contains("StandardEvent", ex.Message);
@@ -363,7 +363,7 @@ public class EventTests
         mock.StandardEvent += handler;
 
         // Act & Assert
-        var ex = Assert.Throws<VerificationException>(() =>
+        var ex = Assert.Throws<MockException>(() =>
             mock.VerifyRemove(nameof(IStandardEvents.StandardEvent), Times.Once()));
 
         Assert.Contains("StandardEvent", ex.Message);

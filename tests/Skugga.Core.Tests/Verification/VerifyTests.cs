@@ -46,7 +46,7 @@ public class VerifyTests
         mock.Execute();
 
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() =>
+        var exception = Assert.ThrowsAny<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.Never()));
 
         exception.Message.Should().Contain("Expected exactly 0 call(s)");
@@ -61,7 +61,7 @@ public class VerifyTests
         var mock = Mock.Create<ITestService>();
 
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() =>
+        var exception = Assert.ThrowsAny<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.Once()));
 
         exception.Message.Should().Contain("Expected exactly 1 call(s)");
@@ -127,7 +127,7 @@ public class VerifyTests
         mock.Execute();
 
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() =>
+        var exception = Assert.ThrowsAny<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.AtLeast(2)));
 
         exception.Message.Should().Contain("at least 2");
@@ -160,7 +160,7 @@ public class VerifyTests
         mock.Execute();
 
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() =>
+        var exception = Assert.ThrowsAny<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.AtMost(2)));
 
         exception.Message.Should().Contain("at most 2");
@@ -192,7 +192,7 @@ public class VerifyTests
         mock.Execute();
 
         // Act & Assert
-        var exception = Assert.Throws<MockException>(() =>
+        var exception = Assert.ThrowsAny<MockException>(() =>
             mock.Verify(x => x.Execute(), Times.Between(2, 5)));
 
         exception.Message.Should().Contain("between 2 and 5");

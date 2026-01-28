@@ -5,19 +5,19 @@ namespace Skugga.Core.Tests;
 
 /// <summary>
 /// Tests for Multiple Interface Implementation using As<T>()
-/// 
+///
 /// IMPORTANT LIMITATION - AOT Compatibility Constraint:
 /// Skugga is fully AOT-compatible and uses compile-time code generation only.
 /// Unlike Moq which uses runtime IL generation, Skugga cannot dynamically add interface implementations at runtime.
-/// 
+///
 /// The As<T>() API is provided for Moq API compatibility and tracks the requested interfaces in the MockHandler,
 /// but the generated mock class must declare all interfaces at compile-time.
-/// 
+///
 /// WORKAROUND: For multiple interface scenarios, consider:
 /// 1. Creating separate mock instances for each interface
-/// 2. Using explicit interface declarations if known at design time  
+/// 2. Using explicit interface declarations if known at design time
 /// 3. Wrapping/composing mocks when multiple interfaces are needed
-/// 
+///
 /// This is a fundamental trade-off: Skugga chooses AOT compatibility and zero-runtime-reflection
 /// over Moq's dynamic runtime proxy generation capabilities.
 /// </summary>

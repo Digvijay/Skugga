@@ -21,10 +21,10 @@ namespace Skugga.Core
     /// <code>
     /// var sequence = new MockSequence();
     /// var mock = Mock.Create&lt;IService&gt;();
-    /// 
+    ///
     /// mock.InSequence(sequence).Setup(x => x.Initialize()).Returns(true);
     /// mock.InSequence(sequence).Setup(x => x.Execute()).Returns("done");
-    /// 
+    ///
     /// // Must be called in order
     /// mock.Initialize(); // OK
     /// mock.Execute();    // OK
@@ -101,9 +101,9 @@ namespace Skugga.Core
     /// <code>
     /// var mock = Mock.Create&lt;IParser&gt;();
     /// var outValue = new OutValue&lt;int&gt;(42);
-    /// 
+    ///
     /// mock.Setup(x => x.TryParse("test", out outValue)).Returns(true);
-    /// 
+    ///
     /// int result;
     /// bool success = mock.TryParse("test", out result);
     /// // result is now 42, success is true
@@ -143,15 +143,15 @@ namespace Skugga.Core
     /// <example>
     /// <code>
     /// var mock = Mock.Create&lt;IProcessor&gt;();
-    /// 
+    ///
     /// // Exact value matching
     /// var refValue = new RefValue&lt;int&gt;(42);
     /// mock.Setup(x => x.Process(ref refValue)).Returns(true);
-    /// 
+    ///
     /// // Validator matching
     /// var refValidator = new RefValue&lt;int&gt;(x => x > 0);
     /// mock.Setup(x => x.Process(ref refValidator)).Returns(true);
-    /// 
+    ///
     /// // Any value matching
     /// mock.Setup(x => x.Process(ref RefValue&lt;int&gt;.IsAny)).Returns(true);
     /// </code>

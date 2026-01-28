@@ -5,7 +5,7 @@ namespace Skugga.Core.Tests;
 
 /// <summary>
 /// Tests for Protected Members
-/// 
+///
 /// Skugga has an ADVANTAGE over Moq here - we have full access to the source code through Roslyn!
 /// While Moq requires runtime reflection, Skugga can analyze the abstract class at compile-time
 /// and generate concrete implementations with proper protected member overrides.
@@ -181,7 +181,7 @@ public class ProtectedMembersTests
 
         // Assert
         Assert.NotNull(protectedSetup);
-        Assert.IsAssignableFrom<IProtectedMockSetup>(protectedSetup);
+        Assert.IsAssignableFrom<IProtectedMockSetup<AbstractService>>(protectedSetup);
         Assert.Same(((IMockSetup)mock).Handler, protectedSetup.Handler);
     }
 }

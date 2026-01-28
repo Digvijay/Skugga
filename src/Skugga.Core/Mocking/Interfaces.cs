@@ -24,10 +24,10 @@ namespace Skugga.Core
     /// <code>
     /// var mock = Mock.Create&lt;IService&gt;();
     /// mock.Setup(x => x.GetData()).Returns("test");
-    /// 
+    ///
     /// // Retrieve IMockSetup interface
     /// var mockSetup = Mock.Get(mock);
-    /// 
+    ///
     /// // Access handler for verification
     /// mockSetup.Handler.Verify(x => x.GetData(), Times.Once());
     /// </code>
@@ -55,15 +55,15 @@ namespace Skugga.Core
     /// <example>
     /// <code>
     /// var mock = Mock.Create&lt;MyBaseClass&gt;();
-    /// 
+    ///
     /// // Setup protected method
     /// mock.Protected().Setup&lt;string&gt;("GetProtectedData", 42).Returns("result");
-    /// 
+    ///
     /// // Setup protected property
     /// mock.Protected().SetupGet&lt;int&gt;("ProtectedCount").Returns(10);
     /// </code>
     /// </example>
-    public interface IProtectedMockSetup
+    public interface IProtectedMockSetup<T> where T : class
     {
         /// <summary>
         /// Gets the mock handler for accessing setup and verification capabilities.
@@ -75,17 +75,17 @@ namespace Skugga.Core
         /// </summary>
         /// <typeparam name="TResult">The return type of the method</typeparam>
         /// <param name="methodName">The exact name of the protected method</param>
-        /// <param name="args">The method arguments (use It.IsAny&lt;T&gt;() for wildcards)</param>
+        /// <param name="args">The method arguments (use ItExpr.IsAny&lt;T&gt;() for wildcards)</param>
         /// <returns>Setup context for configuring return value and callbacks</returns>
-        ProtectedSetupContext<TResult> Setup<TResult>(string methodName, params object?[] args);
+        SetupContext<T, TResult> Setup<TResult>(string methodName, params object?[] args);
 
         /// <summary>
         /// Sets up a protected void method.
         /// </summary>
         /// <param name="methodName">The exact name of the protected void method</param>
-        /// <param name="args">The method arguments (use It.IsAny&lt;T&gt;() for wildcards)</param>
+        /// <param name="args">The method arguments (use ItExpr.IsAny&lt;T&gt;() for wildcards)</param>
         /// <returns>Setup context for configuring callbacks</returns>
-        ProtectedVoidSetupContext Setup(string methodName, params object?[] args);
+        VoidSetupContext<T> Setup(string methodName, params object?[] args);
 
         /// <summary>
         /// Sets up a protected property getter.
@@ -93,6 +93,16 @@ namespace Skugga.Core
         /// <typeparam name="TResult">The property type</typeparam>
         /// <param name="propertyName">The exact name of the protected property</param>
         /// <returns>Setup context for configuring return value</returns>
-        ProtectedSetupContext<TResult> SetupGet<TResult>(string propertyName);
+        SetupContext<T, TResult> SetupGet<TResult>(string propertyName);
+
+        /// <summary>
+        /// Verifies that a protected method was called.
+        /// </summary>
+        void Verify(string methodName, Times times, params object?[] args);
+
+        /// <summary>
+        /// Verifies that a protected property getter was called.
+        /// </summary>
+        void VerifyGet<TResult>(string propertyName, Times times);
     }
 }

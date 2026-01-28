@@ -226,7 +226,7 @@ namespace Skugga.OpenApi.Tests.Performance
         public void IncrementalBuildTime_IsFast()
         {
             // MANUAL PERFORMANCE TEST
-            // 
+            //
             // This test demonstrates the speed improvement of incremental builds.
             // Run with: dotnet test --filter IncrementalBuildTime
             //

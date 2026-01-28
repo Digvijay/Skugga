@@ -21,7 +21,7 @@ namespace Skugga.Core
     /// <example>
     /// <code>
     /// var mock = Mock.Create&lt;IService&gt;();
-    /// 
+    ///
     /// // Configure chaos mode with 30% failure rate
     /// mock.Chaos(policy => {
     ///     policy.FailureRate = 0.3;  // 30% of calls will fail
@@ -32,7 +32,7 @@ namespace Skugga.Core
     ///     policy.TimeoutMilliseconds = 100;  // Simulate slow responses
     ///     policy.Seed = 42;  // Reproducible chaos
     /// });
-    /// 
+    ///
     /// // Test your code handles failures
     /// for (int i = 0; i < 100; i++)
     /// {
@@ -42,7 +42,7 @@ namespace Skugga.Core
     ///         // Verify your error handling works
     ///     }
     /// }
-    /// 
+    ///
     /// // Check statistics
     /// var stats = mock.Handler.ChaosStatistics;
     /// Console.WriteLine($"Triggered {stats.ChaosTriggeredCount} failures out of {stats.TotalInvocations} calls");
@@ -122,7 +122,7 @@ namespace Skugga.Core
         /// <code>
         /// // Simulate 500ms network latency
         /// policy.TimeoutMilliseconds = 500;
-        /// 
+        ///
         /// // Test timeout handling
         /// using var cts = new CancellationTokenSource(1000);
         /// await service.GetDataAsync(cts.Token);  // Should complete before timeout
@@ -153,7 +153,7 @@ namespace Skugga.Core
         /// <code>
         /// // Reproducible chaos for debugging
         /// policy.Seed = 12345;
-        /// 
+        ///
         /// // Run test multiple times - same failures occur
         /// for (int run = 0; run < 5; run++)
         /// {
@@ -174,12 +174,12 @@ namespace Skugga.Core
     /// <example>
     /// <code>
     /// var stats = mock.Handler.ChaosStatistics;
-    /// 
+    ///
     /// Console.WriteLine($"Total invocations: {stats.TotalInvocations}");
     /// Console.WriteLine($"Chaos triggered: {stats.ChaosTriggeredCount}");
     /// Console.WriteLine($"Timeouts applied: {stats.TimeoutTriggeredCount}");
     /// Console.WriteLine($"Actual failure rate: {stats.ActualFailureRate:P2}");
-    /// 
+    ///
     /// // Assert chaos is working as expected
     /// Assert.InRange(stats.ActualFailureRate, 0.25, 0.35);  // Expected ~30%
     /// </code>

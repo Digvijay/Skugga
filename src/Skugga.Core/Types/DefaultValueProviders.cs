@@ -57,7 +57,7 @@ namespace Skugga.Core
         /// </summary>
         /// <param name="type">The type to get a default value for</param>
         /// <param name="mock">The mock instance (not used by this implementation)</param>
-        /// <returns>The default value: default(T) for value types, empty string for string, 
+        /// <returns>The default value: default(T) for value types, empty string for string,
         /// empty collections for collection types, null for reference types</returns>
         public override object? GetDefaultValue(
             [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(
@@ -206,7 +206,7 @@ namespace Skugga.Core
         /// </summary>
         /// <param name="type">The type to get a default value for</param>
         /// <param name="mock">The mock instance requesting the value</param>
-        /// <returns>A mock instance for interfaces/abstract types, empty collections for collection types, 
+        /// <returns>A mock instance for interfaces/abstract types, empty collections for collection types,
         /// default values for value types, or null for concrete reference types</returns>
         public override object? GetDefaultValue(
             [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(

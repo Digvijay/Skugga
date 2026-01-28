@@ -51,25 +51,25 @@ public class SkuggaGeneratorTests
             {
                 public static T Create<T>(MockBehavior behavior = MockBehavior.Loose) => default!;
             }
-            
+
             public static class Harness
             {
                 public static TestHarness<T> Create<T>() where T : class => default!;
             }
-            
+
             public enum MockBehavior { Loose, Strict }
-            
+
             public interface IMockSetup
             {
                 MockHandler Handler { get; }
             }
-            
+
             public class MockHandler
             {
                 public MockBehavior Behavior { get; set; }
                 public object? Invoke(string methodName, object?[] args) => null;
             }
-            
+
             public abstract class TestHarness<T> where T : class
             {
                 protected readonly Dictionary<Type, object> _mocks = new();
@@ -93,14 +93,14 @@ public class SkuggaGeneratorTests
     {
         var source = """
             using Skugga.Core;
-            
+
             namespace TestNamespace
             {
                 public interface IService
                 {
                     string GetData();
                 }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()
@@ -132,14 +132,14 @@ public class SkuggaGeneratorTests
     {
         var source = """
             using Skugga.Core;
-            
+
             namespace TestNamespace
             {
                 public interface IService
                 {
                     void DoWork();
                 }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()
@@ -155,7 +155,7 @@ public class SkuggaGeneratorTests
             var interceptor = generatedSources.FirstOrDefault(s => s.Contains("InterceptsLocationAttribute"));
             interceptor.Should().NotBeNull("should generate interceptor");
             interceptor.Should().Contain("public static", "interceptor should be public static");
-            interceptor.Should().Contain("IService Create", "should intercept Create method");
+            interceptor.Should().Contain("Create<T>", "should intercept Create method");
         });
     }
 
@@ -169,7 +169,7 @@ public class SkuggaGeneratorTests
     {
         var source = """
             using Skugga.Core;
-            
+
             namespace TestNamespace
             {
                 public interface ICalculator
@@ -177,7 +177,7 @@ public class SkuggaGeneratorTests
                     int Add(int a, int b);
                     void Reset();
                 }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()
@@ -207,7 +207,7 @@ public class SkuggaGeneratorTests
     {
         var source = """
             using Skugga.Core;
-            
+
             namespace TestNamespace
             {
                 public interface IRepository
@@ -215,7 +215,7 @@ public class SkuggaGeneratorTests
                     string ConnectionString { get; set; }
                     int Count { get; }
                 }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()
@@ -249,14 +249,14 @@ public class SkuggaGeneratorTests
     {
         var source = """
             using Skugga.Core;
-            
+
             namespace TestNamespace
             {
                 public interface IService
                 {
                     void Execute();
                 }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()
@@ -285,20 +285,20 @@ public class SkuggaGeneratorTests
     {
         var source = """
             using Skugga.Core;
-            
+
             namespace TestNamespace
             {
                 public interface IRepository
                 {
                     string Get(int id);
                 }
-                
+
                 public class UserService
                 {
                     private readonly IRepository _repo;
                     public UserService(IRepository repo) => _repo = repo;
                 }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()
@@ -328,14 +328,14 @@ public class SkuggaGeneratorTests
     {
         var source = """
             using Skugga.Core;
-            
+
             namespace TestNamespace
             {
                 public interface IService
                 {
                     void Execute();
                 }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()
@@ -364,12 +364,12 @@ public class SkuggaGeneratorTests
     {
         var source = """
             using Skugga.Core;
-            
+
             namespace TestNamespace
             {
                 public interface IServiceA { void MethodA(); }
                 public interface IServiceB { void MethodB(); }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()
@@ -399,14 +399,14 @@ public class SkuggaGeneratorTests
         var source = """
             using Skugga.Core;
             using System.Threading.Tasks;
-            
+
             namespace TestNamespace
             {
                 public interface IAsyncService
                 {
                     Task<string> GetAsync(int id);
                 }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()
@@ -435,14 +435,14 @@ public class SkuggaGeneratorTests
     {
         var source = """
             using Skugga.Core;
-            
+
             namespace TestNamespace
             {
                 public interface IService
                 {
                     void Execute();
                 }
-                
+
                 public class TestClass
                 {
                     public void TestMethod()

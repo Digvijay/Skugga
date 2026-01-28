@@ -29,16 +29,16 @@ namespace Skugga.Core
     /// // Wrap real service with recording proxy
     /// var realService = new MyService();
     /// var recorded = AutoScribe.Capture(realService);
-    /// 
+    ///
     /// // Use the service normally - calls are recorded
     /// recorded.Initialize();
     /// var result = recorded.GetData(42);
     /// recorded.Process(result);
-    /// 
+    ///
     /// // Export recordings for analysis
     /// var json = AutoScribe.ExportToJson(recorded.Recordings);
     /// var csv = AutoScribe.ExportToCsv(recorded.Recordings);
-    /// 
+    ///
     /// // Create replay context for verification
     /// var replay = AutoScribe.CreateReplayContext(recorded.Recordings);
     /// Assert.True(replay.VerifyNextCall("Initialize", Array.Empty&lt;object&gt;()));
@@ -75,12 +75,12 @@ namespace Skugga.Core
         /// // Record real database calls
         /// var realDb = new SqlDatabase(connectionString);
         /// var recordedDb = AutoScribe.Capture&lt;IDatabase&gt;(realDb);
-        /// 
+        ///
         /// // Use normally - all calls are logged with timing
         /// recordedDb.Connect();
         /// var users = recordedDb.Query("SELECT * FROM Users");
         /// recordedDb.Disconnect();
-        /// 
+        ///
         /// // Analyze call patterns
         /// foreach (var call in recordedDb.Recordings)
         /// {
@@ -111,7 +111,7 @@ namespace Skugga.Core
         /// <code>
         /// var json = AutoScribe.ExportToJson(recorded.Recordings);
         /// File.WriteAllText("api-calls.json", json);
-        /// 
+        ///
         /// // Later, load and replay
         /// var loadedJson = File.ReadAllText("api-calls.json");
         /// // Parse and create replay context...
@@ -140,7 +140,7 @@ namespace Skugga.Core
         /// <code>
         /// var csv = AutoScribe.ExportToCsv(recorded.Recordings);
         /// File.WriteAllText("api-calls.csv", csv);
-        /// 
+        ///
         /// // Open in Excel for analysis:
         /// // - Which methods are called most frequently?
         /// // - What are the slowest operations?
@@ -173,7 +173,7 @@ namespace Skugga.Core
         /// var recorded = AutoScribe.Capture(realService);
         /// // ... use service ...
         /// var replay = AutoScribe.CreateReplayContext(recorded.Recordings);
-        /// 
+        ///
         /// // Test new implementation matches recorded behavior
         /// var newService = new OptimizedService();
         /// foreach (var expectedCall in replay.Recordings)
@@ -274,7 +274,7 @@ namespace Skugga.Core
         /// <example>
         /// <code>
         /// var replay = AutoScribe.CreateReplayContext(recordings);
-        /// 
+        ///
         /// Assert.True(replay.VerifyNextCall("Initialize", Array.Empty&lt;object&gt;()));
         /// Assert.True(replay.VerifyNextCall("GetData", new object[] { 42 }));
         /// Assert.True(replay.VerifyNextCall("Process", new object[] { "result" }));
@@ -350,21 +350,21 @@ namespace Skugga.Core
     /// {
     ///     public IDatabase DatabaseMock { get; }
     ///     public ILogger LoggerMock { get; }
-    ///     
+    ///
     ///     public UserServiceHarness()
     ///     {
     ///         DatabaseMock = Mock.Create&lt;IDatabase&gt;();
     ///         LoggerMock = Mock.Create&lt;ILogger&gt;();
-    ///         
+    ///
     ///         SUT = new UserService(DatabaseMock, LoggerMock);
     ///     }
-    ///     
+    ///
     ///     public void SetupValidUser(int userId, string name)
     ///     {
     ///         DatabaseMock.Setup(x => x.GetUser(userId)).Returns(new User { Id = userId, Name = name });
     ///     }
     /// }
-    /// 
+    ///
     /// // Use in tests
     /// var harness = new UserServiceHarness();
     /// harness.SetupValidUser(42, "John");

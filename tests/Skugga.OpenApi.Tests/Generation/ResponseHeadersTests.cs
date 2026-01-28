@@ -111,7 +111,7 @@ namespace Skugga.OpenApi.Tests.Generation
         // {
         //     var mock = new IResponseHeadersApiMock();
         //     var response = await mock.GetUser(123);
-        //     
+        //
         //     Assert.NotNull(response.Body);
         //     Assert.NotNull(response.Headers);
         //     Assert.True(response.Headers.ContainsKey("X-RateLimit-Limit"));

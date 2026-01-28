@@ -39,20 +39,62 @@ namespace Skugga.Core
             if (mock is not IMockSetup setup)
                 throw new ArgumentException("Object is not a Skugga Mock");
 
+            MockHandler handler = setup.Handler;
+            Expression? targetExpression = null;
+            string memberName;
+            object?[] args;
+
             // Handle both method calls and property access
             if (expression.Body is MethodCallExpression methodCall)
             {
                 // Method call: mock.Setup(x => x.GetData(42))
-                var args = methodCall.Arguments.Select(GetArgumentValue).ToArray();
-                return new SetupContext<TMock, TResult>(setup.Handler, methodCall.Method.Name, args);
+                targetExpression = methodCall.Object;
+                memberName = methodCall.Method.Name;
+                args = methodCall.Arguments.Select(GetArgumentValue).ToArray();
             }
             else if (expression.Body is MemberExpression memberAccess && memberAccess.Member.MemberType == System.Reflection.MemberTypes.Property)
             {
                 // Property access: mock.Setup(x => x.Name)
-                return new SetupContext<TMock, TResult>(setup.Handler, "get_" + memberAccess.Member.Name, Array.Empty<object?>());
+                targetExpression = memberAccess.Expression;
+                memberName = "get_" + memberAccess.Member.Name;
+                args = Array.Empty<object?>();
+            }
+            else
+            {
+                throw new ArgumentException($"Expression must be a method call or property access, got: {expression.Body.GetType().Name}");
             }
 
-            throw new ArgumentException($"Expression must be a method call or property access, got: {expression.Body.GetType().Name}");
+            // Handle recursive setups (e.g. x => x.Prop.Method())
+            if (targetExpression != null && targetExpression != expression.Parameters[0])
+            {
+                try
+                {
+                    // Evaluate the target expression on the mock
+                    // This calls the property getters/methods to get the intermediate mock
+                    var lambda = Expression.Lambda(targetExpression, expression.Parameters);
+                    var func = lambda.Compile();
+                    var targetObject = func.DynamicInvoke(mock);
+
+                    if (targetObject is IMockSetup innerSetup)
+                    {
+                        handler = innerSetup.Handler;
+                    }
+                    else if (targetObject != null)
+                    {
+                        throw new ArgumentException($"Recursive setup target '{targetExpression}' returned a non-mock object of type {targetObject.GetType().Name}. Only Skugga mocks can be setup.");
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Recursive setup target '{targetExpression}' returned null. Ensure recursive mocking is enabled (DefaultValue.Mock).");
+                    }
+                }
+                catch (Exception ex) when (ex is not ArgumentException)
+                {
+                    throw new ArgumentException($"Failed to resolve recursive setup target: {ex.Message}", ex);
+                }
+            }
+
+            return new SetupContext<TMock, TResult>(handler, memberName, args);
         }
 
         /// <summary>
@@ -109,6 +151,33 @@ namespace Skugga.Core
             throw new ArgumentException($"Expression must be a method call or property access, got: {expression.Body.GetType().Name}");
         }
 
+        /// <summary>
+        /// Sets up a property setter on the mock.
+        /// </summary>
+        /// <typeparam name="TMock">The type being mocked</typeparam>
+        /// <param name="mock">The mock instance</param>
+        /// <param name="expression">Lambda expression specifying the property assignment (x => x.Property = value)</param>
+        /// <returns>A void setup context that can be configured with Callback()</returns>
+        /// <remarks>
+        /// This method is intercepted at compile time by the source generator.
+        /// Use it to configure behavior for property setters, such as callbacks or specific value matching.
+        /// </remarks>
+        /// <example>
+        /// mock.SetupSet(x => x.Name = "John").Callback(() => Console.WriteLine("Name set"));
+        /// </example>
+        public static VoidSetupContext<TMock> SetupSet<TMock>(this TMock mock, Action<TMock> expression)
+        {
+            if (mock is not IMockSetup setup)
+                throw new ArgumentException("Object is not a Skugga Mock");
+
+            // This method MUST be intercepted by the source generator.
+            // There is no runtime-only fallback because extracting property/value from Action<T>
+            // without reflection or expression trees is not possible in this zero-reflection library.
+            throw new InvalidOperationException(
+                $"[Skugga] Source generator failed to intercept SetupSet.\n" +
+                "Ensure your project references Skugga.Generator and enables interceptors.");
+        }
+
         #endregion
 
         #region Verification Methods
@@ -150,13 +219,8 @@ namespace Skugga.Core
                 throw new ArgumentException($"Expression must be a method call or property access, got: {expression.Body.GetType().Name}");
             }
 
-            // Count matching invocations
-            int count = setup.Handler.Invocations.Count(inv => inv.Matches(signature, args));
-
-            if (!times.Validate(count))
-            {
-                throw new MockException($"Expected {times.Description} call(s) to '{signature}', but was called {count} time(s).");
-            }
+            // Delegate to handler which tracks verification status
+            setup.Handler.Verify(signature, args, times, null);
         }
 
         /// <summary>
@@ -173,12 +237,34 @@ namespace Skugga.Core
             string signature = methodCall.Method.Name;
             object?[] args = methodCall.Arguments.Select(GetArgumentValue).ToArray();
 
-            int count = setup.Handler.Invocations.Count(inv => inv.Matches(signature, args));
+            // Delegate to handler
+            setup.Handler.Verify(signature, args, times, null);
+        }
 
-            if (!times.Validate(count))
-            {
-                throw new MockException($"Expected {times.Description} call(s) to '{signature}', but was called {count} time(s).");
-            }
+        #endregion
+
+        #region Management Methods
+
+        /// <summary>
+        /// Clears all setups and invocation history for this mock.
+        /// </summary>
+        public static void Reset<TMock>(this TMock mock) where TMock : class
+        {
+            if (mock is not IMockSetup setup)
+                throw new ArgumentException("Object is not a Skugga Mock");
+
+            setup.Handler.Reset();
+        }
+
+        /// <summary>
+        /// Clears only the invocation history for this mock, keeping all setups.
+        /// </summary>
+        public static void ResetCalls<TMock>(this TMock mock) where TMock : class
+        {
+            if (mock is not IMockSetup setup)
+                throw new ArgumentException("Object is not a Skugga Mock");
+
+            setup.Handler.ResetCalls();
         }
 
         #endregion
@@ -231,27 +317,12 @@ namespace Skugga.Core
             setup.Handler.SetupPropertyStorage(propertyName, defaultValue);
         }
 
-        /// <summary>
-        /// Sets up all properties on the interface with automatic backing fields.
-        /// </summary>
-        /// <typeparam name="TMock">The type being mocked</typeparam>
-        /// <param name="mock">The mock instance</param>
-        /// <example>
-        /// mock.SetupAllProperties();
-        /// mock.Name = "John";
-        /// mock.Age = 30;
-        /// Assert.Equal("John", mock.Name);
-        /// Assert.Equal(30, mock.Age);
-        /// </example>
-        public static void SetupAllProperties<TMock>(this TMock mock)
+        public static void SetupAllProperties<TMock>(this TMock mock) where TMock : class
         {
             if (mock is not IMockSetup setup)
                 throw new ArgumentException("Object is not a Skugga Mock");
 
-            // Get all properties from the interface using reflection
-            var interfaceType = typeof(TMock);
-            var properties = interfaceType.GetProperties();
-
+            var properties = typeof(TMock).GetProperties();
             foreach (var property in properties)
             {
                 // Only setup if not already setup (respect individual SetupProperty calls)
@@ -290,13 +361,8 @@ namespace Skugga.Core
             string signature = "get_" + memberAccess.Member.Name;
             object?[] args = Array.Empty<object?>();
 
-            // Count how many times the getter was invoked
-            int count = setup.Handler.Invocations.Count(inv => inv.Matches(signature, args));
-
-            if (!times.Validate(count))
-            {
-                throw new MockException($"Expected {times.Description} call(s) to '{signature}', but was called {count} time(s).");
-            }
+            // Delegate to handler
+            setup.Handler.Verify(signature, args, times, null);
         }
 
         /// <summary>
@@ -334,14 +400,29 @@ namespace Skugga.Core
             object? expectedValue = GetArgumentValue(valueExpression.Body);
             object?[] args = new[] { expectedValue };
 
-            // Count how many times the setter was invoked with the expected value
-            // ArgumentMatcher support: if expectedValue is an ArgumentMatcher, Invocation.Matches will use it
-            int count = setup.Handler.Invocations.Count(inv => inv.Matches(signature, args));
+            // Delegate to handler
+            setup.Handler.Verify(signature, args, times, null);
+        }
 
-            if (!times.Validate(count))
-            {
-                throw new MockException($"Expected {times.Description} call(s) to '{signature}', but was called {count} time(s).");
-            }
+        /// <summary>
+        /// Verifies that a property setter was called with a specific value using an assignment lambda.
+        /// </summary>
+        /// <typeparam name="TMock">The type being mocked</typeparam>
+        /// <param name="mock">The mock instance</param>
+        /// <param name="setterExpression">Lambda expression specifying the property assignment (x => x.Property = value)</param>
+        /// <param name="times">The expected number of times the setter should be called (default: at least once)</param>
+        /// <example>
+        /// mock.VerifySet(x => x.Name = "John", Times.Once());
+        /// </example>
+        public static void VerifySet<TMock>(this TMock mock, Action<TMock> setterExpression, Times? times = null)
+        {
+            if (mock is not IMockSetup setup)
+                throw new ArgumentException("Object is not a Skugga Mock");
+
+            // This method MUST be intercepted by the source generator.
+            throw new InvalidOperationException(
+                $"[Skugga] Source generator failed to intercept VerifySet.\n" +
+                "Ensure your project references Skugga.Generator and enables interceptors.");
         }
 
         #endregion
@@ -384,13 +465,11 @@ namespace Skugga.Core
 
             string signature = "add_" + eventName;
 
-            // Count event subscriptions
-            int count = setup.Handler.Invocations.Count(inv => inv.Signature == signature);
+            // Use a matcher to match any delegate since we don't know the exact instance used in the test
+            var matcher = new ArgumentMatcher<Delegate>(d => true, "It.IsAny<Delegate>()");
 
-            if (!times.Validate(count))
-            {
-                throw new VerificationException($"Expected {times.Description} subscription(s) to event '{eventName}', but was subscribed {count} time(s).");
-            }
+            // Delegate to handler
+            setup.Handler.Verify(signature, new object?[] { matcher }, times, null);
         }
 
         /// <summary>
@@ -410,13 +489,11 @@ namespace Skugga.Core
 
             string signature = "remove_" + eventName;
 
-            // Count event unsubscriptions
-            int count = setup.Handler.Invocations.Count(inv => inv.Signature == signature);
+            // Use a matcher to match any delegate since we don't know the exact instance used in the test
+            var matcher = new ArgumentMatcher<Delegate>(d => true, "It.IsAny<Delegate>()");
 
-            if (!times.Validate(count))
-            {
-                throw new VerificationException($"Expected {times.Description} unsubscription(s) from event '{eventName}', but was unsubscribed {count} time(s).");
-            }
+            // Delegate to handler
+            setup.Handler.Verify(signature, new object?[] { matcher }, times, null);
         }
 
         #endregion
@@ -431,7 +508,7 @@ namespace Skugga.Core
         /// <param name="mock">The mock instance</param>
         /// <param name="config">Action to configure the chaos policy</param>
         /// <example>
-        /// mock.Chaos(policy => 
+        /// mock.Chaos(policy =>
         /// {
         ///     policy.FailureRate = 0.3; // 30% of calls will fail
         ///     policy.PossibleExceptions = new[] { new TimeoutException(), new IOException() };
@@ -506,12 +583,12 @@ namespace Skugga.Core
         ///     .Setup&lt;int&gt;("ExecuteCore")
         ///     .Returns(42);
         /// </example>
-        public static IProtectedMockSetup Protected<T>(this T mock) where T : class
+        public static IProtectedMockSetup<T> Protected<T>(this T mock) where T : class
         {
             if (mock is not IMockSetup mockSetup)
                 throw new ArgumentException("Object is not a Skugga mock", nameof(mock));
 
-            return new ProtectedMockSetup(mockSetup.Handler);
+            return new ProtectedMockSetup<T>(mockSetup.Handler);
         }
 
         #endregion
@@ -534,216 +611,88 @@ namespace Skugga.Core
         /// - Simple variables captured by closures
         /// - It.* matcher calls (IsAny, Is, IsIn, IsNotNull, IsRegex)
         /// - Match.Create custom matchers
-        /// 
+        ///
         /// For complex expressions (calculations, method calls, etc.), the source generator
         /// must intercept the Setup/Verify call and emit code that directly passes values.
         /// </remarks>
-        private static object? GetArgumentValue(Expression expr)
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static object? GetArgumentValue(Expression expr)
         {
-            // Handle constant values (e.g., 42, "test", null)
             if (expr is ConstantExpression c)
                 return c.Value;
 
-            // Handle member access (variable capture by closure): () => variable
-            // The expression tree may wrap variables in a closure class
             if (expr is MemberExpression memberExpr)
+                return EvaluateMemberExpression(memberExpr);
+
+            if (expr is ConditionalExpression cond)
             {
-                // Try to evaluate the member expression
-                var objectMember = Expression.Convert(memberExpr, typeof(object));
-                var getterLambda = Expression.Lambda<Func<object>>(objectMember);
-                try
+                var test = GetArgumentValue(cond.Test);
+                if (test is bool b)
                 {
-                    var getter = getterLambda.Compile();
-                    return getter();
+                    return b ? GetArgumentValue(cond.IfTrue) : GetArgumentValue(cond.IfFalse);
                 }
-                catch
-                {
-                    // If evaluation fails, treat as unsupported
-                }
+                return Expression.Lambda(cond).Compile().DynamicInvoke();
             }
 
-            // Handle unary expressions: !value, -number, etc.
+            if (expr is IndexExpression indexExpr)
+            {
+                var target = indexExpr.Object != null ? GetArgumentValue(indexExpr.Object) : null;
+                var indexArgs = indexExpr.Arguments.Select(GetArgumentValue).ToArray();
+                return indexExpr.Indexer?.GetValue(target, indexArgs);
+            }
+
             if (expr is UnaryExpression unaryExpr)
             {
-                try
-                {
-                    var lambda = Expression.Lambda<Func<object>>(Expression.Convert(unaryExpr, typeof(object)));
-                    return lambda.Compile()();
-                }
-                catch { }
+                if (unaryExpr.NodeType == ExpressionType.Quote)
+                    return GetArgumentValue(unaryExpr.Operand);
+
+                var operand = GetArgumentValue(unaryExpr.Operand);
+                return EvaluateUnaryExpression(unaryExpr.NodeType, operand, unaryExpr.Type);
             }
 
-            // Handle binary expressions: a + b, x * y, etc.
             if (expr is BinaryExpression binaryExpr)
             {
+                var left = GetArgumentValue(binaryExpr.Left);
+                var right = GetArgumentValue(binaryExpr.Right);
+                return EvaluateBinaryExpression(binaryExpr.NodeType, left, right, binaryExpr.Type);
+            }
+
+            if (expr is MethodCallExpression methodCall)
+            {
+                if (methodCall.Method.DeclaringType?.Name == "It")
+                    return HandleItMatchers(methodCall, methodCall.Method.ReturnType);
+
+                if (methodCall.Method.DeclaringType?.Name == "Match" && methodCall.Method.Name == "Create")
+                    return HandleMatchCreate(methodCall);
+
+                // Fallback for custom logic (like helper methods returning Match.Create)
                 try
                 {
-                    var lambda = Expression.Lambda<Func<object>>(Expression.Convert(binaryExpr, typeof(object)));
+                    var lambda = Expression.Lambda<Func<object>>(Expression.Convert(methodCall, typeof(object)));
                     return lambda.Compile()();
                 }
-                catch { }
+                catch { /* fallback to exception below */ }
             }
 
-            // Handle conditional expressions: condition ? a : b
-            if (expr is ConditionalExpression conditionalExpr)
+            if (expr is NewArrayExpression newArray)
             {
-                try
+                var elements = newArray.Expressions.Select(GetArgumentValue).ToArray();
+
+                // If any element is a matcher, we must use object[] because
+                // matchers cannot be stored in specialized arrays (e.g., string[], int[]).
+                bool containsMatcher = elements.Any(e => e is ArgumentMatcher);
+
+                var elementType = containsMatcher ? typeof(object) : newArray.Type.GetElementType()!;
+                var array = Array.CreateInstance(elementType, elements.Length);
+
+                for (int i = 0; i < elements.Length; i++)
                 {
-                    var lambda = Expression.Lambda<Func<object>>(Expression.Convert(conditionalExpr, typeof(object)));
-                    return lambda.Compile()();
+                    array.SetValue(elements[i], i);
                 }
-                catch { }
+
+                return array;
             }
 
-            // Handle array/indexer access: array[0], dict[key]
-            if (expr is System.Linq.Expressions.IndexExpression or System.Linq.Expressions.MethodCallExpression { Method.Name: "get_Item" })
-            {
-                try
-                {
-                    var lambda = Expression.Lambda<Func<object>>(Expression.Convert(expr, typeof(object)));
-                    return lambda.Compile()();
-                }
-                catch { }
-            }
-
-            // Detect It.* matcher calls and convert to ArgumentMatcher
-            if (expr is MethodCallExpression methodCall &&
-                methodCall.Method.DeclaringType?.Name == "It")
-            {
-                var methodName = methodCall.Method.Name;
-                var matcherType = methodCall.Method.ReturnType;
-
-                // It.IsAny<T>()
-                if (methodName == "IsAny")
-                {
-                    return new ArgumentMatcher(matcherType, _ => true, $"It.IsAny<{matcherType.Name}>()");
-                }
-
-                // It.Is<T>(predicate) - NOTE: Predicate evaluation happens at compile-time via generator
-                if (methodName == "Is" && methodCall.Arguments.Count == 1)
-                {
-                    // Extract the lambda/predicate - will be compiled and used by generator
-                    var predicateExpr = methodCall.Arguments[0];
-                    if (predicateExpr is LambdaExpression lambda)
-                    {
-                        var compiledPredicate = lambda.Compile();
-                        return new ArgumentMatcher(
-                            matcherType,
-                            v => v != null && (bool)compiledPredicate.DynamicInvoke(v)!,
-                            $"It.Is<{matcherType.Name}>(predicate)");
-                    }
-                }
-
-                // It.IsIn<T>(values)
-                if (methodName == "IsIn" && methodCall.Arguments.Count == 1)
-                {
-                    // Extract the array of values
-                    var arrayExpr = methodCall.Arguments[0];
-                    if (arrayExpr is NewArrayExpression newArray)
-                    {
-                        var values = newArray.Expressions
-                            .Select(e => e is ConstantExpression ce ? ce.Value : null)
-                            .ToArray();
-                        return new ArgumentMatcher(
-                            matcherType,
-                            v => values.Any(val => val?.Equals(v) == true),
-                            $"It.IsIn({string.Join(", ", values.Select(v => v?.ToString() ?? "null"))})");
-                    }
-                }
-
-                // It.IsNotNull<T>()
-                if (methodName == "IsNotNull")
-                {
-                    return new ArgumentMatcher(matcherType, v => v != null, $"It.IsNotNull<{matcherType.Name}>()");
-                }
-
-                // It.IsRegex(pattern)
-                if (methodName == "IsRegex" && methodCall.Arguments.Count == 1)
-                {
-                    if (methodCall.Arguments[0] is ConstantExpression patternExpr &&
-                        patternExpr.Value is string pattern)
-                    {
-                        var regex = new System.Text.RegularExpressions.Regex(pattern);
-                        return new ArgumentMatcher(
-                            typeof(string),
-                            v => v is string s && regex.IsMatch(s),
-                            $"It.IsRegex(\"{pattern}\")");
-                    }
-                }
-            }
-
-            // Handle method calls that might return matchers (Match.Create) or other values
-            // Try to evaluate the method call to see if it's a matcher
-            if (expr is MethodCallExpression methodCallExpr)
-            {
-                // First check if this is Match.Create directly
-                if (methodCallExpr.Method.DeclaringType?.Name == "Match" &&
-                    methodCallExpr.Method.Name == "Create")
-                {
-                    var matcherType = methodCallExpr.Method.ReturnType;
-
-                    // Match.Create<T>(predicate) or Match.Create<T>(predicate, description)
-                    if (methodCallExpr.Arguments.Count >= 1)
-                    {
-                        var predicateExpr = methodCallExpr.Arguments[0];
-                        string description = methodCallExpr.Arguments.Count == 2 &&
-                                           methodCallExpr.Arguments[1] is ConstantExpression descExpr &&
-                                           descExpr.Value is string desc
-                            ? desc
-                            : $"Match.Create<{matcherType.Name}>(predicate)";
-
-                        if (predicateExpr is LambdaExpression lambda)
-                        {
-                            var compiledPredicate = lambda.Compile();
-                            return new ArgumentMatcher(
-                                matcherType,
-                                v => v != null && (bool)compiledPredicate.DynamicInvoke(v)!,
-                                description);
-                        }
-                    }
-                }
-
-                // For other method calls (like helper methods that return Match.Create results),
-                // try to evaluate them. This handles cases like IsLargeString() which returns Match.Create<string>(...)
-                if (methodCallExpr.Method.DeclaringType?.Name != "It")
-                {
-                    try
-                    {
-                        var lambda = Expression.Lambda<Func<object>>(Expression.Convert(methodCallExpr, typeof(object)));
-                        var result = lambda.Compile()();
-
-                        // If the result is an ArgumentMatcher (shouldn't be directly), return it
-                        // Otherwise, the method call returned a value (like Match.Create's default(T)!)
-                        // In that case, we need to walk the method body to extract the Match.Create call
-
-                        // Actually, when Match.Create returns default(T)!, we won't get a matcher here
-                        // We need to look inside the method being called to find the Match.Create call
-                        if (methodCallExpr.Method.ReturnType != typeof(void) &&
-                            methodCallExpr.Object == null) // Static or has no instance
-                        {
-                            // Try to get the method body and extract Match.Create from it
-                            var method = methodCallExpr.Method;
-                            if (method.IsStatic || methodCallExpr.Object == null)
-                            {
-                                // Invoke the method to get its expression body
-                                // For methods like "public static string IsLarge() => Match.Create<string>(...)"
-                                // We can't easily introspect the method body, so we need a different approach
-
-                                // Actually, the generator should handle this. Let's check if generator
-                                // can inline the helper method calls
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        // If evaluation fails, continue to throw error below
-                    }
-                }
-            }
-
-            // COMPILE-TIME ONLY: Cannot extract non-constant arguments at runtime without reflection
-            // Source generator MUST intercept Setup/Verify and emit AddSetup calls directly
-            // If you see this error, use constants or It.* matchers
             throw new NotSupportedException(
                 $"Skugga cannot extract argument values from expression: {expr.GetType().Name}\n" +
                 "Skugga is compile-time only with zero runtime reflection.\n" +
@@ -754,17 +703,226 @@ namespace Skugga.Core
                 "Note: Variables, properties, and calculations require generator interception.");
         }
 
+        private static object? EvaluateMemberExpression(MemberExpression memberExpr)
+        {
+            object? container = null;
+            if (memberExpr.Expression != null)
+                container = GetArgumentValue(memberExpr.Expression);
+
+            if (memberExpr.Member is System.Reflection.FieldInfo field)
+                return field.GetValue(container);
+
+            if (memberExpr.Member is System.Reflection.PropertyInfo property)
+                return property.GetValue(container);
+
+            return null;
+        }
+
+        private static object? EvaluateUnaryExpression(ExpressionType nodeType, object? operand, Type resultType)
+        {
+            if (operand == null) return null;
+            return nodeType switch
+            {
+                ExpressionType.Not when operand is bool b => !b,
+                ExpressionType.Negate when operand is int i => -i,
+                ExpressionType.Negate when operand is long l => -l,
+                ExpressionType.Convert => Convert.ChangeType(operand, resultType),
+                _ => null
+            };
+        }
+
+        private static object? EvaluateBinaryExpression(ExpressionType nodeType, object? left, object? right, Type resultType)
+        {
+            if (left == null || right == null) return null;
+            return nodeType switch
+            {
+                ExpressionType.Add when left is int l && right is int r => l + r,
+                ExpressionType.Subtract when left is int l && right is int r => l - r,
+                ExpressionType.Multiply when left is int l && right is int r => l * r,
+                ExpressionType.Divide when left is int l && right is int r => l / r,
+                ExpressionType.Add when left is string l && right is string r => l + r,
+                ExpressionType.Equal => Equals(left, right),
+                ExpressionType.NotEqual => !Equals(left, right),
+                ExpressionType.ArrayIndex when left is Array arr && right is int idx => arr.GetValue(idx),
+                _ => null
+            };
+        }
+
+        private static ArgumentMatcher? HandleItMatchers(MethodCallExpression methodCall, Type matcherType)
+        {
+            var methodName = methodCall.Method.Name;
+
+            // Helper to create the matcher via reflection
+            ArgumentMatcher Create(object predicate, string description)
+            {
+                var method = typeof(MockExtensions).GetMethod(nameof(CreateMatcherGeneric), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                    .MakeGenericMethod(matcherType);
+                return (ArgumentMatcher)method.Invoke(null, new object[] { predicate, description })!;
+            }
+
+            // Helper to create Func<T, bool> returning true
+            object CreateTruePredicate()
+            {
+                var param = Expression.Parameter(matcherType, "x");
+                return Expression.Lambda(Expression.Constant(true), param).Compile();
+            }
+
+            if (methodName == "IsAny")
+            {
+                return Create(CreateTruePredicate(), $"It.IsAny<{matcherType.Name}>()");
+            }
+
+            if (methodName == "Is" && methodCall.Arguments.Count == 1)
+            {
+                if (methodCall.Arguments[0] is LambdaExpression lambda)
+                    return Create(lambda.Compile(), $"It.Is<{matcherType.Name}>(...)");
+
+                // Fallback if not lambda?
+                return Create(CreateTruePredicate(), $"It.Is<{matcherType.Name}>(...) [Fallback]");
+            }
+
+            if (methodName == "IsIn" && methodCall.Arguments.Count == 1)
+            {
+                var values = GetArgumentValue(methodCall.Arguments[0]) as System.Collections.IEnumerable;
+                if (values != null)
+                {
+                    var valuesList = values.Cast<object?>().ToArray();
+                    // Create predicate v => valuesList.Contains(v)
+                    // Hard to make generic predicate dynamically without expression tree construction involved
+                    // Simplified: check equality via object.Equals inside a generic wrapper
+
+                    var param = Expression.Parameter(matcherType, "v");
+                    // We need to capture valuesList.
+                    // Implementation detail: constructing expression to call Enumerable.Contains is heavy.
+                    // Hack: use a static helper that takes IEnumerable and returns Func<T, bool>
+
+                    var helper = typeof(MockExtensions).GetMethod(nameof(CreateIsInPredicate), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                        .MakeGenericMethod(matcherType);
+                    var predicate = helper.Invoke(null, new object[] { valuesList });
+
+                    return Create(predicate!, $"It.IsIn({string.Join(", ", valuesList.Select(v => v?.ToString() ?? "null"))})");
+                }
+            }
+
+            if (methodName == "IsNotIn" && methodCall.Arguments.Count == 1)
+            {
+                var values = GetArgumentValue(methodCall.Arguments[0]) as System.Collections.IEnumerable;
+                if (values != null)
+                {
+                    var valuesList = values.Cast<object?>().ToArray();
+                    var helper = typeof(MockExtensions).GetMethod(nameof(CreateIsNotInPredicate), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                        .MakeGenericMethod(matcherType);
+                    var predicate = helper.Invoke(null, new object[] { valuesList });
+
+                    return Create(predicate!, $"It.IsNotIn({string.Join(", ", valuesList.Select(v => v?.ToString() ?? "null"))})");
+                }
+            }
+
+            if (methodName == "IsInRange" && methodCall.Arguments.Count == 3)
+            {
+                var from = GetArgumentValue(methodCall.Arguments[0]);
+                var to = GetArgumentValue(methodCall.Arguments[1]);
+                var rangeKind = (Range)GetArgumentValue(methodCall.Arguments[2])!;
+
+                var helper = typeof(MockExtensions).GetMethod(nameof(CreateIsInRangePredicate), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                    .MakeGenericMethod(matcherType);
+                var predicate = helper.Invoke(null, new object[] { from!, to!, rangeKind });
+
+                return Create(predicate!, $"It.IsInRange({from}, {to}, Range.{rangeKind})");
+            }
+
+            if (methodName == "IsNotNull")
+            {
+                // Predicate: v => v != null
+                var param = Expression.Parameter(matcherType, "v");
+                var check = Expression.NotEqual(param, Expression.Constant(null, matcherType));
+                var predicate = Expression.Lambda(check, param).Compile();
+                return Create(predicate, $"It.IsNotNull<{matcherType.Name}>()");
+            }
+
+            if (methodName == "IsRegex" && (methodCall.Arguments.Count == 1 || methodCall.Arguments.Count == 2))
+            {
+                if (GetArgumentValue(methodCall.Arguments[0]) is string pattern)
+                {
+                    var options = methodCall.Arguments.Count == 2
+                        ? (System.Text.RegularExpressions.RegexOptions)GetArgumentValue(methodCall.Arguments[1])!
+                        : System.Text.RegularExpressions.RegexOptions.None;
+
+                    var regex = new System.Text.RegularExpressions.Regex(pattern, options);
+
+                    // Predicate: v => v is string s && regex.IsMatch(s)
+                    if (matcherType == typeof(string))
+                    {
+                        Func<string, bool> pred = s => s != null && regex.IsMatch(s);
+                        return Create(pred, $"It.IsRegex(\"{pattern}\")");
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static ArgumentMatcher? HandleMatchCreate(MethodCallExpression methodCallExpr)
+        {
+            var matcherType = methodCallExpr.Method.ReturnType;
+            if (methodCallExpr.Arguments.Count >= 1)
+            {
+                var predicateExpr = methodCallExpr.Arguments[0];
+                string description = methodCallExpr.Arguments.Count == 2 && GetArgumentValue(methodCallExpr.Arguments[1]) is string desc
+                    ? desc : $"Match.Create<{matcherType.Name}>(predicate)";
+
+                if (predicateExpr is LambdaExpression lambda)
+                {
+                    var compiledPredicate = lambda.Compile();
+                    // compiledPredicate is Func<T, bool>.
+                    // Verify logic creates ArgumentMatcher<T>.
+
+                    var method = typeof(MockExtensions).GetMethod(nameof(CreateMatcherGeneric), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                        .MakeGenericMethod(matcherType);
+                    return (ArgumentMatcher)method.Invoke(null, new object[] { compiledPredicate, description })!;
+                }
+            }
+            return null;
+        }
+
+        private static ArgumentMatcher<T> CreateMatcherGeneric<T>(Func<T, bool> predicate, string description)
+        {
+            return new ArgumentMatcher<T>(predicate, description);
+        }
+
+        private static Func<T, bool> CreateIsInPredicate<T>(IEnumerable<object?> values)
+        {
+            var set = values.ToHashSet();
+            return v => set.Contains(v);
+        }
+
+        private static Func<T, bool> CreateIsNotInPredicate<T>(IEnumerable<object?> values)
+        {
+            var set = values.ToHashSet();
+            return v => !set.Contains(v);
+        }
+
+        private static Func<T, bool> CreateIsInRangePredicate<T>(object from, object to, Range rangeKind) where T : IComparable
+        {
+            var fromTyped = (T)from;
+            var toTyped = (T)to;
+
+            if (rangeKind == Range.Inclusive)
+            {
+                return v => v != null && v.CompareTo(fromTyped) >= 0 && v.CompareTo(toTyped) <= 0;
+            }
+            else
+            {
+                return v => v != null && v.CompareTo(fromTyped) > 0 && v.CompareTo(toTyped) < 0;
+            }
+        }
+
         /// <summary>
         /// Gets the default CLR value for a type.
         /// Used when setting up all properties on a mock.
         /// </summary>
         private static object? GetDefaultValue(Type type)
         {
-            if (type.IsValueType)
-            {
-                return Activator.CreateInstance(type);
-            }
-            return null;
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
 
         #endregion

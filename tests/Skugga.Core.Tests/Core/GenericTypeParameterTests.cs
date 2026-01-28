@@ -97,11 +97,11 @@ public class GenericTypeParameterTests
         // This is the critical test - ILogger<T> uses generic type parameters in methods
         // Arrange & Act
         var mock = Mock.Create<ILogger<GenericTypeParameterTests>>();
-        
+
         // Assert - Should not throw during mock creation
         Assert.NotNull(mock);
     }
-    
+
     [Fact]
     [Trait("Category", "Core")]
     public void Mock_ILogger_Log_Method_ShouldWork()
@@ -109,7 +109,7 @@ public class GenericTypeParameterTests
         // Arrange
         var mock = Mock.Create<ILogger<GenericTypeParameterTests>>();
         bool logged = false;
-        
+
         // Act - ILogger.Log has a generic TState parameter
         mock.Setup(x => x.Log(
             LogLevel.Information,
@@ -118,9 +118,9 @@ public class GenericTypeParameterTests
             It.IsAny<Exception>(),
             It.IsAny<Func<object, Exception?, string>>()
         )).Callback(() => logged = true);
-        
+
         mock.Log(LogLevel.Information, new EventId(1), "test", null, (state, ex) => state?.ToString() ?? "");
-        
+
         // Assert
         Assert.True(logged);
     }

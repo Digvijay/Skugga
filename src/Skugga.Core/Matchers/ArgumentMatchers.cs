@@ -27,16 +27,16 @@ namespace Skugga.Core
     /// <code>
     /// // Match any integer
     /// mock.Setup(x => x.Process(It.IsAny&lt;int&gt;())).Returns(true);
-    /// 
+    ///
     /// // Match positive numbers
     /// mock.Setup(x => x.Add(It.Is&lt;int&gt;(n => n > 0))).Returns(true);
-    /// 
+    ///
     /// // Match specific values
     /// mock.Setup(x => x.SetStatus(It.IsIn("Active", "Pending"))).Returns(true);
-    /// 
+    ///
     /// // Match non-null strings
     /// mock.Setup(x => x.Log(It.IsNotNull&lt;string&gt;())).Returns(true);
-    /// 
+    ///
     /// // Match regex patterns
     /// mock.Setup(x => x.ValidatePhone(It.IsRegex(@"^\d{3}-\d{4}$"))).Returns(true);
     /// </code>
@@ -61,10 +61,10 @@ namespace Skugga.Core
         /// <code>
         /// // Setup accepts any integer
         /// mock.Setup(x => x.Process(It.IsAny&lt;int&gt;())).Returns(42);
-        /// 
+        ///
         /// // Verify any string was passed
         /// mock.Verify(x => x.Log(It.IsAny&lt;string&gt;()), Times.Once());
-        /// 
+        ///
         /// // Works with complex types too
         /// mock.Setup(x => x.Handle(It.IsAny&lt;MyClass&gt;())).Returns(true);
         /// </code>
@@ -95,13 +95,13 @@ namespace Skugga.Core
         /// <code>
         /// // Match positive numbers
         /// mock.Setup(x => x.Process(It.Is&lt;int&gt;(n => n > 0))).Returns("positive");
-        /// 
+        ///
         /// // Match strings starting with "test"
         /// mock.Setup(x => x.Handle(It.Is&lt;string&gt;(s => s.StartsWith("test")))).Returns(true);
-        /// 
+        ///
         /// // Match objects with specific property values
         /// mock.Setup(x => x.Save(It.Is&lt;User&gt;(u => u.Age >= 18))).Returns(true);
-        /// 
+        ///
         /// // Verify with complex conditions
         /// mock.Verify(x => x.Log(It.Is&lt;LogLevel&gt;(l => l >= LogLevel.Warning)), Times.AtLeast(1));
         /// </code>
@@ -127,15 +127,47 @@ namespace Skugga.Core
         /// <code>
         /// // Match specific status values
         /// mock.Setup(x => x.SetStatus(It.IsIn("Active", "Pending", "Complete"))).Returns(true);
-        /// 
+        ///
         /// // Match specific numbers
         /// mock.Setup(x => x.Process(It.IsIn(1, 2, 3, 5, 8))).Returns("fibonacci");
-        /// 
+        ///
         /// // Verify against set
         /// mock.Verify(x => x.SetPriority(It.IsIn(Priority.High, Priority.Critical)), Times.Once());
         /// </code>
         /// </example>
         public static T IsIn<T>(params T[] values)
+        {
+            return default(T)!;
+        }
+
+        /// <summary>
+        /// Matches values that are in the specified collection.
+        /// </summary>
+        public static T IsIn<T>(IEnumerable<T> values)
+        {
+            return default(T)!;
+        }
+
+        /// <summary>
+        /// Matches values that are NOT in the specified set.
+        /// </summary>
+        public static T IsNotIn<T>(params T[] values)
+        {
+            return default(T)!;
+        }
+
+        /// <summary>
+        /// Matches values that are NOT in the specified collection.
+        /// </summary>
+        public static T IsNotIn<T>(IEnumerable<T> values)
+        {
+            return default(T)!;
+        }
+
+        /// <summary>
+        /// Matches values that are within the specified range.
+        /// </summary>
+        public static T IsInRange<T>(T from, T to, Range rangeKind) where T : IComparable
         {
             return default(T)!;
         }
@@ -158,10 +190,10 @@ namespace Skugga.Core
         /// <code>
         /// // Ensure non-null string is passed
         /// mock.Setup(x => x.Process(It.IsNotNull&lt;string&gt;())).Returns(true);
-        /// 
+        ///
         /// // Verify non-null object was logged
         /// mock.Verify(x => x.Log(It.IsNotNull&lt;Exception&gt;()), Times.Once());
-        /// 
+        ///
         /// // Works with nullable value types
         /// mock.Setup(x => x.Update(It.IsNotNull&lt;int?&gt;())).Returns(true);
         /// </code>
@@ -189,13 +221,13 @@ namespace Skugga.Core
         /// <code>
         /// // Match phone number format
         /// mock.Setup(x => x.Call(It.IsRegex(@"^\d{3}-\d{4}$"))).Returns(true);
-        /// 
+        ///
         /// // Match email pattern
         /// mock.Setup(x => x.SendEmail(It.IsRegex(@"^[\w\.-]+@[\w\.-]+\.\w+$"))).Returns(true);
-        /// 
+        ///
         /// // Match strings starting with "test"
         /// mock.Verify(x => x.Process(It.IsRegex(@"^test")), Times.AtLeast(1));
-        /// 
+        ///
         /// // Match version numbers
         /// mock.Setup(x => x.ValidateVersion(It.IsRegex(@"^\d+\.\d+\.\d+$"))).Returns(true);
         /// </code>
@@ -206,43 +238,35 @@ namespace Skugga.Core
         }
 
         /// <summary>
-        /// Provides matchers for ref/out parameters.
+        /// Matches strings that match a regular expression pattern with specified options.
+        /// </summary>
+        public static string IsRegex(string pattern, System.Text.RegularExpressions.RegexOptions options)
+        {
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Provides matchers for ref and out parameters of type <typeparamref name="T"/>.
         /// </summary>
         /// <typeparam name="T">The type of the ref/out parameter</typeparam>
         /// <remarks>
-        /// <para>
-        /// <b>Important:</b> Due to C# language limitations, you cannot use It.Ref in actual
-        /// Setup/Verify expressions with ref/out modifiers. Instead:
-        /// </para>
-        /// <list type="number">
-        /// <item><description>Pass a normal value (or dummy variable) in the Setup expression</description></item>
-        /// <item><description>Use .OutValue() or .RefValue() extensions to configure the result</description></item>
-        /// </list>
+        /// Use <see cref="Ref{T}.IsAny"/> to match any value of the ref/out parameter.
+        /// The actual value will be set using <c>RefValue()</c> or <c>OutValue()</c> on the setup.
         /// </remarks>
-        /// <example>
-        /// <code>
-        /// // For out parameters
-        /// int dummy = 0;
-        /// mock.Setup(x => x.TryParse("42", out dummy))
-        ///     .Returns(true)
-        ///     .OutValue(1, 42);  // Configure out parameter value
-        /// 
-        /// // For ref parameters
-        /// int refValue = 0;
-        /// mock.Setup(x => x.Modify(ref refValue))
-        ///     .RefValue(0, 100);  // Configure ref parameter value
-        /// </code>
-        /// </example>
         public static class Ref<T>
         {
             /// <summary>
-            /// Placeholder for matching any value for a ref or out parameter.
+            /// Matches any value for a ref or out parameter of type <typeparamref name="T"/>.
             /// </summary>
             /// <remarks>
-            /// <b>Note:</b> This is a placeholder and cannot be used in actual C# out/ref expressions.
-            /// Use .OutValue()/.RefValue() extensions instead.
+            /// <para>
+            /// This is a placeholder used in Setup expressions. The actual value returned
+            /// via the ref/out parameter is configured using <c>RefValue()</c> or <c>OutValue()</c>.
+            /// </para>
             /// </remarks>
-            public static T IsAny => default(T)!;
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "Required for ref/out matching syntax")]
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA2211:Non-constant fields should not be visible", Justification = "Must be mutable for ref/out parameter syntax - readonly fields cannot be passed as ref/out")]
+            public static T IsAny = default(T)!;
         }
     }
 
@@ -258,12 +282,12 @@ namespace Skugga.Core
     /// <example>
     /// <code>
     /// // Define custom matcher methods
-    /// public static string IsLargeString() => 
+    /// public static string IsLargeString() =>
     ///     Match.Create&lt;string&gt;(s => s != null && s.Length > 100, "large string");
-    /// 
-    /// public static int IsPositive() => 
+    ///
+    /// public static int IsPositive() =>
     ///     Match.Create&lt;int&gt;(n => n > 0, "positive number");
-    /// 
+    ///
     /// // Use in tests
     /// mock.Setup(x => x.Process(IsLargeString())).Returns("handled large");
     /// mock.Setup(x => x.Add(IsPositive())).Returns(true);
@@ -287,12 +311,12 @@ namespace Skugga.Core
         /// <example>
         /// <code>
         /// // Create reusable matchers
-        /// public static string IsValidEmail() => 
+        /// public static string IsValidEmail() =>
         ///     Match.Create&lt;string&gt;(s => s != null && s.Contains("@"));
-        /// 
-        /// public static User IsAdult() => 
+        ///
+        /// public static User IsAdult() =>
         ///     Match.Create&lt;User&gt;(u => u.Age >= 18);
-        /// 
+        ///
         /// // Use in setup
         /// mock.Setup(x => x.SendEmail(IsValidEmail())).Returns(true);
         /// mock.Setup(x => x.Register(IsAdult())).Returns(true);
@@ -318,12 +342,12 @@ namespace Skugga.Core
         /// <example>
         /// <code>
         /// // Create matcher with helpful description
-        /// public static int IsEven() => 
+        /// public static int IsEven() =>
         ///     Match.Create&lt;int&gt;(n => n % 2 == 0, "even number");
-        /// 
-        /// public static string IsJson() => 
+        ///
+        /// public static string IsJson() =>
         ///     Match.Create&lt;string&gt;(s => s?.StartsWith("{") == true, "JSON string");
-        /// 
+        ///
         /// // Error messages will say "Expected call with even number" or "Expected call with JSON string"
         /// mock.Verify(x => x.Process(IsEven()), Times.Once());
         /// </code>
@@ -342,55 +366,60 @@ namespace Skugga.Core
     /// This class is not intended for direct use. The source generator creates instances
     /// when intercepting matcher method calls in Setup/Verify expressions.
     /// </remarks>
-    internal class ArgumentMatcher
+    public abstract class ArgumentMatcher
     {
-        /// <summary>
-        /// Gets the type being matched.
-        /// </summary>
         public Type MatchType { get; }
-
-        /// <summary>
-        /// Gets the predicate function that determines if a value matches.
-        /// </summary>
-        public Func<object?, bool> Predicate { get; }
-
-        /// <summary>
-        /// Gets the description of what this matcher matches (for error messages).
-        /// </summary>
         public string Description { get; }
 
-        /// <summary>
-        /// Initializes a new ArgumentMatcher.
-        /// </summary>
-        /// <param name="matchType">The type being matched</param>
-        /// <param name="predicate">The predicate function</param>
-        /// <param name="description">Description for error messages</param>
-        public ArgumentMatcher(Type matchType, Func<object?, bool> predicate, string description)
+        protected ArgumentMatcher(Type matchType, string description)
         {
             MatchType = matchType;
-            Predicate = predicate;
             Description = description;
         }
 
-        /// <summary>
-        /// Determines if the specified value matches this matcher.
-        /// </summary>
-        /// <param name="value">The value to test</param>
-        /// <returns>True if the value matches; otherwise false</returns>
-        /// <remarks>
-        /// <para>
-        /// First checks type compatibility, then evaluates the predicate.
-        /// The predicate decides whether to accept null values.
-        /// </para>
-        /// </remarks>
-        public bool Matches(object? value)
+        public abstract bool Matches(object? value);
+    }
+
+    public class ArgumentMatcher<T> : ArgumentMatcher
+    {
+        public Func<T, bool> Predicate { get; }
+
+        public ArgumentMatcher(Func<T, bool> predicate, string description)
+            : base(typeof(T), description)
         {
-            // Check type compatibility first (unless value is null)
+            Predicate = predicate;
+        }
+
+        public override bool Matches(object? value)
+        {
             if (value != null && !MatchType.IsAssignableFrom(value.GetType()))
                 return false;
 
-            // Always run the predicate - it decides whether to accept null
-            return Predicate(value);
+            if (value is T t)
+            {
+                return Predicate(t);
+            }
+
+            if (value == null)
+            {
+                return Predicate((T)(object)null!);
+            }
+            return false;
         }
+    }
+
+    /// <summary>
+    /// Specifies the kind of range for IsInRange matcher.
+    /// </summary>
+    public enum Range
+    {
+        /// <summary>
+        /// Both from and to values are included in the range. [from, to]
+        /// </summary>
+        Inclusive,
+        /// <summary>
+        /// Both from and to values are excluded from the range. (from, to)
+        /// </summary>
+        Exclusive
     }
 }

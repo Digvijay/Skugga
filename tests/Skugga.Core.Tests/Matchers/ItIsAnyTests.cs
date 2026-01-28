@@ -245,7 +245,7 @@ public class ItIsAnyTests
         mock.Process(42).Should().Be("allowed");
 
         // But unsetup method should still throw
-        Assert.Throws<MockException>(() => mock.Execute("test"));
+        Assert.ThrowsAny<MockException>(() => mock.Execute("test"));
     }
 
     [Fact]

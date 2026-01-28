@@ -9,7 +9,7 @@ namespace Skugga.OpenApi.Generator.Validation
     /// <summary>
     /// Spectral-inspired OpenAPI linting rules for build-time quality checks.
     /// Implements industry-standard best practices from https://stoplight.io/open-source/spectral
-    /// 
+    ///
     /// Rule Categories:
     /// - oas3-schema: OpenAPI 3.0 schema validation
     /// - operation-*: Operation-level rules

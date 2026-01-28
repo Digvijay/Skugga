@@ -13,7 +13,7 @@ namespace Skugga.Core
     /// This partial class contains extension methods that operate on SetupContext, VoidSetupContext,
     /// and SequenceSetupContext. Additional overloads for 4+ arguments are generated at compile-time
     /// by SetupExtensionsGenerator.cs in the generator project.
-    /// 
+    ///
     /// Key methods:
     /// - Returns/ReturnsAsync: Configure return values (static, dynamic, or computed from arguments)
     /// - Callback: Execute side effects when methods are invoked
@@ -23,6 +23,30 @@ namespace Skugga.Core
     /// </remarks>
     public static partial class SetupContextExtensions
     {
+        #region Verifiable Methods
+
+        /// <summary>
+        /// Marks the setup as verifiable, meaning it must be called if repository.Verify() or mock.Verify() is called.
+        /// </summary>
+        public static SetupContext<TMock, TResult> Verifiable<TMock, TResult>(this SetupContext<TMock, TResult> context)
+        {
+            EnsureSetupExists(context);
+            context.Setup!.IsVerifiable = true;
+            return context;
+        }
+
+        /// <summary>
+        /// Marks the setup as verifiable, meaning it must be called if repository.Verify() or mock.Verify() is called.
+        /// </summary>
+        public static VoidSetupContext<TMock> Verifiable<TMock>(this VoidSetupContext<TMock> context)
+        {
+            EnsureVoidSetupExists(context);
+            context.Setup!.IsVerifiable = true;
+            return context;
+        }
+
+        #endregion
+
         #region Returns Methods
 
         /// <summary>
@@ -227,6 +251,82 @@ namespace Skugga.Core
 
         // Note: ReturnsAsync<T1..T3> through ReturnsAsync<T1..T8> are generated at compile-time
         // See SetupExtensionsGenerator.cs
+        #endregion
+
+        #region ReturnsAsync Methods (ValueTask)
+
+        /// <summary>
+        /// Configures the setup to return a ValueTask with the specified value (async shorthand).
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> ReturnsAsync<TMock, TResult>(
+            this SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> context, TResult value)
+        {
+            var task = new System.Threading.Tasks.ValueTask<TResult>(value);
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, task, null);
+            }
+            else
+            {
+                context.Setup.Value = task;
+                context.Setup.ValueFactory = null;
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures the setup to return a ValueTask computed by a function (async shorthand).
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> ReturnsAsync<TMock, TResult>(
+            this SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> context, Func<TResult> valueFunction)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, default(System.Threading.Tasks.ValueTask<TResult>), null);
+                context.Setup.ValueFactory = _ => new System.Threading.Tasks.ValueTask<TResult>(valueFunction());
+            }
+            else
+            {
+                context.Setup.ValueFactory = _ => new System.Threading.Tasks.ValueTask<TResult>(valueFunction());
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures the setup to return a ValueTask computed from one method argument (async shorthand).
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> ReturnsAsync<TMock, TResult, TArg>(
+            this SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> context, Func<TArg, TResult> valueFunction)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, default(System.Threading.Tasks.ValueTask<TResult>), null);
+                context.Setup.ValueFactory = args => new System.Threading.Tasks.ValueTask<TResult>(valueFunction((TArg)args[0]!));
+            }
+            else
+            {
+                context.Setup.ValueFactory = args => new System.Threading.Tasks.ValueTask<TResult>(valueFunction((TArg)args[0]!));
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures the setup to return a ValueTask computed from two method arguments (async shorthand).
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> ReturnsAsync<TMock, TResult, TArg1, TArg2>(
+            this SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> context, Func<TArg1, TArg2, TResult> valueFunction)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, default(System.Threading.Tasks.ValueTask<TResult>), null);
+                context.Setup.ValueFactory = args => new System.Threading.Tasks.ValueTask<TResult>(valueFunction((TArg1)args[0]!, (TArg2)args[1]!));
+            }
+            else
+            {
+                context.Setup.ValueFactory = args => new System.Threading.Tasks.ValueTask<TResult>(valueFunction((TArg1)args[0]!, (TArg2)args[1]!));
+            }
+            return context;
+        }
 
         #endregion
 
@@ -656,12 +756,9 @@ namespace Skugga.Core
             int parameterIndex,
             object? value)
         {
-            if (context.Setup == null)
-            {
-                throw new InvalidOperationException("OutValue must be called after Returns/Callback");
-            }
+            EnsureSetupExists(context);
 
-            context.Setup.OutValues ??= new Dictionary<int, object?>();
+            context.Setup!.OutValues ??= new Dictionary<int, object?>();
             context.Setup.OutValues[parameterIndex] = value;
 
             // Mark this parameter as ref/out so matching ignores its value
@@ -669,6 +766,13 @@ namespace Skugga.Core
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
 
             return context;
+        }
+
+        public static SetupContext<TMock, TResult> OutValue<TMock, TResult>(
+            this SetupContext<TMock, TResult> context,
+            object? value)
+        {
+            return context.OutValue(0, value);
         }
 
         /// <summary>
@@ -690,12 +794,9 @@ namespace Skugga.Core
             int parameterIndex,
             object? value)
         {
-            if (context.Setup == null)
-            {
-                throw new InvalidOperationException("RefValue must be called after Returns/Callback");
-            }
+            EnsureSetupExists(context);
 
-            context.Setup.RefValues ??= new Dictionary<int, object?>();
+            context.Setup!.RefValues ??= new Dictionary<int, object?>();
             context.Setup.RefValues[parameterIndex] = value;
 
             // Mark this parameter as ref/out so matching ignores its value
@@ -703,6 +804,13 @@ namespace Skugga.Core
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
 
             return context;
+        }
+
+        public static SetupContext<TMock, TResult> RefValue<TMock, TResult>(
+            this SetupContext<TMock, TResult> context,
+            object? value)
+        {
+            return context.RefValue(0, value);
         }
 
         /// <summary>
@@ -725,12 +833,9 @@ namespace Skugga.Core
             int parameterIndex,
             Func<object?[], object?> valueFactory)
         {
-            if (context.Setup == null)
-            {
-                throw new InvalidOperationException("OutValueFunc must be called after Returns/Callback");
-            }
+            EnsureSetupExists(context);
 
-            context.Setup.OutValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
+            context.Setup!.OutValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
             context.Setup.OutValueFactories[parameterIndex] = valueFactory;
 
             // Mark this parameter as ref/out so matching ignores its value
@@ -738,6 +843,13 @@ namespace Skugga.Core
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
 
             return context;
+        }
+
+        public static SetupContext<TMock, TResult> OutValueFunc<TMock, TResult>(
+            this SetupContext<TMock, TResult> context,
+            Func<object?[], object?> valueFactory)
+        {
+            return context.OutValueFunc(0, valueFactory);
         }
 
         /// <summary>
@@ -759,12 +871,9 @@ namespace Skugga.Core
             int parameterIndex,
             Func<object?[], object?> valueFactory)
         {
-            if (context.Setup == null)
-            {
-                throw new InvalidOperationException("RefValueFunc must be called after Returns/Callback");
-            }
+            EnsureSetupExists(context);
 
-            context.Setup.RefValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
+            context.Setup!.RefValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
             context.Setup.RefValueFactories[parameterIndex] = valueFactory;
 
             // Mark this parameter as ref/out so matching ignores its value
@@ -772,6 +881,13 @@ namespace Skugga.Core
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
 
             return context;
+        }
+
+        public static SetupContext<TMock, TResult> RefValueFunc<TMock, TResult>(
+            this SetupContext<TMock, TResult> context,
+            Func<object?[], object?> valueFactory)
+        {
+            return context.RefValueFunc(0, valueFactory);
         }
 
         #endregion
@@ -791,12 +907,9 @@ namespace Skugga.Core
             int parameterIndex,
             object? value)
         {
-            if (context.Setup == null)
-            {
-                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
-            }
+            EnsureVoidSetupExists(context);
 
-            context.Setup.OutValues ??= new Dictionary<int, object?>();
+            context.Setup!.OutValues ??= new Dictionary<int, object?>();
             context.Setup.OutValues[parameterIndex] = value;
 
             // Mark this parameter as ref/out so matching ignores its value
@@ -804,6 +917,13 @@ namespace Skugga.Core
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
 
             return context;
+        }
+
+        public static VoidSetupContext<TMock> OutValue<TMock>(
+            this VoidSetupContext<TMock> context,
+            object? value)
+        {
+            return context.OutValue(0, value);
         }
 
         /// <summary>
@@ -819,12 +939,9 @@ namespace Skugga.Core
             int parameterIndex,
             object? value)
         {
-            if (context.Setup == null)
-            {
-                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
-            }
+            EnsureVoidSetupExists(context);
 
-            context.Setup.RefValues ??= new Dictionary<int, object?>();
+            context.Setup!.RefValues ??= new Dictionary<int, object?>();
             context.Setup.RefValues[parameterIndex] = value;
 
             // Mark this parameter as ref/out so matching ignores its value
@@ -832,6 +949,13 @@ namespace Skugga.Core
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
 
             return context;
+        }
+
+        public static VoidSetupContext<TMock> RefValue<TMock>(
+            this VoidSetupContext<TMock> context,
+            object? value)
+        {
+            return context.RefValue(0, value);
         }
 
         /// <summary>
@@ -847,12 +971,9 @@ namespace Skugga.Core
             int parameterIndex,
             Func<object?[], object?> valueFactory)
         {
-            if (context.Setup == null)
-            {
-                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
-            }
+            EnsureVoidSetupExists(context);
 
-            context.Setup.OutValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
+            context.Setup!.OutValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
             context.Setup.OutValueFactories[parameterIndex] = valueFactory;
 
             // Mark this parameter as ref/out so matching ignores its value
@@ -860,6 +981,13 @@ namespace Skugga.Core
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
 
             return context;
+        }
+
+        public static VoidSetupContext<TMock> OutValueFunc<TMock>(
+            this VoidSetupContext<TMock> context,
+            Func<object?[], object?> valueFactory)
+        {
+            return context.OutValueFunc(0, valueFactory);
         }
 
         /// <summary>
@@ -875,12 +1003,9 @@ namespace Skugga.Core
             int parameterIndex,
             Func<object?[], object?> valueFactory)
         {
-            if (context.Setup == null)
-            {
-                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
-            }
+            EnsureVoidSetupExists(context);
 
-            context.Setup.RefValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
+            context.Setup!.RefValueFactories ??= new Dictionary<int, Func<object?[], object?>>();
             context.Setup.RefValueFactories[parameterIndex] = valueFactory;
 
             // Mark this parameter as ref/out so matching ignores its value
@@ -888,6 +1013,13 @@ namespace Skugga.Core
             context.Setup.RefOutParameterIndices.Add(parameterIndex);
 
             return context;
+        }
+
+        public static VoidSetupContext<TMock> RefValueFunc<TMock>(
+            this VoidSetupContext<TMock> context,
+            Func<object?[], object?> valueFactory)
+        {
+            return context.RefValueFunc(0, valueFactory);
         }
 
         #endregion
@@ -940,6 +1072,88 @@ namespace Skugga.Core
 
             context.Setup.Exception = exception;
 
+            return context;
+        }
+
+        #endregion
+
+        #region ThrowsAsync Methods
+
+        /// <summary>
+        /// Configures the setup to throw an exception when an async method returning Task is invoked.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.Task> ThrowsAsync<TMock>(
+            this SetupContext<TMock, System.Threading.Tasks.Task> context,
+            Exception exception)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, System.Threading.Tasks.Task.FromException(exception), null);
+            }
+            else
+            {
+                context.Setup.Value = System.Threading.Tasks.Task.FromException(exception);
+                context.Setup.ValueFactory = null;
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures the setup to throw an exception when an async method returning Task<TResult> is invoked.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.Task<TResult>> ThrowsAsync<TMock, TResult>(
+            this SetupContext<TMock, System.Threading.Tasks.Task<TResult>> context,
+            Exception exception)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, System.Threading.Tasks.Task.FromException<TResult>(exception), null);
+            }
+            else
+            {
+                context.Setup.Value = System.Threading.Tasks.Task.FromException<TResult>(exception);
+                context.Setup.ValueFactory = null;
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures the setup to throw an exception when an async method returning ValueTask is invoked.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask> ThrowsAsync<TMock>(
+            this SetupContext<TMock, System.Threading.Tasks.ValueTask> context,
+            Exception exception)
+        {
+            var task = System.Threading.Tasks.ValueTask.FromException(exception);
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, task, null);
+            }
+            else
+            {
+                context.Setup.Value = task;
+                context.Setup.ValueFactory = null;
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures the setup to throw an exception when an async method returning ValueTask<TResult> is invoked.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> ThrowsAsync<TMock, TResult>(
+            this SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> context,
+            Exception exception)
+        {
+            var task = System.Threading.Tasks.ValueTask.FromException<TResult>(exception);
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, task, null);
+            }
+            else
+            {
+                context.Setup.Value = task;
+                context.Setup.ValueFactory = null;
+            }
             return context;
         }
 
@@ -1223,5 +1437,29 @@ namespace Skugga.Core
         }
 
         #endregion
+
+        /// <summary>
+        /// Helper method to ensure a setup exists before configuring out/ref values.
+        /// </summary>
+        private static void EnsureVoidSetupExists<TMock>(VoidSetupContext<TMock> context)
+        {
+            if (context.Setup == null)
+            {
+                // Create a setup with no return value (void)
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, null, null);
+            }
+        }
+
+        /// <summary>
+        /// Helper method to ensure a setup exists before configuring out/ref values.
+        /// </summary>
+        private static void EnsureSetupExists<TMock, TResult>(SetupContext<TMock, TResult> context)
+        {
+            if (context.Setup == null)
+            {
+                // Create a setup with default return value
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, default(TResult), null);
+            }
+        }
     }
 }

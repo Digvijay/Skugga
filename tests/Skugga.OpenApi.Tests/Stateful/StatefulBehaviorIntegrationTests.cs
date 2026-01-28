@@ -273,22 +273,22 @@ namespace Skugga.OpenApi.Tests.Stateful
 
     /// <summary>
     /// THE DOPPELGÄNGER WORKFLOW: ONE LINE generates everything needed for stateful API testing!
-    /// 
+    ///
     /// This single attribute generates:
     /// ✅ Complete IPaymentApi interface with all operations
-    /// ✅ All DTOs (ChargeRequest, ChargeResult, AccountUpdate, AccountInfo)  
+    /// ✅ All DTOs (ChargeRequest, ChargeResult, AccountUpdate, AccountInfo)
     /// ✅ Fully functional IPaymentApiMock with StatefulBehavior
     /// ✅ In-memory state persistence across operations
     /// ✅ Realistic data generation honoring actual input parameters
-    /// 
+    ///
     /// The generated mock:
     /// - Honors request body data (highest priority)
-    /// - Honors query/path parameters when no body exists  
+    /// - Honors query/path parameters when no body exists
     /// - Falls back to example data only when no input provided
     /// - Maintains state across multiple operations
     /// - Throws 404s for missing entities (real API behavior)
     /// - Generates unique IDs for created entities
-    /// 
+    ///
     /// Usage: var mock = new IPaymentApiMock(); // Ready to use!
     /// </summary>
     [SkuggaFromOpenApi("specs/payment-api.yaml", StatefulBehavior = true)]
@@ -296,7 +296,7 @@ namespace Skugga.OpenApi.Tests.Stateful
     {
         // Skugga generates:
         // - Task<ChargeResult> CreateCharge(double amount, string currency, ChargeRequest body)
-        // - Task<AccountInfo> GetAccount(string accountId)  
+        // - Task<AccountInfo> GetAccount(string accountId)
         // - Task<AccountInfo> UpdateAccount(string accountId, double balance, AccountUpdate body)
         // - STATEFUL mock with realistic data generation
     }

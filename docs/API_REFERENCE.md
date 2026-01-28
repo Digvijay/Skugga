@@ -971,6 +971,31 @@ var loose = Mock.Create<IService>(MockBehavior.Loose);
 var strict = Mock.Create<IService>(MockBehavior.Strict);
 ```
 
+### `Mock.Of<T>(predicate)`
+Creates a mock and sets up properties in one line (LINQ to Mocks).
+
+```csharp
+var mock = Mock.Of<IUser>(u => 
+    u.Id == 1 && 
+    u.Name == "Alice" &&
+    u.IsActive
+);
+```
+
+### `MockRepository`
+Manage multiple mocks with shared configuration.
+
+```csharp
+var repo = new MockRepository(MockBehavior.Strict);
+
+// Create mocks attached to repository
+var service = repo.Create<IService>();
+var repo = repo.Create<IRepository>();
+
+// Verify all mocks in repository
+repo.VerifyAll();
+```
+
 ---
 
 ## Setup API
@@ -1119,6 +1144,20 @@ mock.Setup(x => x.ProcessOrder(
 )).Returns("processed");
 ```
 
+### `It.Ref<T>.IsAny`
+Matches any value for ref/out parameters.
+
+```csharp
+// Setup out parameter
+mock.Setup(x => x.TryParse("123", out It.Ref<int>.IsAny))
+    .OutValue(123)
+    .Returns(true);
+
+// Setup ref parameter
+mock.Setup(x => x.Increment(ref It.Ref<int>.IsAny))
+    .RefValue(42);
+```
+
 ---
 
 ## Setup Sequence
@@ -1164,6 +1203,30 @@ mock.SetupSequence(x => x.Counter)
 var a = mock.Counter; // 0
 var b = mock.Counter; // 1
 var c = mock.Counter; // 2
+```
+
+---
+
+## Protected Members
+
+Mock protected methods and properties on abstract classes.
+
+### `Setup<T>(methodName, args)`
+```csharp
+var mock = Mock.Create<AbstractBase>();
+
+// Setup protected method
+mock.Protected()
+    .Setup<string>("ExecuteCore", It.IsAny<string>())
+    .Returns("mocked");
+```
+
+### `SetupGet/Set(propertyName)`
+```csharp
+// Setup protected property
+mock.Protected()
+    .SetupGet<int>("RetryCount")
+    .Returns(5);
 ```
 
 ---

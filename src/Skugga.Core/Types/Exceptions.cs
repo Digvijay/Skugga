@@ -48,9 +48,9 @@ namespace Skugga.Core
     /// <code>
     /// var mock = Mock.Create&lt;IService&gt;();
     /// mock.Setup(x => x.Save()).Returns(true);
-    /// 
+    ///
     /// // No calls made
-    /// 
+    ///
     /// try
     /// {
     ///     mock.Verify(x => x.Save(), Times.Once()); // Throws VerificationException
@@ -61,7 +61,7 @@ namespace Skugga.Core
     /// }
     /// </code>
     /// </example>
-    public class VerificationException : Exception
+    public class VerificationException : MockException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="VerificationException"/> class with a specified error message.
@@ -87,14 +87,14 @@ namespace Skugga.Core
     /// <code>
     /// var mock = Mock.Create&lt;IService&gt;();
     /// mock.Setup(x => x.GetData()).Returns("data");
-    /// 
+    ///
     /// // Configure chaos mode with 50% failure rate
     /// mock.Chaos(policy =>
     /// {
     ///     policy.FailureRate = 0.5;
     ///     policy.PossibleExceptions = new[] { new TimeoutException() };
     /// });
-    /// 
+    ///
     /// // 50% of calls will throw TimeoutException wrapped in ChaosException
     /// for (int i = 0; i &lt; 10; i++)
     /// {

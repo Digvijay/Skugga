@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Moq;
 using Skugga.Core;
 
-// Interfaces for comprehensive testing  
+// Interfaces for comprehensive testing
 public interface IMathCalc { int Add(int a, int b); int Multiply(int a, int b); int Divide(int a, int b); }
 public interface IDataStore { string GetData(int id); void SaveData(int id, string data); bool Exists(int id); }
 public interface IWorkflow { string Process(int value); void Execute(string command); int Calculate(int x, int y); }

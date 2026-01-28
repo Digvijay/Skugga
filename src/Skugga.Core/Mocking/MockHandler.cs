@@ -1,108 +1,57 @@
 #nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 
 namespace Skugga.Core
 {
     /// <summary>
-    /// The core handler that manages mock behavior, setups, invocations, and verification.
-    /// Each mock instance has its own handler to track configuration and calls.
+    /// Core engine that handles mock setup, invocation recording, and verification.
+    /// Each mock instance has exactly one MockHandler.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// This class is the heart of Skugga's mocking functionality. It:
-    /// </para>
-    /// <list type="bullet">
-    /// <item><description>Stores method setups configured via Setup()</description></item>
-    /// <item><description>Records all invocations for verification</description></item>
-    /// <item><description>Applies chaos policies for resilience testing</description></item>
-    /// <item><description>Manages property backing storage for SetupProperty()</description></item>
-    /// <item><description>Handles event subscriptions and raising</description></item>
-    /// <item><description>Provides default values via configurable providers</description></item>
-    /// </list>
-    /// <para>
-    /// The handler is thread-safe for invocation recording and chaos application,
-    /// but setup operations should be performed before concurrent access.
-    /// </para>
-    /// </remarks>
     public class MockHandler
     {
-        // Core storage for setups and invocations
         private readonly List<MockSetup> _setups = new();
         private readonly List<Invocation> _invocations = new();
+        private readonly ConcurrentDictionary<string, object?> _propertyStorage = new();
+        private readonly ConcurrentDictionary<string, List<Delegate>> _eventHandlers = new();
+        private readonly List<Type> _additionalInterfaces = new();
+        private readonly Dictionary<Type, object?> _defaultReturnValues = new();
 
-        // Chaos mode support for resilience testing
         private ChaosPolicy? _chaosPolicy;
+        private ChaosStatistics? _chaosStats;
         private Random _rng = new();
-        private readonly ChaosStatistics _chaosStats = new();
-
-        // Property backing store for automatic get/set tracking via SetupProperty()
-        private readonly Dictionary<string, object?> _propertyStorage = new();
-
-        // Event handler storage for subscription tracking and event raising
-        private readonly Dictionary<string, List<Delegate>> _eventHandlers = new();
-
-        // Additional interfaces added via As<T>() for multi-interface mocks
-        private readonly HashSet<Type> _additionalInterfaces = new();
-
-        // Default value provider for un-setup members
         private DefaultValueProvider? _defaultValueProvider;
-
-        // Track if user explicitly set strategy (null = not set, use backwards-compatible behavior)
-        private DefaultValue? _explicitDefaultValueStrategy = null;
+        private DefaultValue? _explicitDefaultValueStrategy;
 
         /// <summary>
         /// Gets or sets the mock behavior (Loose or Strict).
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// <b>Loose:</b> Un-setup members return default values (no exceptions).
-        /// </para>
-        /// <para>
-        /// <b>Strict:</b> Un-setup members throw MockException.
-        /// </para>
-        /// <para>
-        /// Default is Loose for backwards compatibility and ease of use.
-        /// </para>
-        /// </remarks>
         public MockBehavior Behavior { get; set; } = MockBehavior.Loose;
 
         /// <summary>
-        /// Gets or sets the default value strategy for un-setup members.
+        /// Gets or sets the default value strategy (Mock, Empty, or Default).
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// <b>Empty:</b> Returns CLR defaults and empty collections.
-        /// </para>
-        /// <para>
-        /// <b>Mock:</b> Returns mock instances for interfaces/abstract classes (recursive mocking).
-        /// </para>
-        /// <para>
-        /// When set, this creates the appropriate default value provider automatically.
-        /// For custom behavior, set DefaultValueProvider directly instead.
-        /// </para>
-        /// </remarks>
         public DefaultValue DefaultValueStrategy
         {
             get => _explicitDefaultValueStrategy ?? DefaultValue.Empty;
-            set => _explicitDefaultValueStrategy = value;
+            set
+            {
+                _explicitDefaultValueStrategy = value;
+                _defaultValueProvider = value switch
+                {
+                    DefaultValue.Empty => new EmptyDefaultValueProvider(),
+                    DefaultValue.Mock => new MockDefaultValueProvider(),
+                    _ => null
+                };
+            }
         }
 
         /// <summary>
         /// Gets or sets a custom default value provider.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// This takes precedence over DefaultValueStrategy. Use this for complete control
-        /// over default value generation for un-setup members.
-        /// </para>
-        /// <para>
-        /// If null, the handler uses the strategy specified by DefaultValueStrategy
-        /// (or CLR defaults if neither is set, for backwards compatibility).
-        /// </para>
-        /// </remarks>
         public DefaultValueProvider? DefaultValueProvider
         {
             get => _defaultValueProvider;
@@ -110,77 +59,46 @@ namespace Skugga.Core
         }
 
         /// <summary>
-        /// Gets statistics about chaos mode behavior during test execution.
+        /// Gets or sets whether to call the base implementation if no setup matches.
         /// </summary>
-        /// <remarks>
-        /// Provides counters for total invocations, chaos-triggered failures, and timeouts.
-        /// Reset when a new chaos policy is set.
-        /// </remarks>
-        public ChaosStatistics ChaosStatistics => _chaosStats;
+        public bool CallBase { get; set; }
 
         /// <summary>
-        /// Gets all recorded invocations for verification.
+        /// Gets the list of setups configured for this mock.
         /// </summary>
-        /// <remarks>
-        /// Each method call on the mock adds an Invocation to this list.
-        /// Used by Verify() methods to check if methods were called with expected arguments.
-        /// </remarks>
+        public IReadOnlyList<MockSetup> Setups => _setups;
+
+        /// <summary>
+        /// Gets the list of all invocations made to this mock.
+        /// </summary>
         public IReadOnlyList<Invocation> Invocations => _invocations;
 
-        #region Additional Interfaces (As<T> support)
-
         /// <summary>
-        /// Adds an additional interface that the mock should implement.
+        /// Gets the chaos statistics for this mock.
         /// </summary>
-        /// <param name="interfaceType">The interface type to add</param>
-        /// <remarks>
-        /// Called internally by the As&lt;T&gt;() extension method.
-        /// The source generator uses this to create composite mock classes
-        /// that implement multiple interfaces.
-        /// </remarks>
-        public void AddInterface(Type interfaceType)
-        {
-            lock (_additionalInterfaces)
-            {
-                _additionalInterfaces.Add(interfaceType);
-            }
-        }
-
-        /// <summary>
-        /// Gets all additional interfaces that have been added to the mock via As&lt;T&gt;().
-        /// </summary>
-        /// <returns>Read-only set of additional interface types</returns>
-        /// <remarks>
-        /// Used by the source generator to determine which interfaces the generated
-        /// mock class should implement.
-        /// </remarks>
-        public IReadOnlySet<Type> GetAdditionalInterfaces()
-        {
-            lock (_additionalInterfaces)
-            {
-                return new HashSet<Type>(_additionalInterfaces);
-            }
-        }
-
-        #endregion
+        public ChaosStatistics ChaosStatistics => _chaosStats ??= new ChaosStatistics();
 
         #region Setup Management
 
         /// <summary>
-        /// Adds a method setup with return value and optional callback.
+        /// Adds a new setup for a method with an optional callback.
         /// </summary>
-        /// <param name="signature">The method signature (e.g., "GetData" or "get_Name")</param>
-        /// <param name="args">The method arguments (may include matchers like It.IsAny)</param>
-        /// <param name="value">The return value for this setup</param>
-        /// <param name="callback">Optional callback to execute when method is invoked</param>
-        /// <returns>The created setup for further configuration</returns>
-        /// <remarks>
-        /// This is called internally by Setup() extension methods. The signature
-        /// is the method name (or "get_/set_PropertyName" for properties).
-        /// </remarks>
         public MockSetup AddSetup(string signature, object?[] args, object? value, Action<object?[]>? callback = null)
         {
             var setup = new MockSetup(signature, args, value, callback);
+            _setups.Add(setup); // First setup added takes precedence because of loop order
+            return setup;
+        }
+
+        /// <summary>
+        /// Adds a new setup for a method with a sequential return value.
+        /// </summary>
+        public MockSetup AddSequentialSetup(string signature, object?[] args, IEnumerable<object?> values)
+        {
+            var setup = new MockSetup(signature, args, null)
+            {
+                SequentialValues = values.ToArray()
+            };
             _setups.Add(setup);
             return setup;
         }
@@ -188,13 +106,6 @@ namespace Skugga.Core
         /// <summary>
         /// Adds or updates a callback for the most recent matching setup.
         /// </summary>
-        /// <param name="signature">The method signature</param>
-        /// <param name="args">The method arguments</param>
-        /// <param name="callback">The callback to execute</param>
-        /// <remarks>
-        /// If no matching setup exists, creates a new setup with only the callback.
-        /// This supports the .Callback() fluent API.
-        /// </remarks>
         public void AddCallbackToLastSetup(string signature, object?[] args, Action<object?[]> callback)
         {
             var setup = _setups.LastOrDefault(s => s.Matches(signature, args));
@@ -204,61 +115,17 @@ namespace Skugga.Core
             }
             else
             {
-                // Create setup with just callback if none exists
-                _setups.Add(new MockSetup(signature, args, null, callback));
+                AddSetup(signature, args, null, callback);
             }
         }
 
-        /// <summary>
-        /// Adds or updates a callback (no parameters) for the most recent matching setup.
-        /// </summary>
-        /// <param name="signature">The method signature</param>
-        /// <param name="args">The method arguments</param>
-        /// <param name="callback">The callback action</param>
-        public void AddCallbackToLastSetup(string signature, object?[] args, Action callback)
-        {
-            AddCallbackToLastSetup(signature, args, _ => callback());
-        }
-
         #endregion
 
-        #region Chaos Mode
+        #region Property Storage
 
         /// <summary>
-        /// Configures chaos mode for resilience testing.
+        /// Configures a property to use backing storage.
         /// </summary>
-        /// <param name="policy">The chaos policy specifying failure rate, timeouts, and exceptions</param>
-        /// <remarks>
-        /// <para>
-        /// Chaos mode randomly triggers failures and delays to test application resilience.
-        /// Useful for ensuring code handles exceptions and timeouts gracefully.
-        /// </para>
-        /// <para>
-        /// If the policy specifies a seed, the random number generator is initialized
-        /// for deterministic chaos behavior across test runs.
-        /// </para>
-        /// </remarks>
-        public void SetChaosPolicy(ChaosPolicy policy)
-        {
-            _chaosPolicy = policy;
-            // Initialize RNG with seed if provided for reproducible chaos
-            if (policy.Seed.HasValue)
-                _rng = new Random(policy.Seed.Value);
-        }
-
-        #endregion
-
-        #region Property Storage (SetupProperty support)
-
-        /// <summary>
-        /// Sets up a property with automatic backing field for get/set tracking.
-        /// </summary>
-        /// <param name="propertyName">The name of the property</param>
-        /// <param name="defaultValue">The initial value for the property</param>
-        /// <remarks>
-        /// After calling this, the property behaves like a normal property with storage.
-        /// Gets return the stored value, sets update the stored value.
-        /// </remarks>
         public void SetupPropertyStorage(string propertyName, object? defaultValue)
         {
             _propertyStorage[propertyName] = defaultValue;
@@ -267,8 +134,6 @@ namespace Skugga.Core
         /// <summary>
         /// Gets a property value from the backing store.
         /// </summary>
-        /// <param name="propertyName">The name of the property</param>
-        /// <returns>The stored value, or null if property hasn't been setup</returns>
         public object? GetPropertyValue(string propertyName)
         {
             return _propertyStorage.TryGetValue(propertyName, out var value) ? value : null;
@@ -277,8 +142,6 @@ namespace Skugga.Core
         /// <summary>
         /// Sets a property value in the backing store.
         /// </summary>
-        /// <param name="propertyName">The name of the property</param>
-        /// <param name="value">The value to store</param>
         public void SetPropertyValue(string propertyName, object? value)
         {
             _propertyStorage[propertyName] = value;
@@ -287,8 +150,6 @@ namespace Skugga.Core
         /// <summary>
         /// Checks if a property has been setup with backing storage.
         /// </summary>
-        /// <param name="propertyName">The name of the property</param>
-        /// <returns>True if property has backing storage</returns>
         public bool HasPropertyStorage(string propertyName)
         {
             return _propertyStorage.ContainsKey(propertyName);
@@ -301,12 +162,6 @@ namespace Skugga.Core
         /// <summary>
         /// Adds an event handler to the specified event.
         /// </summary>
-        /// <param name="eventName">The name of the event</param>
-        /// <param name="handler">The delegate handler to add</param>
-        /// <remarks>
-        /// This is called when subscribing to events on the mock (mock.SomeEvent += handler).
-        /// The subscription is tracked as an invocation.
-        /// </remarks>
         public void AddEventHandler(string eventName, Delegate handler)
         {
             if (!_eventHandlers.ContainsKey(eventName))
@@ -314,60 +169,34 @@ namespace Skugga.Core
                 _eventHandlers[eventName] = new List<Delegate>();
             }
             _eventHandlers[eventName].Add(handler);
-
-            // Track event subscription as an invocation for verification
-            _invocations.Add(new Invocation("add_" + eventName, new object?[] { handler }));
         }
 
         /// <summary>
         /// Removes an event handler from the specified event.
         /// </summary>
-        /// <param name="eventName">The name of the event</param>
-        /// <param name="handler">The delegate handler to remove</param>
-        /// <remarks>
-        /// This is called when unsubscribing from events (mock.SomeEvent -= handler).
-        /// The unsubscription is tracked as an invocation.
-        /// </remarks>
         public void RemoveEventHandler(string eventName, Delegate handler)
         {
             if (_eventHandlers.TryGetValue(eventName, out var handlers))
             {
                 handlers.Remove(handler);
             }
-
-            // Track event unsubscription as an invocation for verification
-            _invocations.Add(new Invocation("remove_" + eventName, new object?[] { handler }));
         }
 
         /// <summary>
         /// Raises the specified event with the given arguments.
         /// </summary>
-        /// <param name="eventName">The name of the event</param>
-        /// <param name="args">The event arguments to pass to subscribers</param>
-        /// <remarks>
-        /// <para>
-        /// Invokes all subscribed handlers in order. If a handler throws an exception,
-        /// it's unwrapped (for TargetInvocationException) and re-thrown.
-        /// </para>
-        /// <para>
-        /// Uses ToList() before enumeration to avoid modification-during-enumeration issues
-        /// if a handler unsubscribes during event handling.
-        /// </para>
-        /// </remarks>
         public void RaiseEvent(string eventName, params object?[] args)
         {
             if (_eventHandlers.TryGetValue(eventName, out var handlers))
             {
-                // ToList() creates copy to avoid modification-during-enumeration
                 foreach (var handler in handlers.ToList())
                 {
                     try
                     {
                         handler.DynamicInvoke(args);
                     }
-                    catch (Exception ex)
+                    catch (TargetInvocationException ex)
                     {
-                        // Unwrap TargetInvocationException to get actual exception
                         if (ex.InnerException != null)
                             throw ex.InnerException;
                         throw;
@@ -378,60 +207,95 @@ namespace Skugga.Core
 
         #endregion
 
-        #region Invocation and Matching
+        #region Chaos Mode
 
         /// <summary>
-        /// Invokes a method on the mock, applies setups, chaos, and records the invocation.
+        /// Configures chaos mode with the specified policy.
         /// </summary>
-        /// <param name="signature">The method signature being invoked</param>
-        /// <param name="args">The arguments passed to the method</param>
-        /// <returns>The return value from matching setup, or null in Loose mode</returns>
-        /// <exception cref="MockException">Thrown in Strict mode when no matching setup exists</exception>
-        /// <exception cref="ChaosException">Thrown randomly when chaos mode is enabled</exception>
-        /// <remarks>
-        /// <para>
-        /// This is the core method invoked by generated mock implementations.
-        /// The process:
-        /// </para>
-        /// <list type="number">
-        /// <item><description>Record invocation for verification</description></item>
-        /// <item><description>Apply chaos policy (delays, random failures)</description></item>
-        /// <item><description>Find matching setup and execute callback/event/return value</description></item>
-        /// <item><description>If no setup matches, return null (Loose) or throw (Strict)</description></item>
-        /// </list>
-        /// <para>
-        /// Special handling: If setup has out/ref parameters or needs dynamic values,
-        /// returns the setup itself so generated code can extract those values.
-        /// </para>
-        /// </remarks>
-        public object? Invoke(string signature, object?[] args)
+        public void SetChaosPolicy(ChaosPolicy policy)
         {
-            // Always record invocation for verification, even if it fails
+            _chaosPolicy = policy;
+            if (_chaosStats == null) _chaosStats = new ChaosStatistics();
+
+            if (policy.Seed.HasValue)
+                _rng = new Random(policy.Seed.Value);
+        }
+
+        #endregion
+
+        #region Additional Interfaces
+
+        /// <summary>
+        /// Adds an additional interface that this mock is claimed to implement.
+        /// </summary>
+        public void AddInterface(Type interfaceType)
+        {
+            if (!_additionalInterfaces.Contains(interfaceType))
+                _additionalInterfaces.Add(interfaceType);
+        }
+
+        /// <summary>
+        /// Gets the list of additional interfaces implemented by this mock.
+        /// </summary>
+        public IReadOnlyCollection<Type> AdditionalInterfaces => _additionalInterfaces;
+
+        /// <summary>
+        /// Gets all additional interfaces that have been added to the mock via As<T>().
+        /// </summary>
+        public IReadOnlySet<Type> GetAdditionalInterfaces()
+        {
+            return new HashSet<Type>(_additionalInterfaces);
+        }
+
+        #endregion
+
+        #region Default Values
+
+        /// <summary>
+        /// Sets a default return value for a specific type.
+        /// </summary>
+        public void SetReturnsDefault(Type type, object? value)
+        {
+            _defaultReturnValues[type] = value;
+        }
+
+        /// <summary>
+        /// Sets a default return value for a specific type.
+        /// </summary>
+        public void SetReturnsDefault<T>(T value)
+        {
+            _defaultReturnValues[typeof(T)] = value;
+        }
+
+        #endregion
+
+        #region Invocation Engine
+
+        /// <summary>
+        /// Core method called by generated mocks for every member invocation.
+        /// Matches the invocation against setups, records history, and handles return values.
+        /// </summary>
+        public object? Invoke(string signature, object?[] args, Type? returnType = null, bool canCallBase = false)
+        {
+            // Record invocation
             _invocations.Add(new Invocation(signature, args));
 
             #region Chaos Mode Application
 
-            // Apply chaos policy if configured
             if (_chaosPolicy != null)
             {
-                _chaosStats.TotalInvocations++;
+                var stats = ChaosStatistics;
+                stats.TotalInvocations++;
 
-                // Simulate timeout/delay if configured
-                // Useful for testing timeout handling in application code
                 if (_chaosPolicy.TimeoutMilliseconds > 0)
                 {
-                    _chaosStats.TimeoutTriggeredCount++;
+                    stats.TimeoutTriggeredCount++;
                     System.Threading.Thread.Sleep(_chaosPolicy.TimeoutMilliseconds);
                 }
 
-                // Trigger failure based on failure rate (0.0 to 1.0)
-                // RNG.NextDouble() returns [0.0, 1.0), so failure rate of 0.5 = 50% chance
                 if (_rng.NextDouble() < _chaosPolicy.FailureRate)
                 {
-                    _chaosStats.ChaosTriggeredCount++;
-
-                    // Only throw if exceptions are configured
-                    // Throws one of the configured exceptions randomly
+                    stats.ChaosTriggeredCount++;
                     if (_chaosPolicy.PossibleExceptions?.Length > 0)
                         throw _chaosPolicy.PossibleExceptions[_rng.Next(_chaosPolicy.PossibleExceptions.Length)];
                 }
@@ -441,173 +305,188 @@ namespace Skugga.Core
 
             #region Setup Matching and Execution
 
-            // Find the first matching setup (setups are checked in order)
             foreach (var setup in _setups)
             {
                 if (setup.Matches(signature, args))
                 {
-                    // Check sequence order if this setup is part of a sequence
                     if (setup.Sequence != null)
-                    {
                         setup.Sequence.RecordInvocation(setup.SequenceStep, signature);
-                    }
 
-                    // Execute callback if present (before returning value or throwing exception)
+                    setup.CallCount++;
                     setup.ExecuteCallback(args);
 
-                    // Raise event if configured via .Raises()
                     if (setup.EventToRaise != null && setup.EventArgs != null)
-                    {
                         RaiseEvent(setup.EventToRaise, setup.EventArgs);
-                    }
 
-                    // Throw exception if configured via .Throws() or error scenario methods
                     if (setup.Exception != null)
-                    {
                         throw setup.Exception;
-                    }
 
-                    // If setup has out/ref parameters (static or dynamic) or callback,
-                    // return the setup itself so generated code can extract those values.
-                    // Generated code pattern:
-                    //   var result = handler.Invoke(...);
-                    //   if (result is MockSetup setup) { /* apply out/ref values */ }
-                    if (setup.OutValues != null || setup.RefValues != null ||
-                        setup.OutValueFactories != null || setup.RefValueFactories != null ||
+                    // If setup has out/ref parameters or CallbackRefOut, return setup object
+                    if ((setup.OutValues?.Count > 0) ||
+                        (setup.RefValues?.Count > 0) ||
+                        (setup.OutValueFactories?.Count > 0) ||
+                        (setup.RefValueFactories?.Count > 0) ||
                         setup.RefOutCallback != null)
                     {
                         return setup;
                     }
 
-                    // Return sequential value if using SetupSequence()
+                    if (returnType == typeof(void))
+                        return null;
+
                     if (setup.SequentialValues != null)
                         return setup.GetNextSequentialValue();
 
-                    // Return factory-generated value if ValueFactory is set, otherwise static Value
                     return setup.ValueFactory != null ? setup.ValueFactory(args) : setup.Value;
                 }
             }
 
             #endregion
 
+            #region Property and Event Shortcut Handling
+
+            if (signature.StartsWith("get_") && args.Length == 0)
+            {
+                var propertyName = signature.Substring(4);
+                if (HasPropertyStorage(propertyName))
+                    return GetPropertyValue(propertyName);
+            }
+            else if (signature.StartsWith("set_") && args.Length == 1)
+            {
+                var propertyName = signature.Substring(4);
+                if (HasPropertyStorage(propertyName))
+                {
+                    SetPropertyValue(propertyName, args[0]);
+                    return null;
+                }
+            }
+
+            if (signature.StartsWith("add_") && args.Length == 1 && args[0] is Delegate addHandler)
+            {
+                var eventName = signature.Substring(4);
+                AddEventHandler(eventName, addHandler);
+                return null;
+            }
+            if (signature.StartsWith("remove_") && args.Length == 1 && args[0] is Delegate removeHandler)
+            {
+                var eventName = signature.Substring(7);
+                RemoveEventHandler(eventName, removeHandler);
+                return null;
+            }
+
+            #endregion
+
             #region Unmatched Invocation Handling
 
-            // No matching setup found
+            if (CallBase && canCallBase)
+                return MockSetup.CallBaseMarker;
+
             if (Behavior == MockBehavior.Strict)
                 throw new MockException($"[Strict Mode] Call to '{signature}' was not setup.");
 
-            // In Loose mode, return null here
-            // Generated code will call GetDefaultValueFor<T> to convert null to appropriate default
-            return null;
+            if (returnType == null || returnType == typeof(void))
+                return null;
+
+            return GetDefaultValue(returnType);
 
             #endregion
         }
 
-        #endregion
-
-        #region Default Value Providers
-
-        /// <summary>
-        /// Gets the default value for a specific type using the configured default value provider.
-        /// </summary>
-        /// <typeparam name="T">The return type</typeparam>
-        /// <param name="mock">The mock instance (used for recursive mocking in Mock mode)</param>
-        /// <returns>Default value for the type</returns>
-        /// <remarks>
-        /// <para>
-        /// Called by generated mock implementations when Invoke() returns null (un-setup member in Loose mode).
-        /// </para>
-        /// <para>
-        /// <b>Special handling:</b>
-        /// </para>
-        /// <list type="bullet">
-        /// <item><description>Task: Returns Task.CompletedTask</description></item>
-        /// <item><description>Task&lt;T&gt;: Returns Task.FromResult(default(T))</description></item>
-        /// <item><description>Other types: Uses configured provider or CLR defaults</description></item>
-        /// </list>
-        /// <para>
-        /// If no explicit strategy was set (_explicitDefaultValueStrategy == null),
-        /// returns CLR defaults for backwards compatibility with existing tests.
-        /// </para>
-        /// </remarks>
-        public T? GetDefaultValueFor<T>(object mock)
+        public void Verify(string signature, object?[] args, Times times, HashSet<int>? refOutParameterIndices = null)
         {
-            var type = typeof(T);
-
-            // Special handling for Task and Task<T> - always return completed tasks
-            // This prevents tests from hanging when un-setup async methods are called
-            if (type == typeof(System.Threading.Tasks.Task))
+            var matchingInvocations = _invocations.Where(i => i.Matches(signature, args, refOutParameterIndices)).ToList();
+            if (!times.Validate(matchingInvocations.Count))
             {
-                return (T)(object)System.Threading.Tasks.Task.CompletedTask;
-            }
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(System.Threading.Tasks.Task<>))
-            {
-                // Use Task.FromResult<TResult>(default(TResult))
-                var resultType = type.GetGenericArguments()[0];
-                var fromResultMethod = typeof(System.Threading.Tasks.Task)
-                    .GetMethod("FromResult")!
-                    .MakeGenericMethod(resultType);
-                var result = fromResultMethod.Invoke(null, new object?[] { GetDefaultForType(resultType, mock) });
-                return (T)result!;
+                var currentCalls = matchingInvocations.Count;
+                var errorMsg = $"Verification failed: Expected {times.Description} call(s) to '{signature}', but was called {currentCalls} time(s).";
+                throw new MockException(errorMsg);
             }
 
-            // If custom provider is set, use it (takes precedence over strategy)
-            if (_defaultValueProvider != null)
-            {
-                var value = _defaultValueProvider.GetDefaultValue(typeof(T), mock);
-                return value == null ? default(T) : (T)value;
-            }
-
-            // If no explicit strategy was set, return CLR defaults for backwards compatibility
-            // This ensures existing tests don't break
-            if (_explicitDefaultValueStrategy == null)
-            {
-                return default(T);
-            }
-
-            // Otherwise use strategy-based provider (Empty or Mock)
-            DefaultValueProvider provider = _explicitDefaultValueStrategy == DefaultValue.Mock
-                ? new MockDefaultValueProvider()
-                : new EmptyDefaultValueProvider();
-
-            var providerResult = provider.GetDefaultValue(typeof(T), mock);
-            return providerResult == null ? default(T) : (T)providerResult;
+            foreach (var invocation in matchingInvocations)
+                invocation.IsVerified = true;
         }
 
-        /// <summary>
-        /// Helper method to get default value for any type (used by Task&lt;T&gt; handling).
-        /// </summary>
-        /// <param name="type">The type to get default value for</param>
-        /// <param name="mock">The mock instance for recursive mocking</param>
-        /// <returns>Default value for the specified type</returns>
-        /// <remarks>
-        /// DynamicallyAccessedMembers attribute ensures AOT compatibility when creating value types.
-        /// The attribute tells the AOT compiler to preserve the parameterless constructor.
-        /// </remarks>
-        private object? GetDefaultForType(
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
-            Type type,
-            object mock)
+        public void Verify()
         {
-            // If custom provider is set, use it
-            if (_defaultValueProvider != null)
+            var unverifiableSetups = _setups.Where(s => s.IsVerifiable && s.CallCount == 0).ToList();
+            if (unverifiableSetups.Any())
             {
-                return _defaultValueProvider.GetDefaultValue(type, mock);
+                var first = unverifiableSetups.First();
+                throw new MockException($"Verification failed: Expected setup for '{first.Signature}' to be called, but it was not.");
+            }
+        }
+
+        public void VerifyAll()
+        {
+            var uncalledSetups = _setups.Where(s => s.CallCount == 0).ToList();
+            if (uncalledSetups.Any())
+            {
+                var first = uncalledSetups.First();
+                throw new MockException($"Verification failed: Expected all setups to be called, but '{first.Signature}' was not.");
+            }
+        }
+
+        public void Reset()
+        {
+            _setups.Clear();
+            _invocations.Clear();
+            _propertyStorage.Clear();
+            _eventHandlers.Clear();
+        }
+
+        public void ResetCalls()
+        {
+            _invocations.Clear();
+            foreach (var setup in _setups)
+                setup.CallCount = 0;
+        }
+
+        public void VerifyNoOtherCalls()
+        {
+            var unverified = _invocations.Where(i => !i.IsVerified).ToList();
+            if (unverified.Any())
+            {
+                var first = unverified.First();
+                throw new MockException($"Verification failed: Expected no other calls, but found {unverified.Count} unverified call(s). First unverified call: '{first.Signature}'.");
+            }
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private object? GetDefaultValue(Type type)
+        {
+            if (_defaultReturnValues.TryGetValue(type, out var value))
+                return value;
+
+            if (_defaultValueProvider != null)
+                return _defaultValueProvider.GetDefaultValue(type, this);
+
+            // Handle Task and Task<T> for async support in Loose mode
+            if (type == typeof(Task))
+                return Task.CompletedTask;
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                var resultType = type.GetGenericArguments()[0];
+                var defaultValue = GetDefaultValue(resultType);
+                return typeof(Task).GetMethod("FromResult")!.MakeGenericMethod(resultType).Invoke(null, new[] { defaultValue });
             }
 
-            // If no explicit strategy, use AOT-safe default construction
+            // If no explicit strategy was set, return CLR default (null for ref types, 0 for value types)
             if (_explicitDefaultValueStrategy == null)
             {
-                // AOT-safe: DynamicallyAccessedMembers attribute ensures constructor is preserved
-                return type.IsValueType ? Activator.CreateInstance(type) : null;
+                if (type.IsValueType)
+                    return Activator.CreateInstance(type);
+                return null;
             }
 
-            // Use strategy-based provider
-            DefaultValueProvider provider = _explicitDefaultValueStrategy == DefaultValue.Mock
+            DefaultValueProvider provider = DefaultValueStrategy == DefaultValue.Mock
                 ? new MockDefaultValueProvider()
                 : new EmptyDefaultValueProvider();
 
-            return provider.GetDefaultValue(type, mock);
+            return provider.GetDefaultValue(type, this);
         }
 
         #endregion

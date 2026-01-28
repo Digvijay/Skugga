@@ -27,18 +27,18 @@ namespace Skugga.Core
     /// AssertAllocations.Zero(() => {
     ///     mock.GetValue();  // Should not allocate
     /// });
-    /// 
+    ///
     /// // Assert at most 1KB allocated
     /// AssertAllocations.AtMost(() => {
     ///     mock.ProcessData(largeArray);
     /// }, maxBytes: 1024);
-    /// 
+    ///
     /// // Measure and analyze
     /// var report = AssertAllocations.Measure(() => {
     ///     for (int i = 0; i < 1000; i++)
     ///         mock.GetNext();
     /// }, "GetNext 1000x");
-    /// 
+    ///
     /// Console.WriteLine(report);  // Detailed allocation info
     /// </code>
     /// </example>
@@ -71,7 +71,7 @@ namespace Skugga.Core
         /// AssertAllocations.Zero(() => {
         ///     result = 42 + 58;  // Pure value type arithmetic
         /// });
-        /// 
+        ///
         /// // This will fail - string concatenation allocates
         /// AssertAllocations.Zero(() => {
         ///     var s = "hello" + "world";  // Allocates new string
@@ -106,7 +106,7 @@ namespace Skugga.Core
         /// AssertAllocations.AtMost(() => {
         ///     var name = $"User_{userId}";  // String interpolation
         /// }, maxBytes: 100);
-        /// 
+        ///
         /// // Ensure array pooling is working
         /// AssertAllocations.AtMost(() => {
         ///     var buffer = ArrayPool&lt;byte&gt;.Shared.Rent(1024);
@@ -153,10 +153,10 @@ namespace Skugga.Core
         ///     for (int i = 0; i < 1000; i++)
         ///         list.Add(i);
         /// }, "List initialization");
-        /// 
+        ///
         /// Console.WriteLine(report);
         /// // Output: [List initialization] 4096 bytes allocated, 2ms duration, GC: Gen0=0, Gen1=0, Gen2=0
-        /// 
+        ///
         /// // Use in assertions
         /// Assert.True(report.BytesAllocated < 10000, "Too much memory allocated");
         /// Assert.True(report.DurationMilliseconds < 10, "Too slow");
@@ -214,7 +214,7 @@ namespace Skugga.Core
         ///     maxBytes: 10_000,
         ///     maxMilliseconds: 100
         /// );
-        /// 
+        ///
         /// AssertAllocations.MeetsThreshold(() => {
         ///     service.ProcessBatch(items);
         /// }, threshold);
@@ -245,7 +245,7 @@ namespace Skugga.Core
         /// <example>
         /// <code>
         /// var threshold = AssertAllocations.Threshold("Query", 1024, 50);
-        /// 
+        ///
         /// AssertAllocations.MeetsThreshold(() => {
         ///     var results = database.Query("SELECT * FROM users");
         /// }, threshold);

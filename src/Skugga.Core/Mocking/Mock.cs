@@ -31,13 +31,13 @@ namespace Skugga.Core
     /// <code>
     /// // Create with default loose behavior
     /// var mock = Mock.Create&lt;IService&gt;();
-    /// 
+    ///
     /// // Create with strict behavior (throws on un-setup calls)
     /// var strictMock = Mock.Create&lt;IService&gt;(MockBehavior.Strict);
-    /// 
+    ///
     /// // Create with mock default value strategy
     /// var mockingMock = Mock.Create&lt;IService&gt;(DefaultValue.Mock);
-    /// 
+    ///
     /// // Full control
     /// var customMock = Mock.Create&lt;IService&gt;(MockBehavior.Strict, DefaultValue.Empty);
     /// </code>
@@ -144,13 +144,13 @@ namespace Skugga.Core
         /// // Create and use mock
         /// var mock = Mock.Create&lt;IService&gt;();
         /// mock.Setup(x => x.GetName()).Returns("John");
-        /// 
+        ///
         /// var result = mock.GetName(); // "John"
-        /// 
+        ///
         /// // Retrieve setup interface for verification
         /// var mockSetup = Mock.Get(mock);
         /// mockSetup.Verify(x => x.GetName(), Times.Once());
-        /// 
+        ///
         /// // Access invocation count
         /// var count = mockSetup.Handler.Invocations.Count; // 1
         /// </code>
@@ -164,6 +164,19 @@ namespace Skugga.Core
             throw new ArgumentException(
                 $"Object is not a Skugga mock. Use Mock.Create<T>() to create mocks.",
                 nameof(mocked));
+        }
+
+        /// <summary>
+        /// Creates a mock and sets up properties based on the provided expression.
+        /// </summary>
+        /// <typeparam name="T">The type to mock.</typeparam>
+        /// <param name="predicate">A LINQ expression defining property values (e.g. x => x.Id == 1 && x.Name == "Test").</param>
+        /// <returns>The configured mock instance.</returns>
+        public static T Of<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) where T : class
+        {
+            var mock = Create<T>();
+            LinqToMocks.ApplyFromExpression(mock, predicate);
+            return mock;
         }
     }
 }
