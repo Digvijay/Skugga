@@ -1,7 +1,7 @@
 #nullable enable
 using System;
-using Xunit;
 using Skugga.Core;
+using Xunit;
 
 namespace Skugga.Core.Tests
 {
@@ -19,7 +19,7 @@ namespace Skugga.Core.Tests
         public void Mock_Of_SetsProperties()
         {
             var config = Mock.Of<IConfig>(x => x.Id == 123 && x.Name == "Test");
-            
+
             Assert.Equal(123, config.Id);
             Assert.Equal("Test", config.Name);
         }
@@ -30,16 +30,16 @@ namespace Skugga.Core.Tests
             // x.IsActive implies == true
             // !x.IsDeleted implies == false
             var config = Mock.Of<IConfig>(x => x.IsActive && !x.IsDeleted);
-            
+
             Assert.True(config.IsActive);
             Assert.False(config.IsDeleted);
         }
-        
+
         [Fact]
         public void Mock_Of_MixedConditions()
         {
             var config = Mock.Of<IConfig>(x => x.Id == 99 && x.IsActive);
-            
+
             Assert.Equal(99, config.Id);
             Assert.True(config.IsActive);
         }
@@ -49,7 +49,7 @@ namespace Skugga.Core.Tests
         {
             var expectedId = 500;
             var config = Mock.Of<IConfig>(x => x.Id == expectedId);
-            
+
             Assert.Equal(500, config.Id);
         }
     }

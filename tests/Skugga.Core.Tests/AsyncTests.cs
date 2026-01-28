@@ -1,8 +1,8 @@
 #nullable enable
 using System;
 using System.Threading.Tasks;
-using Xunit;
 using Skugga.Core;
+using Xunit;
 
 namespace Skugga.Core.Tests
 {

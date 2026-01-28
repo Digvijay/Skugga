@@ -82,7 +82,8 @@ namespace Skugga.Core.Tests
             int lastAgeValue = 0;
 
             mock.SetupSet(m => m.Age = It.IsAny<int>())
-                .Callback((int val) => {
+                .Callback((int val) =>
+                {
                     lastAgeValue = val;
                 });
 

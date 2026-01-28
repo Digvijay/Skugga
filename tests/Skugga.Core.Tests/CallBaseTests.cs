@@ -1,7 +1,7 @@
 #nullable enable
 using System;
-using Xunit;
 using Skugga.Core;
+using Xunit;
 
 namespace Skugga.Core.Tests
 {
