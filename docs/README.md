@@ -2,7 +2,7 @@
 
 > **Complete guides for Native AOT-compatible mocking at compile time**
 
-## 📚 Table of Contents
+##  Table of Contents
 
 ### Core Features
 
@@ -17,7 +17,7 @@ Auto-generate test mocks from OpenAPI/Swagger specs with build-time contract val
 - Zero manual interface coding
 - Built-in OAuth/JWT mocking
 
-**[→ Read the Doppelgänger Guide](DOPPELGANGER.md)** | **[→ Demo and Example Code](../samples/DoppelgangerDemo)**
+**[-> Read the Doppelgänger Guide](DOPPELGANGER.md)** | **[-> Demo and Example Code](../samples/DoppelgangerDemo)**
 
 ---
 
@@ -32,7 +32,7 @@ Record real interactions and auto-generate mock setup code. Turn 15 minutes of t
 - Captures real data, not guesses
 - Works with complex objects and async methods
 
-**[→ Read the AutoScribe Guide](AUTOSCRIBE.md)** | **[→ Demo and Example Code](../samples/AutoScribeDemo)**
+**[-> Read the AutoScribe Guide](AUTOSCRIBE.md)** | **[-> Demo and Example Code](../samples/AutoScribeDemo)**
 
 ---
 
@@ -47,7 +47,7 @@ Record real interactions and auto-generate mock setup code. Turn 15 minutes of t
 - Configurable failure rates and delays
 - Detailed chaos statistics tracking
 
-**[→ Read the Chaos Engineering Guide](CHAOS_ENGINEERING.md)** | **[→ Demo and Example Code](../samples/ChaosEngineeringDemo)**
+**[-> Read the Chaos Engineering Guide](CHAOS_ENGINEERING.md)** | **[-> Demo and Example Code](../samples/ChaosEngineeringDemo)**
 
 ---
 
@@ -62,7 +62,7 @@ Record real interactions and auto-generate mock setup code. Turn 15 minutes of t
 - Measure and compare allocation patterns
 - Catch performance regressions in CI/CD
 
-**[→ Read the Allocation Testing Guide](ALLOCATION_TESTING.md)** | **[→ Demo and Example Code](../samples/AllocationTestingDemo)**
+**[-> Read the Allocation Testing Guide](ALLOCATION_TESTING.md)** | **[-> Demo and Example Code](../samples/AllocationTestingDemo)**
 
 ---
 
@@ -85,7 +85,7 @@ Third-party packages used by Skugga and their purposes.
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 New to Skugga? Start here:
 
@@ -96,32 +96,32 @@ New to Skugga? Start here:
 
 ---
 
-## 🎯 Feature Comparison
+##  Feature Comparison
 
 | Feature | Skugga | Moq | NSubstitute | FakeItEasy |
 |---------|--------|-----|-------------|------------|
-| Native AOT Compatible | ✅ 100% | ❌ No | ❌ No | ❌ No |
-| OpenAPI Mock Generation | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| Self-Writing Tests (AutoScribe) | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| Chaos Engineering | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| Zero-Allocation Testing | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| Compile-Time Generation | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| Reflection-Free | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| Native AOT Compatible |  100% |  No |  No |  No |
+| OpenAPI Mock Generation |  Yes |  No |  No |  No |
+| Self-Writing Tests (AutoScribe) |  Yes |  No |  No |  No |
+| Chaos Engineering |  Yes |  No |  No |  No |
+| Zero-Allocation Testing |  Yes |  No |  No |  No |
+| Compile-Time Generation |  Yes |  No |  No |  No |
+| Reflection-Free |  Yes |  No |  No |  No |
 
 ---
 
-## 💡 Contributing
+##  Contributing
 
 Found a bug or want to contribute? See our [Contributing Guide](../CONTRIBUTING.md).
 
 ---
 
-## 📝 License
+##  License
 
 Skugga is licensed under the [MIT License](../LICENSE).
 
 ---
 
-**Built with ❤️ by [Digvijay](https://github.com/Digvijay) | Contributions welcome!**
+**Built with  by [Digvijay](https://github.com/Digvijay) | Contributions welcome!**
 
 *Mocking at the Speed of Compilation.*

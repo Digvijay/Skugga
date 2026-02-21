@@ -10,7 +10,7 @@ The core API (`Mock.Create<T>`, `Setup`, `Verify`) uses **zero runtime reflectio
 ## 1. Core Mock Creation (`Mock.Create<T>`)
 
 ### Claim: "Zero Reflection"
-**Verification:** ✅ Verified
+**Verification:**  Verified
 
 Standard mocking libraries use `System.Reflection.Emit` to generate proxy classes at runtime. Skugga replaces this with **Compile-Time Interception**.
 
@@ -21,7 +21,7 @@ Standard mocking libraries use `System.Reflection.Emit` to generate proxy classe
 ## 2. Default Values & Recursive Mocking
 
 ### Claim: "AOT Compatible"
-**Verification:** ⚠️ Verified with implementation notes
+**Verification:**  Verified with implementation notes
 
 When a mock member returns an object (e.g. `mock.ListProperty`), Skugga must generate a default value.
 
@@ -43,7 +43,7 @@ When `DefaultValue.Mock` is used, Skugga attempts to return a new mock instance 
 ## 3. Argument Matchers
 
 ### Claim: "Zero Reflection"
-**Verification:** ✅ Verified
+**Verification:**  Verified
 
 Matchers like `It.Is<T>()` use `System.Linq.Expressions` in traditional libraries (Moq). Skugga uses **capture-and-replay**.
 
@@ -57,10 +57,10 @@ I scanned the codebase for `System.Reflection` namespaces. Findings:
 
 | Usage | Location | Safety |
 |-------|----------|--------|
-| `typeof(T).Name` | Validation exceptions | ✅ Safe (Metadata only) |
-| `MemberExpression.Member` | `Expression` parsing | ✅ Safe (Only used during setup parsing, no `Emit`) |
-| `Activator.CreateInstance` | `DefaultValueProviders` | ✅ Safe (with `DynamicallyAccessedMembers`) |
-| `MakeGenericType` | `DefaultValueProviders` | ⚠️ **Risk:** Only used for default collections. |
+| `typeof(T).Name` | Validation exceptions |  Safe (Metadata only) |
+| `MemberExpression.Member` | `Expression` parsing |  Safe (Only used during setup parsing, no `Emit`) |
+| `Activator.CreateInstance` | `DefaultValueProviders` |  Safe (with `DynamicallyAccessedMembers`) |
+| `MakeGenericType` | `DefaultValueProviders` |  **Risk:** Only used for default collections. |
 
 ## Conclusion
 

@@ -12,18 +12,18 @@ You've implemented retry logic with Polly, but how do you know it actually works
 // Your retry policy looks good...
 var retryPolicy = Policy
     .Handle<HttpRequestException>()
-    .WaitAndRetryAsync(3, retryAttempt => 
+    .WaitAndRetryAsync(3, retryAttempt =>
         TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
-// But does it actually handle failures? 🤷
+// But does it actually handle failures?
 await retryPolicy.ExecuteAsync(() => api.CallExternalService());
 ```
 
 **Problems:**
-- ❌ Can't test retry logic without real failures
-- ❌ Hard to reproduce edge cases (timeouts, 503s, network blips)
-- ❌ Tests always pass (mocks never fail)
-- ❌ Production failures surprise you
+- Can't test retry logic without real failures
+- Hard to reproduce edge cases (timeouts, 503s, network blips)
+- Tests always pass (mocks never fail)
+- Production failures surprise you
 
 ---
 
@@ -37,7 +37,7 @@ var mock = Mock.Create<IPaymentGateway>();
 // 30% of calls will fail with realistic exceptions
 mock.Chaos(policy => {
     policy.FailureRate = 0.3;
-    policy.PossibleExceptions = new[] { 
+    policy.PossibleExceptions = new[] {
         new TimeoutException(),
         new HttpRequestException("503 Service Unavailable")
     };
@@ -74,8 +74,8 @@ var mock = Mock.Create<IExternalApi>();
 // Configure chaos behavior
 mock.Chaos(policy => {
     policy.FailureRate = 0.5; // 50% failure rate
-    policy.PossibleExceptions = new[] { 
-        new TimeoutException("Service timeout") 
+    policy.PossibleExceptions = new[] {
+        new TimeoutException("Service timeout")
     };
 });
 ```
@@ -93,15 +93,15 @@ public async Task RetryPolicy_HandlesTimeouts()
         policy.PossibleExceptions = new[] { new TimeoutException() };
         policy.Seed = 42; // Reproducible
     });
-    
+
     var retryPolicy = Policy
         .Handle<TimeoutException>()
         .WaitAndRetryAsync(3, _ => TimeSpan.FromMilliseconds(10));
-    
+
     // Act - should succeed despite 70% failure rate
-    var result = await retryPolicy.ExecuteAsync(() => 
+    var result = await retryPolicy.ExecuteAsync(() =>
         mock.GetDataAsync("key"));
-    
+
     // Assert
     Assert.NotNull(result);
     var stats = mock.GetChaosStatistics();
@@ -132,7 +132,7 @@ Test different failure scenarios:
 
 ```csharp
 mock.Chaos(policy => {
-    policy.PossibleExceptions = new Exception[] 
+    policy.PossibleExceptions = new Exception[]
     {
         new TimeoutException("Connection timeout"),
         new HttpRequestException("503 Service Unavailable"),
@@ -185,9 +185,9 @@ Monitor chaos impact:
 
 ```csharp
 var mock = Mock.Create<IApi>();
-mock.Chaos(policy => { 
+mock.Chaos(policy => {
     policy.FailureRate = 0.4;
-    policy.TrackStatistics = true; 
+    policy.TrackStatistics = true;
 });
 
 // Exercise the mock
@@ -223,21 +223,21 @@ public async Task CircuitBreaker_OpensAfterConsecutiveFailures()
         policy.FailureRate = 1.0; // Always fail
         policy.PossibleExceptions = new[] { new TimeoutException() };
     });
-    
+
     var circuitBreaker = Policy
         .Handle<TimeoutException>()
         .CircuitBreakerAsync(
             exceptionsAllowedBeforeBreaking: 3,
             durationOfBreak: TimeSpan.FromSeconds(10)
         );
-    
+
     // Act - trigger circuit breaker
     for (int i = 0; i < 3; i++) {
         await Assert.ThrowsAsync<TimeoutException>(
             () => circuitBreaker.ExecuteAsync(() => mock.QueryAsync("SELECT * FROM Users"))
         );
     }
-    
+
     // Circuit should be open now
     await Assert.ThrowsAsync<BrokenCircuitException>(
         () => circuitBreaker.ExecuteAsync(() => mock.QueryAsync("SELECT * FROM Users"))
@@ -259,20 +259,20 @@ public async Task Fallback_ActivatesOnTimeout()
         policy.FailureRate = 1.0; // Always fail
         policy.PossibleExceptions = new[] { new TimeoutException() };
     });
-    
+
     var fallbackMock = Mock.Create<IFallbackCache>();
     fallbackMock.Setup(x => x.GetCachedData("key"))
         .Returns("cached_value");
-    
+
     var fallbackPolicy = Policy<string>
         .Handle<TimeoutException>()
-        .FallbackAsync("cached_value", 
+        .FallbackAsync("cached_value",
             async (result, context) => await fallbackMock.GetCachedData("key"));
-    
+
     // Act
-    var result = await fallbackPolicy.ExecuteAsync(() => 
+    var result = await fallbackPolicy.ExecuteAsync(() =>
         primaryMock.GetDataAsync("key"));
-    
+
     // Assert
     Assert.Equal("cached_value", result);
     fallbackMock.Verify(x => x.GetCachedData("key"), Times.Once);
@@ -294,17 +294,17 @@ public async Task Bulkhead_LimitsParallelExecution()
         policy.MinLatencyMs = 1000; // 1 second per call
         policy.MaxLatencyMs = 1000;
     });
-    
+
     var bulkhead = Policy.BulkheadAsync(
         maxParallelization: 5,
         maxQueuingActions: 10
     );
-    
+
     // Act - try to execute 20 tasks
     var tasks = Enumerable.Range(0, 20)
         .Select(i => bulkhead.ExecuteAsync(() => mock.ProcessAsync(i)))
         .ToList();
-    
+
     // Some will be rejected due to bulkhead limit
     var results = await Task.WhenAll(
         tasks.Select(async t => {
@@ -312,10 +312,10 @@ public async Task Bulkhead_LimitsParallelExecution()
             catch (BulkheadRejectedException) { return false; }
         })
     );
-    
+
     var accepted = results.Count(r => r);
     var rejected = results.Count(r => !r);
-    
+
     Assert.Equal(15, accepted); // 5 parallel + 10 queued
     Assert.Equal(5, rejected);
 }
@@ -335,18 +335,18 @@ public async Task Hedging_UsesFirstSuccessfulResponse()
         policy.InjectLatency = true;
         policy.MinLatencyMs = 5000; // Very slow
     });
-    
+
     var fastMock = Mock.Create<IFastApi>();
     fastMock.Setup(x => x.GetDataAsync())
         .ReturnsAsync("fast_result");
-    
+
     // Act - race both services
     var slowTask = slowMock.GetDataAsync();
     var fastTask = fastMock.GetDataAsync();
-    
+
     var winner = await Task.WhenAny(slowTask, fastTask);
     var result = await winner;
-    
+
     // Assert - fast service won
     Assert.Equal("fast_result", result);
 }
@@ -418,13 +418,13 @@ mock.Chaos(policy => {
 
 See Chaos Engineering in action:
 
-**[→ View Demo and Example Code](../samples/ChaosEngineeringDemo)**
+**[-> View Demo and Example Code](../samples/ChaosEngineeringDemo)**
 
 The demo shows:
-- ✅ Testing retry policies with chaos
-- ✅ Circuit breaker activation
-- ✅ Fallback mechanism testing
-- ✅ Statistics and reproducibility
+- Testing retry policies with chaos
+- Circuit breaker activation
+- Fallback mechanism testing
+- Statistics and reproducibility
 
 ---
 
@@ -435,10 +435,10 @@ The demo shows:
 Begin with 10% chaos and increase gradually:
 
 ```csharp
-// ✅ Good - start gentle
+// Good - start gentle
 policy.FailureRate = 0.1;
 
-// ❌ Bad - too aggressive initially
+// Bad - too aggressive initially
 policy.FailureRate = 0.9;
 ```
 
@@ -448,7 +448,7 @@ Make test failures reproducible:
 
 ```csharp
 mock.Chaos(policy => {
-    policy.Seed = Environment.GetEnvironmentVariable("CHAOS_SEED") 
+    policy.Seed = Environment.GetEnvironmentVariable("CHAOS_SEED")
         ?? DateTime.UtcNow.Ticks;
     policy.FailureRate = 0.3;
 });
@@ -459,14 +459,14 @@ mock.Chaos(policy => {
 Use exceptions your code actually encounters:
 
 ```csharp
-// ✅ Good - realistic exceptions
+// Good - realistic exceptions
 policy.PossibleExceptions = new[] {
     new HttpRequestException("503"),
     new TimeoutException(),
     new SocketException()
 };
 
-// ❌ Bad - unrealistic
+// Bad - unrealistic
 policy.PossibleExceptions = new[] {
     new FileNotFoundException() // Your API doesn't throw this!
 };
@@ -554,16 +554,16 @@ mock.Chaos(policy => {
 
 ## FAQ
 
-**Q: Should I use Chaos in production?**  
+**Q: Should I use Chaos in production?**
 A: No! Skugga Chaos is for testing only. Use [Polly + Simmy](https://github.com/Polly-Contrib/Simmy) for production chaos.
 
-**Q: Can I use Chaos with real services?**  
+**Q: Can I use Chaos with real services?**
 A: No, Chaos only works with Skugga mocks. For real services, use Simmy or network-level chaos tools.
 
-**Q: Is Chaos deterministic?**  
+**Q: Is Chaos deterministic?**
 A: Yes, when using seeds. Without seeds, it's random.
 
-**Q: Does Chaos work with async methods?**  
+**Q: Does Chaos work with async methods?**
 A: Yes! Chaos works seamlessly with `async`/`await`.
 
 ---
@@ -575,6 +575,6 @@ A: Yes! Chaos works seamlessly with `async`/`await`.
 
 ---
 
-**Built with ❤️ by [Digvijay](https://github.com/Digvijay) | Contributions welcome!**
+**Built with  by [Digvijay](https://github.com/Digvijay) | Contributions welcome!**
 
 *Break things in tests, not production.*

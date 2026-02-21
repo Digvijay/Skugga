@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Major Test Stability Pass**: Resolved 450+ test failures from recent refactoring
-- **Complex Expression Evaluation**: 
+- **Complex Expression Evaluation**:
   - Added support for ternary operators (`ConditionalExpression`) in setup arguments
   - Added support for array indexing and complex indexers in setup arguments
   - Fixed nullability evaluation errors in complex property chains
@@ -191,10 +191,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic analyzer registration when package installed
   - Build targets auto-configure interceptors
 - **CI/CD Improvements** - Updated to latest GitHub Actions
-  - actions/checkout: v4 → v6
-  - actions/setup-dotnet: v4 → v5
-  - actions/upload-artifact: v4 → v6
-  - gittools/actions: v1.1.1 → v4.2.0
+  - actions/checkout: v4 -> v6
+  - actions/setup-dotnet: v4 -> v5
+  - actions/upload-artifact: v4 -> v6
+  - gittools/actions: v1.1.1 -> v4.2.0
   - Fixed workflow paths after repository reorganization
   - Explicit generator build steps before NuGet packing
 - **Dependency Fixes** - Resolved all version conflicts

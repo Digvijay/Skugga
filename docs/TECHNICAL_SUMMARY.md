@@ -2,8 +2,8 @@
 
 **A Technical Case Study on Zero-Overhead Mocking for Native AOT**
 
-**Author:** Digvijay Chauhan  
-**Date:** December 14, 2025  
+**Author:** Digvijay Chauhan
+**Date:** December 14, 2025
 
 -----
 
@@ -34,7 +34,7 @@ graph LR
     subgraph "Skugga (Compile-Time)"
         Code2[Test Code] -->|Roslyn| Shadow[Shadow Class]
         Shadow -->|Static Link| Binary[Native Binary]
-        Binary -->|Run| Success[✅ Success]
+        Binary -->|Run| Success[ Success]
     end
 
     style AOT fill:#b30000,stroke:#333,color:#fff
@@ -53,7 +53,7 @@ In serverless environments (AWS Lambda, Azure Functions), costs are driven by CP
 
 | Metric | Standard JIT | Skugga AOT | Improvement |
 | :--- | :--- | :--- | :--- |
-| **User CPU Time** | 0.36s | **0.07s** | **5.1x More Efficient** 🚀 |
+| **User CPU Time** | 0.36s | **0.07s** | **5.1x More Efficient**  |
 | **System CPU Time** | 0.18s | **0.12s** | **33% Less Overhead** |
 | **Total Work** | 0.54s | **0.19s** | **2.8x Faster Completion** |
 
@@ -61,11 +61,11 @@ In serverless environments (AWS Lambda, Azure Functions), costs are driven by CP
 
 ### 3.2 Deployment Footprint (The Velocity Metric)
 
-Legacy .NET deployments require a full OS and Runtime. Skugga enabled a **"Distroless"** deployment—a stripped-down container containing only the application binary.
+Legacy .NET deployments require a full OS and Runtime. Skugga enabled a **"Distroless"** deployment--a stripped-down container containing only the application binary.
 
 | Metric | Standard JIT | Skugga AOT | Improvement |
 | :--- | :--- | :--- | :--- |
-| **Artifact Size** | \~200 MB (Requires Runtime) | **47 MB (Self-Contained)** | **4x Smaller** 📉 |
+| **Artifact Size** | \~200 MB (Requires Runtime) | **47 MB (Self-Contained)** | **4x Smaller**  |
 | **Attack Surface** | Full Linux OS | **Scratch (No OS)** | **Maximal Security** |
 
 **Implication:** A 76% reduction in artifact size drastically improves **Mean Time To Recovery (MTTR)** by accelerating container pull times during auto-scaling events.

@@ -19,14 +19,14 @@ inventoryMock.Setup(x => x.CheckStock("WIDGET-001"))
     .Returns(new StockInfo { Available = 50, Reserved = 10 });
 
 var shippingMock = new Mock<IShippingService>();
-// ... 6 more mocks to setup manually! 😱
+// ... 6 more mocks to setup manually!
 ```
 
 **Problems:**
-- ❌ Time-consuming (15+ minutes per test)
-- ❌ Error-prone (wrong return values, types)
-- ❌ Hard to maintain when APIs change
-- ❌ Guessing realistic test data
+- Time-consuming (15+ minutes per test)
+- Error-prone (wrong return values, types)
+- Hard to maintain when APIs change
+- Guessing realistic test data
 
 ---
 
@@ -46,10 +46,10 @@ recorder.UpdateStatus(12345, "Shipped");
 // [AutoScribe] mock.Setup(x => x.GetOrder(12345)).Returns(new Order { Id = 12345, Total = 99.99m, Status = "Pending" });
 // [AutoScribe] mock.Setup(x => x.UpdateStatus(12345, "Shipped")).Returns(true);
 
-// 4. Copy/paste into your test - done! ✅
+// 4. Copy/paste into your test - done!
 ```
 
-**Time saved: 15 minutes → 30 seconds**
+**Time saved: 15 minutes -> 30 seconds**
 
 ---
 
@@ -74,7 +74,7 @@ var recorder = AutoScribe.Capture<IPaymentGateway>(new StripePaymentGateway());
 
 ```csharp
 // Call methods as you normally would
-var payment = recorder.CreatePayment(new PaymentRequest 
+var payment = recorder.CreatePayment(new PaymentRequest
 {
     Amount = 99.99m,
     Currency = "USD"
@@ -105,12 +105,12 @@ public async Task ProcessOrder_WithValidPayment_CompletesSuccessfully()
     var mock = Mock.Create<IPaymentGateway>();
     mock.Setup(x => x.CreatePayment(It.Is<PaymentRequest>(r => r.Amount == 99.99m)))
         .Returns(new Payment { Id = "pay_123", Status = "pending" });
-    
+
     var service = new OrderService(mock);
-    
+
     // Act
     var result = await service.ProcessOrder(new Order { Total = 99.99m });
-    
+
     // Assert
     Assert.Equal("Completed", result.Status);
 }
@@ -129,14 +129,14 @@ var recorder = AutoScribe.Capture<IOrderRepository>(new RealOrderRepository());
 
 var order = recorder.GetOrderWithItems(12345);
 // Captures:
-// new Order 
-// { 
-//     Id = 12345, 
-//     Items = new[] 
-//     { 
-//         new OrderItem { ProductId = "P001", Quantity = 2, Price = 19.99m },
-//         new OrderItem { ProductId = "P002", Quantity = 1, Price = 59.99m }
-//     }
+// new Order
+// {
+//    Id = 12345,
+//    Items = new[]
+//    {
+//        new OrderItem { ProductId = "P001", Quantity = 2, Price = 19.99m },
+//        new OrderItem { ProductId = "P002", Quantity = 1, Price = 59.99m }
+//    }
 // }
 ```
 
@@ -149,7 +149,7 @@ var recorder = AutoScribe.Capture<IEmailService>(new SendGridEmailService());
 
 await recorder.SendEmailAsync("user@example.com", "Welcome!", "Hello!");
 // [AutoScribe] mock.Setup(x => x.SendEmailAsync("user@example.com", "Welcome!", "Hello!"))
-//     .ReturnsAsync(true);
+//    .ReturnsAsync(true);
 ```
 
 ### Recording Multiple Calls
@@ -191,11 +191,11 @@ var recorder = AutoScribe.Capture<IService>(new RealService(), options =>
 {
     // Console output (default)
     options.OutputTo = AutoScribeOutput.Console;
-    
+
     // File output
     options.OutputTo = AutoScribeOutput.File;
     options.OutputPath = "GeneratedMocks.cs";
-    
+
     // In-memory (access via recorder.GeneratedCode)
     options.OutputTo = AutoScribeOutput.InMemory;
 });
@@ -213,10 +213,10 @@ var recorder = AutoScribe.Capture<IService>(new RealService(), options =>
 {
     // Exact value matching (default)
     options.ArgumentMatching = ArgumentMatchMode.Exact;
-    
+
     // Use It.IsAny<T>() for flexibility
     options.ArgumentMatching = ArgumentMatchMode.Any;
-    
+
     // Smart matching (It.Is<T> with predicates)
     options.ArgumentMatching = ArgumentMatchMode.Smart;
 });
@@ -231,7 +231,7 @@ var recorder = AutoScribe.Capture<IService>(new RealService(), options =>
 {
     // Compact (single line)
     options.FormatMode = CodeFormatMode.Compact;
-    
+
     // Pretty (multi-line with indentation)
     options.FormatMode = CodeFormatMode.Pretty;
 });
@@ -249,18 +249,18 @@ var recorder = AutoScribe.Capture<IService>(new RealService(), options =>
 [Fact]
 public async Task CompleteCheckout_WithValidOrder_ProcessesPaymentAndShipsOrder()
 {
-    // Manual setup of 9 dependencies... 😰
+    // Manual setup of 9 dependencies...
     var orderRepoMock = new Mock<IOrderRepository>();
     orderRepoMock.Setup(x => x.GetOrder(12345))
         .Returns(new Order { /* guessing these values */ });
-    
+
     var inventoryMock = new Mock<IInventoryService>();
     inventoryMock.Setup(x => x.CheckStock(It.IsAny<string>()))
         .Returns(new StockInfo { /* more guesses */ });
-    
+
     var paymentMock = new Mock<IPaymentGateway>();
     // ... 6 more mocks!
-    
+
     // Act & Assert
     // ...
 }
@@ -272,7 +272,7 @@ public async Task CompleteCheckout_WithValidOrder_ProcessesPaymentAndShipsOrder(
 
 ```csharp
 // Step 1: Record real interactions
-var recorder = AutoScribe.CaptureAll(new 
+var recorder = AutoScribe.CaptureAll(new
 {
     Orders = new RealOrderRepository(),
     Inventory = new RealInventoryService(),
@@ -291,9 +291,9 @@ public async Task CompleteCheckout_WithValidOrder_ProcessesPaymentAndShipsOrder(
     var orderMock = Mock.Create<IOrderRepository>();
     orderMock.Setup(x => x.GetOrder(12345))
         .Returns(new Order { Id = 12345, Total = 99.99m, Status = "Pending" });
-    
+
     // ... all setups generated accurately
-    
+
     // Act & Assert
     var result = await CheckoutService.CompleteCheckout(12345);
     Assert.Equal("Completed", result.Status);
@@ -306,13 +306,13 @@ public async Task CompleteCheckout_WithValidOrder_ProcessesPaymentAndShipsOrder(
 
 See AutoScribe in action with a complete example:
 
-**[→ View Demo and Example Code](../samples/AutoScribeDemo)**
+**[-> View Demo and Example Code](../samples/AutoScribeDemo)**
 
 The demo shows:
-- ✅ Complex 9-dependency controller
-- ✅ Before/after comparison (15 min → 30 sec)
-- ✅ Side-by-side code comparison
-- ✅ Real vs guessed data accuracy
+- Complex 9-dependency controller
+- Before/after comparison (15 min -> 30 sec)
+- Side-by-side code comparison
+- Real vs guessed data accuracy
 
 ---
 
@@ -366,14 +366,14 @@ Commit the generated mock setup code to your repo so your team can review it.
 **Solution:** Ensure you're calling methods on the recorder, not the original object:
 
 ```csharp
-// ❌ Wrong - calls original
+// Wrong - calls original
 var service = new RealService();
 var recorder = AutoScribe.Capture<IService>(service);
 service.DoSomething(); // Not recorded!
 
-// ✅ Correct - calls recorder
+// Correct - calls recorder
 var recorder = AutoScribe.Capture<IService>(new RealService());
-recorder.DoSomething(); // Recorded ✓
+recorder.DoSomething(); // Recorded
 ```
 
 ### Issue: "Complex objects not serialized correctly"
@@ -427,16 +427,16 @@ var recorder = AutoScribe.Capture<IService>(service, options =>
 
 ## FAQ
 
-**Q: Can I use AutoScribe in production?**  
+**Q: Can I use AutoScribe in production?**
 A: No, AutoScribe is for development only. Use the generated mock code in your tests.
 
-**Q: Does AutoScribe work with sealed classes?**  
+**Q: Does AutoScribe work with sealed classes?**
 A: No, AutoScribe requires an interface. Extract an interface from sealed classes first.
 
-**Q: Can I record from a real APIs?**  
+**Q: Can I record from a real APIs?**
 A: Yes! You can attach AutoScribe to a running service and record production-like interactions (be careful with side effects).
 
-**Q: Is the generated code compatible with Moq?**  
+**Q: Is the generated code compatible with Moq?**
 A: Yes! AutoScribe generates standard Moq-style `mock.Setup()` calls that work with Skugga and Moq.
 
 ---
@@ -448,6 +448,6 @@ A: Yes! AutoScribe generates standard Moq-style `mock.Setup()` calls that work w
 
 ---
 
-**Built with ❤️ by [Digvijay](https://github.com/Digvijay) | Contributions welcome!**
+**Built with  by [Digvijay](https://github.com/Digvijay) | Contributions welcome!**
 
 *Stop writing mocks. Start recording them.*

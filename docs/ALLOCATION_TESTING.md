@@ -12,18 +12,18 @@ You've optimized your code to avoid allocations, but how do you **prove** it sta
 // You think this is zero-allocation...
 public string GetCacheKey(int userId, string resource)
 {
-    return $"user:{userId}:{resource}"; // 💥 Allocates! String interpolation
+    return $"user:{userId}:{resource}"; //  Allocates! String interpolation
 }
 
 // Tests pass, code ships, but...
-// 1M requests/day × 80 bytes = 80 GB of garbage! 🗑️
+// 1M requests/day x 80 bytes = 80 GB of garbage!
 ```
 
 **Problems:**
-- ❌ Can't prove code is allocation-free
-- ❌ Regressions sneak in during refactoring
-- ❌ No visibility into allocation patterns
-- ❌ Performance degrades over time
+- Can't prove code is allocation-free
+- Regressions sneak in during refactoring
+- No visibility into allocation patterns
+- Performance degrades over time
 
 ---
 
@@ -51,7 +51,7 @@ var report = AssertAllocations.Measure(() => {
 
 Console.WriteLine($"Allocated: {report.BytesAllocated:N0} bytes");
 // Before optimization: 80,000 bytes
-// After optimization: 0 bytes ✅
+// After optimization: 0 bytes
 ```
 
 ---
@@ -74,7 +74,7 @@ public void CacheLookup_IsZeroAllocation()
 {
     var cache = new HighPerformanceCache();
     var key = "user:123";
-    
+
     // This test FAILS if any heap allocation occurs
     AssertAllocations.Zero(() => {
         cache.Lookup(key);
@@ -85,16 +85,16 @@ public void CacheLookup_IsZeroAllocation()
 ### Step 3: Fix Allocations
 
 ```csharp
-// ❌ Before - Allocates (string interpolation)
+// Before - Allocates (string interpolation)
 public string GetCacheKey(int userId, string resource)
 {
     return $"user:{userId}:{resource}";
 }
 
-// ✅ After - Zero allocation (string.Create + ValueStringBuilder)
+// After - Zero allocation (string.Create + ValueStringBuilder)
 public string GetCacheKey(int userId, string resource)
 {
-    return string.Create(null, 
+    return string.Create(null,
         $"user:{userId}:{resource}");
 }
 ```
@@ -115,7 +115,7 @@ public void HotPath_MustBeZeroAllocation()
         // Code that MUST NOT allocate
         var result = highPerformanceParser.Parse(input);
     });
-    
+
     // Test fails if ANY allocation occurs:
     // "Expected 0 bytes allocated, but got 256 bytes"
 }
@@ -138,7 +138,7 @@ public void ApiEndpoint_StaysUnder10KB()
     AssertAllocations.AtMost(() => {
         var response = controller.HandleRequest(request);
     }, maxBytes: 10_240); // 10KB limit
-    
+
     // Fails if allocation exceeds budget
 }
 ```
@@ -155,17 +155,17 @@ public void CompareAllocationPatterns()
     var oldReport = AssertAllocations.Measure(() => {
         OldImplementation.Process(data);
     }, "Old Implementation");
-    
+
     // Measure new implementation
     var newReport = AssertAllocations.Measure(() => {
         NewImplementation.Process(data);
     }, "New Implementation");
-    
+
     // Compare
     Console.WriteLine($"Old: {oldReport.BytesAllocated:N0} bytes");
     Console.WriteLine($"New: {newReport.BytesAllocated:N0} bytes");
     Console.WriteLine($"Saved: {oldReport.BytesAllocated - newReport.BytesAllocated:N0} bytes");
-    
+
     // Assert improvement
     Assert.True(newReport.BytesAllocated < oldReport.BytesAllocated);
 }
@@ -199,16 +199,16 @@ public void HotPath_AllocationBudget()
 {
     // Baseline from last release
     const long MaxAllowedBytes = 512;
-    
+
     var report = AssertAllocations.Measure(() => {
         HotPath.Execute(input);
     });
-    
+
     // Fail CI if we regress
     Assert.True(
         report.BytesAllocated <= MaxAllowedBytes,
         $"Allocation regression detected! " +
-        $"Expected ≤{MaxAllowedBytes} bytes, got {report.BytesAllocated} bytes"
+        $"Expected <={MaxAllowedBytes} bytes, got {report.BytesAllocated} bytes"
     );
 }
 ```
@@ -230,7 +230,7 @@ public void StringConcat_Allocates()
             var key = "user:" + i + ":profile"; // Allocates!
         }
     });
-    
+
     // Output: Allocated: 50,000 bytes
     Console.WriteLine($"Allocated: {report.BytesAllocated:N0} bytes");
 }
@@ -248,8 +248,8 @@ public void StringCreate_ZeroAllocation()
             FormatCacheKey(buffer, i); // Reuse buffer
         }
     });
-    
-    // ✅ Test passes - zero allocation!
+
+    //  Test passes - zero allocation!
 }
 
 private static void FormatCacheKey(Span<char> buffer, int userId)
@@ -273,13 +273,13 @@ private static void FormatCacheKey(Span<char> buffer, int userId)
 public void JsonParse_Allocates()
 {
     var json = GetLargeJson(); // 100KB JSON
-    
+
     var report = AssertAllocations.Measure(() => {
         for (int i = 0; i < 100; i++) {
             var obj = JsonSerializer.Deserialize<Order>(json); // Allocates!
         }
     });
-    
+
     // Output: Allocated: 500,000 bytes
     Console.WriteLine($"Allocated: {report.BytesAllocated:N0} bytes");
 }
@@ -293,7 +293,7 @@ public void JsonParse_Pooled_LowAllocation()
 {
     var json = GetLargeJson();
     var pool = ArrayPool<byte>.Shared;
-    
+
     var report = AssertAllocations.Measure(() => {
         for (int i = 0; i < 100; i++) {
             var buffer = pool.Rent(json.Length);
@@ -305,7 +305,7 @@ public void JsonParse_Pooled_LowAllocation()
             }
         }
     });
-    
+
     // Output: Allocated: 5,000 bytes (95% reduction!)
     Console.WriteLine($"Allocated: {report.BytesAllocated:N0} bytes");
 }
@@ -320,14 +320,14 @@ public void JsonParse_Pooled_LowAllocation()
 public void Linq_Allocates()
 {
     var items = Enumerable.Range(0, 1000).ToList();
-    
+
     var report = AssertAllocations.Measure(() => {
         var filtered = items
             .Where(x => x % 2 == 0)     // Allocates iterator
             .Select(x => x * 2)          // Allocates iterator
             .ToList();                   // Allocates list
     });
-    
+
     // Output: Allocated: 80,000 bytes
     Console.WriteLine($"Allocated: {report.BytesAllocated:N0} bytes");
 }
@@ -340,7 +340,7 @@ public void Linq_Allocates()
 public void ForLoop_MinimalAllocation()
 {
     var items = Enumerable.Range(0, 1000).ToList();
-    
+
     var report = AssertAllocations.Measure(() => {
         var result = new List<int>(500); // Pre-sized
         for (int i = 0; i < items.Count; i++) {
@@ -349,7 +349,7 @@ public void ForLoop_MinimalAllocation()
             }
         }
     });
-    
+
     // Output: Allocated: 4,000 bytes (95% reduction!)
     Console.WriteLine($"Allocated: {report.BytesAllocated:N0} bytes");
 }
@@ -361,13 +361,13 @@ public void ForLoop_MinimalAllocation()
 
 See Zero-Allocation Testing in action:
 
-**[→ View Demo and Example Code](../samples/AllocationTestingDemo)**
+**[-> View Demo and Example Code](../samples/AllocationTestingDemo)**
 
 The demo shows:
-- ✅ 6 before/after scenarios
-- ✅ String concatenation optimization (50KB → 0 bytes)
-- ✅ JSON parsing optimization (500KB → 5KB)
-- ✅ LINQ vs loops comparison (80KB → 4KB)
+- 6 before/after scenarios
+- String concatenation optimization (50KB -> 0 bytes)
+- JSON parsing optimization (500KB -> 5KB)
+- LINQ vs loops comparison (80KB -> 4KB)
 
 ---
 
@@ -382,7 +382,7 @@ Verify pooled objects don't allocate:
 public void ObjectPool_ZeroAllocation()
 {
     var pool = new ObjectPool<StringBuilder>(() => new StringBuilder(256));
-    
+
     AssertAllocations.Zero(() => {
         var sb = pool.Get();
         try {
@@ -430,9 +430,9 @@ public void CompareStringBuilding(string approach, long expectedMaxBytes)
         "Span" => MeasureSpan(),
         _ => throw new ArgumentException()
     };
-    
+
     Assert.True(report.BytesAllocated <= expectedMaxBytes,
-        $"{approach}: Expected ≤{expectedMaxBytes}, got {report.BytesAllocated}");
+        $"{approach}: Expected <={expectedMaxBytes}, got {report.BytesAllocated}");
 }
 ```
 
@@ -445,14 +445,14 @@ public void CompareStringBuilding(string approach, long expectedMaxBytes)
 Don't over-optimize cold paths:
 
 ```csharp
-// ✅ Good - hot path needs zero-allocation
+// Good - hot path needs zero-allocation
 [Fact]
 public void CacheLookup_HotPath_ZeroAllocation()
 {
     AssertAllocations.Zero(() => cache.Lookup(key));
 }
 
-// ❌ Bad - startup code doesn't need to be zero-allocation
+// Bad - startup code doesn't need to be zero-allocation
 [Fact]
 public void ApplicationStartup_ZeroAllocation() // Too strict!
 {
@@ -465,12 +465,12 @@ public void ApplicationStartup_ZeroAllocation() // Too strict!
 Zero-allocation isn't always realistic:
 
 ```csharp
-// ✅ Good - realistic budget
+// Good - realistic budget
 AssertAllocations.AtMost(() => {
     var response = controller.HandleRequest(request);
 }, maxBytes: 10_240); // 10KB is reasonable
 
-// ❌ Bad - unrealistic for complex operation
+// Bad - unrealistic for complex operation
 AssertAllocations.Zero(() => {
     var response = controller.HandleRequest(request); // Too strict!
 });
@@ -485,11 +485,11 @@ Store baselines and detect regressions:
 public void HotPath_NoAllocationRegression()
 {
     var baseline = LoadBaselineFromFile(); // Last release
-    
+
     var current = AssertAllocations.Measure(() => {
         HotPath.Execute(input);
     });
-    
+
     // Fail if allocation increased by >10%
     var threshold = baseline * 1.10m;
     Assert.True(current.BytesAllocated <= threshold,
@@ -502,12 +502,12 @@ public void HotPath_NoAllocationRegression()
 Single operations may be too small to measure:
 
 ```csharp
-// ❌ Bad - too small to measure accurately
+// Bad - too small to measure accurately
 AssertAllocations.Zero(() => {
     ParseInt("123"); // Single call
 });
 
-// ✅ Good - loop amplifies allocations
+// Good - loop amplifies allocations
 AssertAllocations.Zero(() => {
     for (int i = 0; i < 10_000; i++) {
         ParseInt("123"); // 10k iterations
@@ -527,14 +527,14 @@ public void Measure_AfterWarmup()
     for (int i = 0; i < 100; i++) {
         HotPath.Execute(input);
     }
-    
+
     // Now measure (no JIT allocations)
     var report = AssertAllocations.Measure(() => {
         for (int i = 0; i < 10_000; i++) {
             HotPath.Execute(input);
         }
     });
-    
+
     Assert.True(report.BytesAllocated == 0);
 }
 ```
@@ -603,11 +603,11 @@ AssertAllocations.Zero(() => Method());
 
 | Tool | Skugga | BenchmarkDotNet | PerfView | dotMemory |
 |------|--------|-----------------|----------|-----------|
-| **Allocation Assertions** | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| **Unit Test Integration** | ✅ Native | ⚠️ Separate | ❌ No | ❌ No |
-| **CI/CD Friendly** | ✅ Yes | ⚠️ Complex | ❌ No | ❌ No |
-| **Zero Setup** | ✅ Yes | ❌ Requires config | ❌ GUI only | ❌ GUI only |
-| **Fail Tests on Regression** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Allocation Assertions** |  Yes |  No |  No |  No |
+| **Unit Test Integration** |  Native |  Separate |  No |  No |
+| **CI/CD Friendly** |  Yes |  Complex |  No |  No |
+| **Zero Setup** |  Yes |  Requires config |  GUI only |  GUI only |
+| **Fail Tests on Regression** |  Yes |  No |  No |  No |
 
 **Use Both:**
 - **Skugga** for unit test assertions and CI/CD gates
@@ -618,16 +618,16 @@ AssertAllocations.Zero(() => Method());
 
 ## FAQ
 
-**Q: Does this work in Debug mode?**  
+**Q: Does this work in Debug mode?**
 A: Best results in Release mode. Debug mode has additional allocations from the compiler.
 
-**Q: Can I measure allocations in production?**  
+**Q: Can I measure allocations in production?**
 A: No, this is for testing only. Use ETW profilers or custom metrics for production.
 
-**Q: What about stack allocations?**  
+**Q: What about stack allocations?**
 A: Stack allocations (stackalloc, Span<T>) are not tracked - they don't hit the heap!
 
-**Q: Does this work on .NET Framework?**  
+**Q: Does this work on .NET Framework?**
 A: Yes, but .NET 5+ gives more accurate results.
 
 ---
@@ -639,6 +639,6 @@ A: Yes, but .NET 5+ gives more accurate results.
 
 ---
 
-**Built with ❤️ by [Digvijay](https://github.com/Digvijay) | Contributions welcome!**
+**Built with  by [Digvijay](https://github.com/Digvijay) | Contributions welcome!**
 
 *Prove performance, don't hope for it.*

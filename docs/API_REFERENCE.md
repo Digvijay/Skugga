@@ -39,17 +39,17 @@ var mock = new Mock<IPaymentGateway>();
 mock.Setup(x => x.GetInvoice(It.IsAny<string>()))
     .Returns(new Invoice { Id = "fake", Amount = 100 });
 
-// ✅ Tests pass!
+// Tests pass!
 ```
 
 **Meanwhile...** the platform team updates the Payment API:
-- Renames `GetInvoice` → `RetrieveInvoice`  
+- Renames `GetInvoice` -> `RetrieveInvoice`
 - Changes `Amount` from `int` to `decimal`
 - Adds required `Currency` field
 
 **Result:**
-- ✅ Tests still pass (outdated mock doesn't match API)
-- ❌ Production crashes (real API has changed)
+- Tests still pass (outdated mock doesn't match API)
+- Production crashes (real API has changed)
 
 This is **contract drift** - your mocks lie to you.
 
@@ -70,8 +70,8 @@ var invoice = mock.GetInvoice("inv_123");
 // Returns realistic Invoice from spec examples
 
 // When the API changes:
-// ❌ Old way: Tests pass, production crashes
-// ✅ Skugga: Build fails, fix before deploy
+// Old way: Tests pass, production crashes
+// Skugga: Build fails, fix before deploy
 ```
 
 **Consumer-Driven Contracts at Unit Test Level** - when the spec changes, your code breaks at compile time, not at runtime.
@@ -125,10 +125,10 @@ public async Task Invoice_Retrieval_Returns_Valid_Data()
 {
     // Arrange
     var stripe = Mock.Create<IStripeClient>();
-    
+
     // Act - method exists because it's in the OpenAPI spec
     var invoice = await stripe.GetInvoice("inv_123");
-    
+
     // Assert - realistic defaults from spec examples
     Assert.NotNull(invoice);
     Assert.NotNull(invoice.Id);
@@ -162,10 +162,10 @@ public partial interface IUserApiAsync { }
 public async Task Async_Methods_Work_With_Await()
 {
     var api = Mock.Create<IUserApiAsync>();
-    
+
     var users = await api.GetUsers();
     Assert.NotNull(users);
-    
+
     var user = await api.GetUser(1);
     Assert.NotNull(user);
 }
@@ -185,10 +185,10 @@ public partial interface IUserApiSync { }
 public void Sync_Methods_Work_Without_Await()
 {
     var api = Mock.Create<IUserApiSync>();
-    
+
     var users = api.GetUsers();  // No await needed
     Assert.NotNull(users);
-    
+
     var user = api.GetUser(1);
     Assert.NotNull(user);
 }
@@ -221,19 +221,19 @@ public async Task Can_Access_RateLimit_Headers()
 {
     // Arrange
     var api = Mock.Create<IGitHubApi>();
-    
+
     // Act
     var response = await api.ListRepositories("microsoft");
-    
+
     // Assert - access response body
     Assert.NotNull(response.Body);
     Assert.True(response.Body.Length > 0);
-    
+
     // Assert - access headers
     Assert.NotNull(response.Headers);
     Assert.Contains("X-RateLimit-Limit", response.Headers.Keys);
     Assert.Contains("X-RateLimit-Remaining", response.Headers.Keys);
-    
+
     // Parse header values
     var limit = int.Parse(response.Headers["X-RateLimit-Limit"]);
     Assert.True(limit > 0);
@@ -243,9 +243,9 @@ public async Task Can_Access_RateLimit_Headers()
 public async Task Can_Test_Pagination_With_LinkHeader()
 {
     var api = Mock.Create<IGitHubApi>();
-    
+
     var response = await api.ListUsers(page: 1);
-    
+
     // Check pagination headers
     if (response.Headers.ContainsKey("Link"))
     {
@@ -309,7 +309,7 @@ public async Task Success_Example_Returns_Active_User()
 {
     var api = Mock.Create<IUserApiSuccess>();
     var user = await api.GetUser(1);
-    
+
     Assert.NotNull(user);
     Assert.Equal("active", user.Status);
     Assert.NotNull(user.Email);
@@ -320,7 +320,7 @@ public async Task NotFound_Example_Returns_Null()
 {
     var api = Mock.Create<IUserApiNotFound>();
     var user = await api.GetUser(999);
-    
+
     Assert.Null(user);  // Not found example returns null
 }
 
@@ -329,7 +329,7 @@ public async Task Suspended_Example_Returns_Suspended_User()
 {
     var api = Mock.Create<IUserApiSuspended>();
     var user = await api.GetUser(1);
-    
+
     Assert.NotNull(user);
     Assert.Equal("suspended", user.Status);
     Assert.Null(user.Email);  // Suspended users have no email
@@ -398,10 +398,10 @@ public async Task ExpiredToken_Returns_401()
         tokenInvalid: false,
         credentialsRevoked: false
     );
-    
+
     // Act
     var result = await api.GetProtectedResource();
-    
+
     // Assert - Mock returns 401 response
     Assert.Null(result);  // Or throws UnauthorizedException depending on spec
 }
@@ -411,7 +411,7 @@ public async Task InvalidToken_Returns_401()
 {
     var api = new ISecureApiMock();
     api.ConfigureSecurity(tokenInvalid: true);
-    
+
     var result = await api.GetProtectedResource();
     Assert.Null(result);
 }
@@ -421,7 +421,7 @@ public async Task RevokedCredentials_Returns_403()
 {
     var api = new ISecureApiMock();
     api.ConfigureSecurity(credentialsRevoked: true);
-    
+
     var result = await api.GetProtectedResource();
     Assert.Null(result);  // Or throws ForbiddenException
 }
@@ -435,7 +435,7 @@ public async Task ValidAuthentication_Returns_Data()
         tokenInvalid: false,
         credentialsRevoked: false
     );
-    
+
     var result = await api.GetProtectedResource();
     Assert.NotNull(result);  // Success case
 }
@@ -444,12 +444,12 @@ public async Task ValidAuthentication_Returns_Data()
 public async Task Can_Generate_AccessToken()
 {
     var api = new ISecureApiMock();
-    
+
     var token = api.GenerateAccessToken(
         clientId: "test-client",
         scopes: new[] { "read", "write" }
     );
-    
+
     Assert.NotNull(token);
     Assert.Contains("Bearer", token);
 }
@@ -476,21 +476,21 @@ public async Task Can_Create_And_Retrieve_User()
 {
     // Arrange
     var api = new IUserApiMock();  // Use concrete mock class for stateful behavior
-    
+
     // Act - Create user
-    var created = await api.CreateUser(new User 
-    { 
+    var created = await api.CreateUser(new User
+    {
         Name = "Alice",
         Email = "alice@example.com"
     });
-    
+
     // Assert - User was created with ID
     Assert.NotNull(created);
     Assert.True(created.Id > 0);
-    
+
     // Act - Retrieve the same user
     var retrieved = await api.GetUser(created.Id);
-    
+
     // Assert - Retrieved user matches created user
     Assert.NotNull(retrieved);
     Assert.Equal("Alice", retrieved.Name);
@@ -501,14 +501,14 @@ public async Task Can_Create_And_Retrieve_User()
 public async Task Can_Update_Existing_User()
 {
     var api = new IUserApiMock();
-    
+
     // Create initial user
     var user = await api.CreateUser(new User { Name = "Bob" });
-    
+
     // Update user
     user.Name = "Bob Updated";
     var updated = await api.UpdateUser(user.Id, user);
-    
+
     // Verify update persisted
     var retrieved = await api.GetUser(user.Id);
     Assert.Equal("Bob Updated", retrieved.Name);
@@ -518,13 +518,13 @@ public async Task Can_Update_Existing_User()
 public async Task Can_Delete_User()
 {
     var api = new IUserApiMock();
-    
+
     // Create user
     var user = await api.CreateUser(new User { Name = "Charlie" });
-    
+
     // Delete user
     await api.DeleteUser(user.Id);
-    
+
     // Verify user no longer exists
     var retrieved = await api.GetUser(user.Id);
     Assert.Null(retrieved);
@@ -534,15 +534,15 @@ public async Task Can_Delete_User()
 public async Task Can_List_Multiple_Users()
 {
     var api = new IUserApiMock();
-    
+
     // Create multiple users
     await api.CreateUser(new User { Name = "Alice" });
     await api.CreateUser(new User { Name = "Bob" });
     await api.CreateUser(new User { Name = "Charlie" });
-    
+
     // List all users
     var users = await api.ListUsers();
-    
+
     Assert.NotNull(users);
     Assert.Equal(3, users.Length);
 }
@@ -569,10 +569,10 @@ public async Task ValidResponse_PassesValidation()
 {
     // Arrange
     var api = new IValidatedProductApiMock();
-    
+
     // Act - Mock generates valid response
     var product = await api.GetProduct(123);
-    
+
     // Assert - No exception thrown, response is valid
     Assert.NotNull(product);
     Assert.NotNull(product.Name);
@@ -583,16 +583,16 @@ public async Task ValidResponse_PassesValidation()
 public async Task InvalidResponse_ThrowsContractViolation()
 {
     var api = Mock.Create<IValidatedProductApi>();
-    
+
     // Setup invalid response (missing required field)
     api.Setup(m => m.GetProduct(It.IsAny<long>()))
-       .Returns(Task.FromResult(new Product 
-       { 
+       .Returns(Task.FromResult(new Product
+       {
            Id = 123,
            // Name is required but missing!
            Price = 99.99m
        }));
-    
+
     // Act & Assert - Validation throws exception
     await Assert.ThrowsAsync<ContractViolationException>(
         async () => await api.GetProduct(123)
@@ -603,10 +603,10 @@ public async Task InvalidResponse_ThrowsContractViolation()
 public async Task Validation_ChecksRequiredFields()
 {
     var api = new IValidatedProductApiMock();
-    
+
     // Generated mock ensures all required fields are present
     var product = await api.GetProduct(1);
-    
+
     Assert.NotNull(product.Id);    // Required
     Assert.NotNull(product.Name);  // Required
     Assert.NotNull(product.Price); // Required
@@ -695,7 +695,7 @@ public partial interface IStrictApi { }
 // etc.
 
 // Custom linting configuration
-[SkuggaFromOpenApi("api.json", 
+[SkuggaFromOpenApi("api.json",
     LintingRules = "operation-tags:error,info-license:off,no-unused-components:off")]
 public partial interface ICustomApi { }
 // Build fails if operations missing tags
@@ -744,19 +744,19 @@ public partial interface IProductApi { }
 public async Task AllOf_CombinesProperties()
 {
     var api = Mock.Create<IProductApi>();
-    
+
     // Override default since ExampleGenerator doesn't handle allOf yet
     api.Setup(m => m.UpdateProduct(It.IsAny<long>(), It.IsAny<Product>()))
-       .Returns(Task.FromResult(new Product 
+       .Returns(Task.FromResult(new Product
        {
            Id = 123,                    // From allOf extension
            Name = "Widget",             // From BaseProduct
            Category = "tools",          // From BaseProduct
            Price = 29.99m               // From BaseProduct
        }));
-    
+
     var product = await api.UpdateProduct(123, new Product());
-    
+
     Assert.NotNull(product);
     Assert.Equal(123, product.Id);
     Assert.Equal("Widget", product.Name);
@@ -773,10 +773,10 @@ public partial interface IPaymentApi { }
 public async Task OneOf_HandlesMultipleTypes()
 {
     var api = Mock.Create<IPaymentApi>();
-    
+
     // Can be CreditCardPayment OR BankTransfer OR PayPalPayment
     var payment = await api.GetPayment(123);
-    
+
     Assert.NotNull(payment);
     // Check discriminator to determine actual type
     if (payment.Type == "credit_card")
@@ -812,51 +812,51 @@ public class GitHubIntegrationTests
     {
         // Arrange
         var github = Mock.Create<IGitHubApi>();
-        
+
         // Act
         var repos = await github.ListUserRepos("microsoft");
-        
+
         // Assert - realistic data from OpenAPI examples
         Assert.NotNull(repos);
         Assert.True(repos.Length > 0);
         Assert.All(repos, repo => Assert.NotNull(repo.Name));
     }
-    
+
     [Fact]
     public async Task Can_Get_Repository_Details()
     {
         var github = Mock.Create<IGitHubApi>();
-        
+
         var repo = await github.GetRepository("microsoft", "vscode");
-        
+
         Assert.NotNull(repo);
         Assert.Equal("vscode", repo.Name);
         Assert.NotNull(repo.Description);
     }
-    
+
     [Fact]
     public async Task RateLimit_Headers_Are_Available()
     {
         var github = Mock.Create<IGitHubApi>();
-        
+
         var response = await github.ListUserReposWithHeaders("microsoft");
-        
+
         // Access response body
         Assert.NotNull(response.Body);
-        
+
         // Access rate limit headers
         Assert.Contains("X-RateLimit-Limit", response.Headers.Keys);
         Assert.Contains("X-RateLimit-Remaining", response.Headers.Keys);
-        
+
         var limit = int.Parse(response.Headers["X-RateLimit-Limit"]);
         Assert.Equal(5000, limit);
     }
-    
+
     [Fact]
     public async Task Can_Override_Default_Behavior()
     {
         var github = Mock.Create<IGitHubApi>();
-        
+
         // Override with custom data
         github.Setup(g => g.GetRepository("test", "repo"))
               .Returns(Task.FromResult(new Repository
@@ -866,9 +866,9 @@ public class GitHubIntegrationTests
                   Private = true,
                   Description = "Custom test repo"
               }));
-        
+
         var repo = await github.GetRepository("test", "repo");
-        
+
         Assert.True(repo.Private);
         Assert.Equal("Custom test repo", repo.Description);
     }
@@ -975,8 +975,8 @@ var strict = Mock.Create<IService>(MockBehavior.Strict);
 Creates a mock and sets up properties in one line (LINQ to Mocks).
 
 ```csharp
-var mock = Mock.Of<IUser>(u => 
-    u.Id == 1 && 
+var mock = Mock.Of<IUser>(u =>
+    u.Id == 1 &&
     u.Name == "Alice" &&
     u.IsActive
 );
@@ -1322,7 +1322,7 @@ recorder.SendEmail("test@test.com", "Hello");
 - Generate regression test suites
 - Validate mock configurations against reality
 
-**Status:** ✅ Core functionality complete (18 tests passing). Enhanced features (timing analysis, export/replay, diff tool) planned for future releases.
+**Status:**  Core functionality complete (18 tests passing). Enhanced features (timing analysis, export/replay, diff tool) planned for future releases.
 
 ---
 
@@ -1359,7 +1359,7 @@ for (int i = 0; i < 100; i++) {
 | `FailureRate` | `double` | Probability of failure (0.0 - 1.0) |
 | `PossibleExceptions` | `Exception[]` | Exceptions to randomly throw |
 
-**Status:** ✅ Core functionality complete (9 tests passing). Advanced features (latency simulation, chaos schedules, Polly integration) planned for future releases.
+**Status:**  Core functionality complete (9 tests passing). Advanced features (latency simulation, chaos schedules, Polly integration) planned for future releases.
 
 ---
 
@@ -1383,7 +1383,7 @@ AssertAllocations.Zero(() => {
 - Verify allocation-free operations
 - Benchmark optimization improvements
 
-**Status:** ✅ Core functionality complete. Advanced features (detailed allocation reports, CPU profiling, BenchmarkDotNet integration) planned for future releases.
+**Status:**  Core functionality complete. Advanced features (detailed allocation reports, CPU profiling, BenchmarkDotNet integration) planned for future releases.
 
 ---
 
@@ -1391,11 +1391,11 @@ AssertAllocations.Zero(() => {
 
 ### 1. Prefer Interfaces
 ```csharp
-// ✅ Good
+// Good
 public interface IEmailService { }
 var mock = Mock.Create<IEmailService>();
 
-// ⚠️ Acceptable (requires virtual members)
+// Acceptable (requires virtual members)
 public class EmailService {
     public virtual string GetEmail() => "";
 }
@@ -1404,10 +1404,10 @@ var mock = Mock.Create<EmailService>();
 
 ### 2. Use Specific Matchers
 ```csharp
-// ❌ Too broad
+// Too broad
 mock.Setup(x => x.Process(It.IsAny<int>()));
 
-// ✅ More specific
+// More specific
 mock.Setup(x => x.Process(It.Is<int>(n => n > 0)));
 ```
 
@@ -1447,8 +1447,8 @@ mock.Setup(x => x.GetData(It.Is<int>(n => n > 10))).Returns("large");
 
 ### Setup with Complex Types
 ```csharp
-mock.Setup(x => x.ProcessOrder(It.Is<Order>(o => 
-    o.Total > 100 && 
+mock.Setup(x => x.ProcessOrder(It.Is<Order>(o =>
+    o.Total > 100 &&
     o.Items.Count > 0 &&
     o.Status == OrderStatus.Pending
 ))).Returns(true);
@@ -1473,7 +1473,7 @@ Skugga provides compile-time diagnostics to catch issues early:
 ### SKUGGA001: Cannot mock sealed class
 ```csharp
 public sealed class Service { }
-var mock = Mock.Create<Service>(); // ❌ Compile error
+var mock = Mock.Create<Service>(); //  Compile error
 ```
 **Solution:** Use interfaces or remove `sealed` modifier.
 
@@ -1482,7 +1482,7 @@ var mock = Mock.Create<Service>(); // ❌ Compile error
 public class Service {
     public string GetData() => ""; // Not virtual
 }
-var mock = Mock.Create<Service>(); // ⚠️ Warning
+var mock = Mock.Create<Service>(); //  Warning
 ```
 **Solution:** Make members `virtual` or mock an interface instead.
 
@@ -1546,7 +1546,7 @@ public partial interface IMyApi { }
 |-----|--------|
 | `Mock.Of<T>()` | `Mock.Create<T>()` |
 | `Mock.Get(obj).Setup(...)` | `mock.Setup(...)` |
-| All other APIs identical | ✅ |
+| All other APIs identical | -- |
 
 ### From NSubstitute
 | NSubstitute | Skugga |
@@ -1559,6 +1559,6 @@ public partial interface IMyApi { }
 
 ## Support
 
-- 📖 [Full Documentation](https://github.com/Digvijay/Skugga)
-- 🐛 [Report Issues](https://github.com/Digvijay/Skugga/issues)
-- 💬 [Discussions](https://github.com/Digvijay/Skugga/discussions)
+- [Full Documentation](https://github.com/Digvijay/Skugga)
+- [Report Issues](https://github.com/Digvijay/Skugga/issues)
+- [Discussions](https://github.com/Digvijay/Skugga/discussions)

@@ -31,18 +31,18 @@ The Skugga source generator is not executing during compilation. This is **alway
 
 **CRITICAL:** Projects consuming Skugga from NuGet **MUST NOT** be in the same solution as the Skugga source code.
 
-#### ❌ Incorrect (Will Fail)
+#### Incorrect (Will Fail)
 ```
 MyRepo/
 ├── Skugga.slnx
 ├── src/
 │   ├── Skugga.Core/
 │   └── Skugga.Generator/
-└── samples/              ← ❌ Same solution as Skugga
+└── samples/              ←  Same solution as Skugga
     └── MyApp.Tests/
 ```
 
-#### ✅ Correct (Will Work)
+#### Correct (Will Work)
 ```
 MyRepo/
 ├── Skugga.slnx
@@ -50,7 +50,7 @@ MyRepo/
 │   ├── Skugga.Core/
 │   └── Skugga.Generator/
 └── samples-separate/
-    └── samples/          ← ✅ Separate solution
+    └── samples/          ←  Separate solution
         ├── Skugga.Samples.slnx
         └── MyApp.Tests/
 ```
@@ -63,9 +63,9 @@ MyRepo/
 ```xml
 <ItemGroup>
   <PackageReference Include="Skugga" Version="1.1.0" />
-  <!-- ✅ Use PackageReference for Skugga -->
+  <!-- Use PackageReference for Skugga -->
   
-  <!-- ❌ Do NOT use ProjectReference to Skugga.Core -->
+  <!--  Do NOT use ProjectReference to Skugga.Core -->
   <!-- <ProjectReference Include="../../src/Skugga.Core/Skugga.Core.csproj" /> -->
 </ItemGroup>
 ```
@@ -117,7 +117,7 @@ The Skugga NuGet package includes a `.targets` file that automatically configure
 ### Symptom: "Cannot convert from 'T' to 'Func<Task<T>>'"
 
 ```csharp
-// ❌ Incorrect
+//  Incorrect
 weatherMock.Setup(x => x.GetTemperatureAsync("Seattle")).Returns(-5.0);
 // Error: Argument 2: cannot convert from 'double' to 'System.Func<System.Threading.Tasks.Task<double>>'
 ```
@@ -127,14 +127,14 @@ weatherMock.Setup(x => x.GetTemperatureAsync("Seattle")).Returns(-5.0);
 For methods returning `Task<T>`, wrap the return value in `Task.FromResult()`:
 
 ```csharp
-// ✅ Correct
+//  Correct
 weatherMock.Setup(x => x.GetTemperatureAsync("Seattle")).Returns(Task.FromResult(-5.0));
 weatherMock.Setup(x => x.GetConditionAsync("Seattle")).Returns(Task.FromResult("Sunny"));
 ```
 
 **For synchronous methods**, use the value directly:
 ```csharp
-// ✅ Correct (synchronous method)
+//  Correct (synchronous method)
 calculator.Setup(x => x.Add(2, 3)).Returns(5);
 ```
 
@@ -143,7 +143,7 @@ calculator.Setup(x => x.Add(2, 3)).Returns(5);
 ### Symptom: "Does not contain a definition for 'Object'"
 
 ```csharp
-// ❌ Incorrect
+//  Incorrect
 var mock = Mock.Create<ICalculator>();
 var result = mock.Object.Add(2, 3);  // Error: 'ICalculator' does not contain 'Object'
 ```
@@ -153,7 +153,7 @@ var result = mock.Object.Add(2, 3);  // Error: 'ICalculator' does not contain 'O
 Unlike Moq, Skugga mocks directly implement the interface. No `.Object` property is needed:
 
 ```csharp
-// ✅ Correct
+//  Correct
 var mock = Mock.Create<ICalculator>();
 var result = mock.Add(2, 3);  // Call methods directly on the mock
 ```
@@ -163,7 +163,7 @@ var result = mock.Add(2, 3);  // Call methods directly on the mock
 ### Symptom: "The non-generic type 'Mock' cannot be used with type arguments"
 
 ```csharp
-// ❌ Incorrect
+//  Incorrect
 private readonly Mock<IRepository> _repositoryMock;
 
 public MyTests()
@@ -178,7 +178,7 @@ public MyTests()
 Skugga doesn't have a `Mock<T>` wrapper type. Store and use mocks as the interface type directly:
 
 ```csharp
-// ✅ Correct
+//  Correct
 private readonly IRepository _repositoryMock;
 
 public MyTests()
@@ -195,13 +195,13 @@ public MyTests()
 ### Symptom: Namespace Not Found
 
 ```csharp
-using Skugga;  // ❌ Error: namespace 'Skugga' not found
+using Skugga;  //  Error: namespace 'Skugga' not found
 ```
 
 ### Solution: Use Skugga.Core Namespace
 
 ```csharp
-using Skugga.Core;  // ✅ Correct
+using Skugga.Core;  //  Correct
 ```
 
 ---
@@ -218,10 +218,10 @@ error CS0535: 'Skugga_ILogger_1048383564' does not implement interface member 'I
 **Workaround:** Avoid mocking complex generic interfaces like `ILogger<T>`. Use concrete implementations or simpler abstractions:
 
 ```csharp
-// ❌ May cause issues
+//  May cause issues
 var logger = Mock.Create<ILogger<MyClass>>();
 
-// ✅ Better approach - use a test double
+//  Better approach - use a test double
 public class TestLogger : ILogger<MyClass>
 {
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, 
@@ -229,7 +229,7 @@ public class TestLogger : ILogger<MyClass>
     // ... other members
 }
 
-// ✅ Or use NullLogger
+//  Or use NullLogger
 var logger = NullLogger<MyClass>.Instance;
 ```
 
@@ -260,12 +260,12 @@ Skugga's generator has limitations with:
 
 When consuming Skugga from NuGet in your projects:
 
-✅ **Do:**
+ **Do:**
 - Use `PackageReference` to reference Skugga
 - Keep your test projects in their own solution
 - Use separate NuGet.config if referencing local packages
 
-❌ **Don't:**
+ **Don't:**
 - Add your test project to the Skugga repository solution
 - Use `ProjectReference` to reference Skugga source code
 - Try to mix PackageReference and ProjectReference to Skugga
@@ -274,7 +274,7 @@ When consuming Skugga from NuGet in your projects:
 
 When working on Skugga itself:
 
-✅ **Do:**
+ **Do:**
 - Use `ProjectReference` in the main Skugga.slnx solution
 - Test core functionality in `Skugga.Core.Tests` (same solution)
 - Keep sample projects in a separate solution structure
@@ -416,10 +416,10 @@ Ensure the file is added to AdditionalFiles.
 **Solution:** Build twice when using URLs:
 ```bash
 # First build: Downloads and caches the spec
-dotnet build  # ❌ Fails with SKUGGA_OPENAPI_003
+dotnet build  #  Fails with SKUGGA_OPENAPI_003
 
 # Second build: Uses cached spec
-dotnet build  # ✅ Succeeds
+dotnet build  #  Succeeds
 ```
 
 **Why?** MSBuild evaluation phase (when source generators run) happens BEFORE the execution phase (when download tasks run). The cache is populated during the first build's execution phase, but source generators can't see it until the second build's evaluation phase.
@@ -443,7 +443,7 @@ dotnet build  # ✅ Succeeds
     <SkuggaOpenApiUrl Include="https://api.example.com/spec.json" />
   </ItemGroup>
 
-  <!-- ✅ Import at the END -->
+  <!--  Import at the END -->
   <Import Project="path/to/Skugga.OpenApi.Tasks.targets" />
   
 </Project>
@@ -512,16 +512,16 @@ error CS0101: The namespace 'MyNamespace' already contains a definition for 'Pet
 
 **Solution:** Check your path syntax:
 ```csharp
-// ✅ Correct - relative to project directory
+//  Correct - relative to project directory
 [SkuggaFromOpenApi("specs/api.json")]
 
-// ✅ Correct - relative with parent directory
+//  Correct - relative with parent directory
 [SkuggaFromOpenApi("../shared/api.json")]
 
-// ✅ Correct - absolute path
+//  Correct - absolute path
 [SkuggaFromOpenApi("/Users/me/specs/api.json")]
 
-// ❌ Wrong - must match AdditionalFiles path exactly
+//  Wrong - must match AdditionalFiles path exactly
 [SkuggaFromOpenApi("api.json")]  // If AdditionalFiles has "specs/api.json"
 ```
 
@@ -577,7 +577,7 @@ Skugga reports errors and warnings using diagnostic codes to help identify and r
 | **SKUGGA_OPENAPI_007** | Warning | Operation has no success response | Operation has no 2xx or default response. The generated method will return `void` (or `Task` if async). |
 | **SKUGGA_OPENAPI_008** | Warning | Document validation issues | OpenAPI document has structural issues (missing paths, null schemas, etc.). Review the diagnostic message for details. |
 
-**Note:** These diagnostics appear during compilation, not at runtime. Skugga is a compile-time library—runtime errors indicate build configuration problems.
+**Note:** These diagnostics appear during compilation, not at runtime. Skugga is a compile-time library--runtime errors indicate build configuration problems.
 
 ---
 

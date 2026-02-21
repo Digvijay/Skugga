@@ -21,13 +21,13 @@ mock.Setup(x => x.GetInvoice(It.IsAny<string>()))
 ```
 
 **Meanwhile...** The platform team updates the Payment API OpenAPI spec:
-- Renames `GetInvoice` → `RetrieveInvoice`
+- Renames `GetInvoice` -> `RetrieveInvoice`
 - Changes `Amount` from `int` to `decimal`
 - Adds required `Currency` field
 
 **Result:**
-- ✅ **Your tests pass** (mock is outdated, doesn't match API)
-- ❌ **Production crashes** (real API has changed)
+- **Your tests pass** (mock is outdated, doesn't match API)
+- **Production crashes** (real API has changed)
 
 This is **contract drift** - your mocks lie to you.
 
@@ -46,10 +46,10 @@ mock.Setup(x => x.GetInvoice(It.IsAny<string>()))
 ```
 
 **Problems:**
-- ❌ Manual updates when API changes
-- ❌ No compile-time validation
-- ❌ **Tests pass, production crashes**
-- ❌ You mock blindly, not against the spec
+- Manual updates when API changes
+- No compile-time validation
+- **Tests pass, production crashes**
+- You mock blindly, not against the spec
 
 ## The Skugga Solution: Never Mock Blindly
 
@@ -64,7 +64,7 @@ public partial interface IStripeClient { }
 
 // In your test:
 var mock = Mock.Create<IStripeClient>();
-var invoice = mock.GetInvoice("inv_123"); 
+var invoice = mock.GetInvoice("inv_123");
 // Returns realistic Invoice populated with dummy data from spec examples
 Assert.NotNull(invoice.Id);
 Assert.Equal("USD", invoice.Currency);
@@ -72,26 +72,26 @@ Assert.Equal("USD", invoice.Currency);
 
 **What happens when the API changes?**
 
-❌ **Old Way (Manual Mocks):**
+ **Old Way (Manual Mocks):**
 1. API team updates OpenAPI spec
 2. Your manual mock stays outdated
-3. Tests pass ✅ (lying to you)
-4. Production crashes ❌ (real API changed)
+3. Tests pass  (lying to you)
+4. Production crashes  (real API changed)
 
-✅ **Skugga Way (Contract-First):**
+ **Skugga Way (Contract-First):**
 1. API team updates OpenAPI spec
-2. Your build fails ❌ (missing method, wrong types)
+2. Your build fails  (missing method, wrong types)
 3. You fix the code before deploying
-4. Production works ✅ (always in sync)
+4. Production works  (always in sync)
 
 **Consumer-Driven Contracts at Unit Test Level:**
-- ✅ Never mock blindly - always mock against the spec
-- ✅ Interface auto-generated from spec
-- ✅ Realistic defaults from spec examples
-- ✅ **Contract drift = build failure, not production crash**
-- ✅ Zero manual maintenance
-- ✅ Works with URLs or local files
-- ✅ Smart caching with offline support
+- Never mock blindly - always mock against the spec
+- Interface auto-generated from spec
+- Realistic defaults from spec examples
+- **Contract drift = build failure, not production crash**
+- Zero manual maintenance
+- Works with URLs or local files
+- Smart caching with offline support
 
 ## Usage
 
@@ -172,8 +172,8 @@ public partial interface ILegacyApi { }
 
 ```xml
 <ItemGroup>
-  <ProjectReference Include="path/to/Skugga.OpenApi.Generator/Skugga.OpenApi.Generator.csproj" 
-                    OutputItemType="Analyzer" 
+  <ProjectReference Include="path/to/Skugga.OpenApi.Generator/Skugga.OpenApi.Generator.csproj"
+                    OutputItemType="Analyzer"
                     ReferenceOutputAssembly="false" />
 </ItemGroup>
 ```
@@ -241,7 +241,7 @@ dotnet build
 
 # Second build: Uses cached spec for generation
 dotnet build
-# ✅ Succeeds - interface and mock generated
+#  Succeeds - interface and mock generated
 ```
 
 ## Complete Example: URL-Based Spec
@@ -251,7 +251,7 @@ Here's a complete working example using a remote OpenAPI spec:
 **MyApi.Tests.csproj:**
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
-  
+
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
@@ -264,8 +264,8 @@ Here's a complete working example using a remote OpenAPI spec:
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="path/to/Skugga.OpenApi.Generator.csproj" 
-                      OutputItemType="Analyzer" 
+    <ProjectReference Include="path/to/Skugga.OpenApi.Generator.csproj"
+                      OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
 
@@ -279,7 +279,7 @@ Here's a complete working example using a remote OpenAPI spec:
     <SkuggaOpenApiTasksAssembly>path/to/Skugga.OpenApi.Tasks.dll</SkuggaOpenApiTasksAssembly>
   </PropertyGroup>
   <Import Project="path/to/Skugga.OpenApi.Tasks.targets" />
-  
+
 </Project>
 ```
 
@@ -301,10 +301,10 @@ namespace MyApi.Tests
         {
             // Arrange
             var api = Mock.Create<IPetStoreApi>();
-            
+
             // Act
             var pet = api.GetPetById(123);
-            
+
             // Assert - realistic data from OpenAPI examples
             Assert.NotNull(pet);
             Assert.NotNull(pet.Name);
@@ -316,10 +316,10 @@ namespace MyApi.Tests
             // Arrange
             var api = Mock.Create<IPetStoreApi>();
             var newPet = new Pet { Name = "Fluffy", Status = "available" };
-            
+
             // Act
             var result = api.AddPet(newPet);
-            
+
             // Assert
             Assert.NotNull(result);
         }
@@ -335,11 +335,11 @@ dotnet build
 
 # Second build (generates code)
 dotnet build
-# ✅ Build succeeded
+#  Build succeeded
 
 # Run tests
 dotnet test
-# ✅ Tests pass with generated mock
+#  Tests pass with generated mock
 ```
 
 **Cache location:**
@@ -351,7 +351,7 @@ obj/skugga-openapi-cache/
 
 ## Implementation Status
 
-### ✅ Phase 1: MVP (v1.2.0)
+###  Phase 1: MVP (v1.2.0)
 
 **Completed:**
 - `[SkuggaFromOpenApi]` attribute with all options
@@ -361,9 +361,9 @@ obj/skugga-openapi-cache/
 - MSBuild integration scaffolding
 - Test infrastructure
 
-**Status:** ✅ Complete
+**Status:**  Complete
 
-### ✅ Phase 2: OpenAPI Parsing (v1.2.0)
+###  Phase 2: OpenAPI Parsing (v1.2.0)
 
 **Completed:**
 - Microsoft.OpenApi.Readers integration
@@ -375,9 +375,9 @@ obj/skugga-openapi-cache/
 - Schema classes with proper type mapping
 - Path and query parameter handling
 
-**Status:** ✅ Complete
+**Status:**  Complete
 
-### ✅ Phase 3: Mock Implementation (v1.2.0)
+###  Phase 3: Mock Implementation (v1.2.0)
 
 **Completed:**
 - Realistic mock data generation from OpenAPI examples
@@ -388,9 +388,9 @@ obj/skugga-openapi-cache/
 - Multiple response status codes (200, 201, 202, 204)
 - Task.FromResult() for async operations
 
-**Status:** ✅ Complete
+**Status:**  Complete
 
-### ✅ Phase 4: Production Ready (v1.2.0)
+###  Phase 4: Production Ready (v1.2.0)
 
 **Completed:**
 - Async/sync generation control (GenerateAsync property)
@@ -401,9 +401,9 @@ obj/skugga-openapi-cache/
 - Comprehensive error diagnostics
 - Full OpenAPI 3.0 support
 
-**Status:** ✅ Complete
+**Status:**  Complete
 
-### 📋 Future Enhancements (v1.3.0+)
+###  Future Enhancements (v1.3.0+)
 
 **Potential additions:**
 - OpenAPI 2.0 (Swagger) support
@@ -524,7 +524,7 @@ rm -rf obj/skugga-openapi-cache/
   "Product": {
     "allOf": [
       { "$ref": "#/components/schemas/NewProduct" },
-      { 
+      {
         "type": "object",
         "properties": {
           "id": { "type": "integer" }
@@ -546,11 +546,11 @@ Use Skugga's `.Setup()` to provide custom return values:
 ```csharp
 var mock = Mock.Create<IProductApi>();
 mock.Setup(m => m.UpdateProduct(It.IsAny<long>(), It.IsAny<Product>()))
-    .Returns(Task.FromResult(new Product 
-    { 
-        Id = 123, 
-        Name = "Widget", 
-        Category = "tools" 
+    .Returns(Task.FromResult(new Product
+    {
+        Id = 123,
+        Name = "Widget",
+        Category = "tools"
     }));
 
 var result = await mock.UpdateProduct(123, request);
@@ -561,10 +561,10 @@ Assert.NotNull(result); // Now works
 The `ExampleGenerator.GenerateDefaultValue()` method returns `null` for schemas with `allOf` because it requires merging example values from multiple schemas. This is a known limitation that will be addressed in a future release.
 
 **Impact:**
-- Interface generation ✅ Works correctly
-- Type generation ✅ Works correctly (properties are properly merged)
-- Mock return values ❌ Returns null for allOf schemas
-- Status code handling ✅ Works correctly
+- Interface generation  Works correctly
+- Type generation  Works correctly (properties are properly merged)
+- Mock return values  Returns null for allOf schemas
+- Status code handling  Works correctly
 
 **Planned Fix:**
 Enhance `ExampleGenerator` to:
@@ -645,7 +645,7 @@ public partial interface IStrictApi { }
 
 // Combine multiple configurations
 [SkuggaFromOpenApi(
-    "api.json", 
+    "api.json",
     LintingRules = "info-license:off,operation-tags:error,tag-description:warn,no-unused-components:off"
 )]
 public partial interface ICustomApi { }
@@ -680,7 +680,7 @@ warning SKUGGA_LINT_005: Operation 'get /users' should have tags for better orga
     "/users": {
       "get": {
         "operationId": "getUsers",
-        "tags": ["Users"],  // ✅ Fixed!
+        "tags": ["Users"],  //  Fixed!
         "summary": "Get all users",
         "responses": {
           "200": { "description": "Success" }
@@ -692,30 +692,30 @@ warning SKUGGA_LINT_005: Operation 'get /users' should have tags for better orga
 ```
 
 **Benefits:**
-- ✅ Enforces OpenAPI best practices at build time
-- ✅ Configurable severity per rule
-- ✅ AOT-compatible (zero runtime overhead)
-- ✅ Inspired by industry-standard Spectral rules
-- ✅ Actionable diagnostic messages with fix guidance
+- Enforces OpenAPI best practices at build time
+- Configurable severity per rule
+- AOT-compatible (zero runtime overhead)
+- Inspired by industry-standard Spectral rules
+- Actionable diagnostic messages with fix guidance
 
 ## FAQ
 
-**Q: Do I need to check in downloaded OpenAPI specs?**  
+**Q: Do I need to check in downloaded OpenAPI specs?**
 A: No, they're cached in `obj/` which is gitignored. However, caching enables offline builds.
 
-**Q: What happens if the API changes?**  
+**Q: What happens if the API changes?**
 A: Your build fails with clear errors about missing/changed methods. Fix your tests, then rebuild.
 
-**Q: Can I use multiple OpenAPI specs?**  
+**Q: Can I use multiple OpenAPI specs?**
 A: Yes! Apply `[SkuggaFromOpenApi]` to as many interfaces as needed.
 
-**Q: Does it support OpenAPI 2.0 (Swagger)?**  
+**Q: Does it support OpenAPI 2.0 (Swagger)?**
 A: Phase 2 will support both OpenAPI 2.0 and 3.0+.
 
-**Q: Can I override generated mock behavior?**  
+**Q: Can I override generated mock behavior?**
 A: Yes! Use normal Skugga `.Setup()` calls to override defaults.
 
-**Q: Does this work with Native AOT?**  
+**Q: Does this work with Native AOT?**
 A: Yes! Everything is compile-time generated, zero reflection, fully AOT-compatible.
 
 ## Contributing

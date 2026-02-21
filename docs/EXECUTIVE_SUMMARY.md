@@ -15,7 +15,7 @@ As enterprises migrate to cloud-native and serverless architectures (AWS Lambda,
 
  However, widespread enterprise adoption of Native AOT is currently blocked by a technical barrier known as the **"Reflection Wall."**
 
-* **The Issue:** For the past 15 years, the .NET ecosystem—specifically critical testing tools like Moq—has relied on "Reflection" (dynamic code generation at runtime).
+* **The Issue:** For the past 15 years, the .NET ecosystem--specifically critical testing tools like Moq--has relied on "Reflection" (dynamic code generation at runtime).
 * **The Impact:** These tools are incompatible with Native AOT, crashing instantly in modern environments. This forces CTOs into an impossible choice: adopt **modern cloud efficiency** or maintain **testable, compliant code**. Currently, they cannot have both.
 
 ### 2. The Solution: Skugga
@@ -33,13 +33,13 @@ By leveraging C# 12 compiler interception, Skugga allows developers to write sta
 We recently conducted a pilot deployment of a Skugga-enabled microservice to validate the business case. The empirical results confirm that compile-time architecture drives significant ROI.
 
 #### 3.1 Unlocking Serverless Cost Savings (FinOps)
-* **Context:** High-traffic serverless functions are billed by GB-seconds (memory × duration) and CPU cycles.
+* **Context:** High-traffic serverless functions are billed by GB-seconds (memory x duration) and CPU cycles.
 * **The Skugga Advantage:** In our pilot, the Skugga-enabled AOT service performed the exact same workload using **80% less CPU** (0.07s vs 0.36s) compared to the standard JIT version.
 * **Business Value:** This 5.1x efficiency gain translates directly to lower cloud compute bills and higher density in Kubernetes clusters.
 
 #### 3.2 Accelerating Deployment Velocity (DORA Metrics)
 * **Context:** Deployment speed is limited by artifact size and startup latency. Large Docker images slow down scale-out events during traffic spikes.
-* **The Skugga Advantage:** Skugga enabled the creation of a **"Distroless" container** that is just **47 MB** in size—**4x smaller** than the standard 200 MB equivalent. Startup time dropped from ~1200ms to **<50ms**.
+* **The Skugga Advantage:** Skugga enabled the creation of a **"Distroless" container** that is just **47 MB** in size--**4x smaller** than the standard 200 MB equivalent. Startup time dropped from ~1200ms to **<50ms**.
 * **Business Value:** Instantaneous scaling and faster recovery times (MTTR), ensuring resilience under load.
 
 #### 3.3 Future-Proofing Without Technical Debt
@@ -56,8 +56,8 @@ The following benchmarks compare Skugga against the industry standard (Moq) runn
 | Metric | Legacy Tooling (Moq) | Skugga (Pilot) | Business Impact |
 | :--- | :--- | :--- | :--- |
 | **Cloud Compatibility** | Standard Only | **Native AOT Ready** | Unlocks Serverless/Edge |
-| **User CPU Cost** | 0.36s | **0.07s** | **5.1x Efficiency** 🚀 |
-| **Artifact Size** | ~200 MB | **47 MB** | **4x Smaller** 📉 |
+| **User CPU Cost** | 0.36s | **0.07s** | **5.1x Efficiency**  |
+| **Artifact Size** | ~200 MB | **47 MB** | **4x Smaller**  |
 | **Execution Speed** | ~3,695 ns | **~572 ns** | Faster Feedback Loops |
 | **Memory Overhead** | ~4,150 Bytes/Mock | **~1,110 Bytes/Mock** | Lower Memory Bills |
 
