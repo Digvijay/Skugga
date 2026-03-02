@@ -1,5 +1,5 @@
-using Skugga.Core;
 using System.Threading.Tasks;
+using Skugga.Core;
 
 namespace Skugga.Core.Tests;
 
