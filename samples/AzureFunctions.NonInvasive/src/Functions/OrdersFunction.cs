@@ -31,7 +31,10 @@ public class OrdersFunction
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "orders/{orderId}")] HttpRequestData req,
         string orderId)
     {
-        _logger.LogInformation("Getting order {OrderId}", orderId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Getting order {OrderId}", orderId);
+        }
 
         var order = await _orderService.GetOrderByIdAsync(orderId);
 
@@ -80,7 +83,10 @@ public class OrdersFunction
         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "orders/{orderId}")] HttpRequestData req,
         string orderId)
     {
-        _logger.LogInformation("Cancelling order {OrderId}", orderId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Cancelling order {OrderId}", orderId);
+        }
 
         var order = await _orderService.GetOrderByIdAsync(orderId);
         if (order == null)

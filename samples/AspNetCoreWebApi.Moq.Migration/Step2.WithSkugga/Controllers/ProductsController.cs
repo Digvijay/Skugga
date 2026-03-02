@@ -67,7 +67,8 @@ public class ProductsController : ControllerBase
         };
 
         var created = await _repository.CreateAsync(product);
-        _logger.LogInformation("Created product {ProductId}", created.Id);
+        var productId = created.Id;
+        _logger.LogInformation("Created product {ProductId}", productId);
 
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
     }
