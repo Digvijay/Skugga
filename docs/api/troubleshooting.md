@@ -28,9 +28,9 @@ public class EmailService {
 }
 ```
 
-## "Mock.Of<T> is incompatible with Native AOT" (SKUGGA003)
+## "Mock.Of&lt;T&gt; is incompatible with Native AOT" (SKUGGA003)
 
-Reported when `Mock.Of<T>()` is used in a project with `PublishAot=true` or `IsAotCompatible=true`.
+Reported when `Mock.Of&lt;T&gt;()` is used in a project with `PublishAot=true` or `IsAotCompatible=true`.
 
 ```csharp
 //  Won't work under Native AOT
@@ -95,4 +95,4 @@ mock.Setup(x => x.GetDataAsync()).ReturnsAsync("value");
 Skugga is designed for AOT. If you see trimming warnings:
 1. Ensure you're using the latest Skugga version
 2. Check that `IsAotCompatible` is set correctly in your project
-3. Run `dotnet publish -r <rid> /p:PublishAot=true` to verify
+3. Run `dotnet publish -r &lt;rid&gt; /p:PublishAot=true` to verify
