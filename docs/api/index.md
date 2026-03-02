@@ -92,5 +92,6 @@ Complete API reference for the Skugga mocking library.
 |------|-------------|
 | `SKUGGA001` | Cannot mock sealed class |
 | `SKUGGA002` | Class has no virtual members |
+| `SKUGGA003` | Mock.Of<T> incompatible with Native AOT |
 | `SKUGGA_OPENAPI_*` | OpenAPI generation errors |
 | `SKUGGA_LINT_*` | OpenAPI linting warnings |

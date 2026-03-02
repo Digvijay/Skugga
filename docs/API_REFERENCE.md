@@ -1265,6 +1265,27 @@ mock.Setup(x => x.Save(It.IsAny<Data>()))
     .Returns(true);
 ```
 
+### Async Callbacks
+Callbacks on methods returning `Task<T>` or `ValueTask<T>` with correct type inference:
+
+```csharp
+// Parameterless callback on async method
+mock.Setup(x => x.GetDataAsync())
+    .Callback(() => Console.WriteLine("Called"))
+    .ReturnsAsync(42);
+
+// Typed callback -- TArg correctly inferred as string, not Task<string>
+string? captured = null;
+mock.Setup(x => x.FetchAsync(It.IsAny<string>()))
+    .Callback((string key) => captured = key)
+    .ReturnsAsync("result");
+
+// Multiple arguments
+mock.Setup(x => x.ProcessAsync(It.IsAny<int>(), It.IsAny<int>()))
+    .Callback((int a, int b) => sum = a + b)
+    .ReturnsAsync(true);
+```
+
 ---
 
 ## Mock Behavior
@@ -1485,6 +1506,17 @@ public class Service {
 var mock = Mock.Create<Service>(); //  Warning
 ```
 **Solution:** Make members `virtual` or mock an interface instead.
+
+### SKUGGA003: Mock.Of<T> incompatible with Native AOT
+```csharp
+// In a project with PublishAot=true or IsAotCompatible=true:
+var mock = Mock.Of<IService>(x => x.Name == "test"); //  Error SKUGGA003
+```
+**Solution:** Use `Mock.Create<T>()` with explicit `Setup()` calls:
+```csharp
+var mock = Mock.Create<IService>();
+mock.Setup(x => x.Name).Returns("test");
+```
 
 ---
 

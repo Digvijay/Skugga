@@ -19,15 +19,9 @@ dotnet add package Skugga
 - C# 12 enabled (LangVersion `12` or `latest`)
 :::
 
-### 2. Enable Interceptors
-
-Add the following to your test project's `.csproj`:
-
-```xml
-<PropertyGroup>
-   <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Skugga</InterceptorsPreviewNamespaces>
-</PropertyGroup>
-```
+::: tip No Manual Configuration Needed
+The Skugga NuGet package automatically configures C# Interceptors via its bundled `.targets` file. No manual `.csproj` changes are required.
+:::
 
 ## Writing Your First Test
 

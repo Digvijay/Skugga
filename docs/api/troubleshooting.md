@@ -28,6 +28,19 @@ public class EmailService {
 }
 ```
 
+## "Mock.Of<T> is incompatible with Native AOT" (SKUGGA003)
+
+Reported when `Mock.Of<T>()` is used in a project with `PublishAot=true` or `IsAotCompatible=true`.
+
+```csharp
+//  Won't work under Native AOT
+var service = Mock.Of<IService>(x => x.Name == "test");
+
+//  Use Mock.Create with explicit Setup
+var service = Mock.Create<IService>();
+service.Setup(x => x.Name).Returns("test");
+```
+
 ## Generated Code Not Updating
 
 ```bash

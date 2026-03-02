@@ -3,7 +3,7 @@
 [![Skugga CI](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml/badge.svg)](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Skugga.svg)](https://www.nuget.org/packages/Skugga/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-1018%20passing-brightgreen)](https://github.com/Digvijay/Skugga)
+[![Tests](https://img.shields.io/badge/tests-460%20passing-brightgreen)](https://github.com/Digvijay/Skugga)
 [![Docs](https://img.shields.io/badge/docs-comprehensive-blue)](docs/)
 
 ![Skugga Banner](docs/images/skugga_banner_small.png)
@@ -12,7 +12,7 @@
 
 **Skugga** (Swedish for *Shadow*) is a mocking library engineered specifically for **Native AOT**and Cloud-Native .NET.
 
-**[Complete Documentation ->](docs/)** | **[Quick Start](#installation)** | **[Example Code](samples/)**
+**[Complete Documentation ->](docs/)** | **[Quick Start](#greenfield-quickstart)** | **[Example Code](samples/)**
 
 ---
 
@@ -45,7 +45,7 @@ graph TB
 
     style D1 fill:#b30000,stroke:#333,color:#fff
     style E2 fill:#006600,stroke:#333,color:#fff
-````
+```
 
 -----
 ## Key Features
@@ -603,6 +603,108 @@ public class Test
 }
 ```
 
+## Greenfield QuickStart
+
+Start a brand-new .NET project with Skugga from scratch in under two minutes.
+
+### Step 1: Create Your Solution
+
+```bash
+mkdir MyProject && cd MyProject
+dotnet new sln
+dotnet new classlib -o src/MyProject.Core
+dotnet new xunit -o tests/MyProject.Tests
+dotnet sln add src/MyProject.Core tests/MyProject.Tests
+dotnet add tests/MyProject.Tests reference src/MyProject.Core
+```
+
+### Step 2: Install Skugga
+
+```bash
+dotnet add tests/MyProject.Tests package Skugga
+```
+
+### Step 3: Define Your Interface
+
+```csharp
+// src/MyProject.Core/IOrderService.cs
+namespace MyProject.Core;
+
+public interface IOrderService
+{
+    decimal GetTotal(int orderId);
+    Task<bool> SubmitAsync(int orderId);
+    void Cancel(int orderId, string reason);
+}
+```
+
+### Step 4: Write Your First Test
+
+```csharp
+// tests/MyProject.Tests/OrderServiceTests.cs
+using Skugga.Core;
+
+namespace MyProject.Tests;
+
+public class OrderServiceTests
+{
+    [Fact]
+    public void GetTotal_ReturnsConfiguredValue()
+    {
+        // Arrange -- compile-time generated, zero reflection
+        var mock = Mock.Create<IOrderService>();
+        mock.Setup(x => x.GetTotal(42)).Returns(99.95m);
+
+        // Act
+        var total = mock.GetTotal(42);
+
+        // Assert
+        Assert.Equal(99.95m, total);
+        mock.Verify(x => x.GetTotal(42), Times.Once());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_WithCallback_TracksInvocation()
+    {
+        var mock = Mock.Create<IOrderService>();
+        int capturedId = 0;
+
+        mock.Setup(x => x.SubmitAsync(It.IsAny<int>()))
+            .Callback((int id) => capturedId = id)   // async callback -- type correctly inferred
+            .ReturnsAsync(true);
+
+        var result = await mock.SubmitAsync(7);
+
+        Assert.True(result);
+        Assert.Equal(7, capturedId);
+    }
+
+    [Fact]
+    public void Cancel_StrictMock_ThrowsOnUnexpectedCalls()
+    {
+        var mock = Mock.Create<IOrderService>(MockBehavior.Strict);
+        mock.Setup(x => x.Cancel(1, "out of stock"));
+
+        // This call matches the setup -- succeeds
+        mock.Cancel(1, "out of stock");
+
+        // An un-setup call would throw StrictMockException at runtime
+        mock.Verify(x => x.Cancel(1, It.IsAny<string>()), Times.Once());
+    }
+}
+```
+
+### Step 5: Build and Run
+
+```bash
+dotnet test
+```
+
+That is it. No runtime reflection, no Castle.DynamicProxy, no JIT dependency.
+The mock is a plain C# class generated during compilation -- Native AOT ready from day one.
+
+> **Note:** Interceptors are configured automatically by the Skugga NuGet package. No manual `.csproj` changes are required.
+
 ## Troubleshooting & Best Practices
 
 ### Common Issues
@@ -629,6 +731,21 @@ public class EmailService {
 public class EmailService {
     public virtual string GetEmail() => ""; // Virtual!
 }
+```
+
+**"Mock.Of<T> is incompatible with Native AOT" (SKUGGA003)**
+
+This error appears when you call `Mock.Of<T>()` in a project that targets Native AOT
+(`PublishAot=true` or `IsAotCompatible=true`). `Mock.Of<T>` uses LINQ expression
+compilation and reflection at runtime, which are unavailable under AOT.
+
+```csharp
+// Won't work under Native AOT
+var service = Mock.Of<IService>(x => x.Name == "test");  // SKUGGA003
+
+// Use explicit setup instead
+var service = Mock.Create<IService>();
+service.Setup(x => x.Name).Returns("test");
 ```
 
 **Generated code not updating**

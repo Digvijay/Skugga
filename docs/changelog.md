@@ -2,6 +2,18 @@
 
 All notable changes to Skugga are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.0] -- 2026-03-02
+
+### Added
+- **Native AOT Analyzer** (`SKUGGA003`) -- Compile-time error when `Mock.Of<T>()` is used in AOT-targeted projects
+- **Async Callback Overloads** -- Dedicated `Callback` overloads for `Task<TResult>` and `ValueTask<TResult>` setups (0-8 args)
+- **Greenfield QuickStart** -- Step-by-step guide in README for starting new projects from scratch
+- **Async Callback Tests** -- 10 new tests covering Task/ValueTask callback type inference
+
+### Fixed
+- **Async Callback Type Inference** -- `.Callback<T>()` on async methods now correctly resolves the inner type instead of the Task wrapper
+- **Null Task Default** -- Async callback setups now use `Task.FromResult(default)` instead of null to prevent NRE
+
 ## [1.4.0] -- 2026-01-28
 
 ### Added

@@ -26,7 +26,19 @@ export default defineConfig({
             { text: 'Guide', link: '/guide/getting-started' },
             { text: 'Features', link: '/features/chaos-engineering' },
             { text: 'Concepts', link: '/concepts/architecture' },
-            { text: 'Reference', link: '/api/index' }
+            { text: 'Reference', link: '/api/index' },
+            {
+                text: '1.5.0',
+                items: [
+                    { text: '1.5.0 (latest)', link: '/changelog#_1-5-0-2026-03-02' },
+                    { text: '1.4.0', link: '/changelog#_1-4-0-2026-01-28' },
+                    { text: '1.3.1', link: '/changelog#_1-3-1-2026-01-07' },
+                    { text: '1.3.0', link: '/changelog#_1-3-0-2026-01-07' },
+                    { text: '1.2.0', link: '/changelog#_1-2-0-2026-01-05' },
+                    { text: '1.1.0', link: '/changelog#_1-1-0-2026-01-03' },
+                    { text: '1.0.0', link: '/changelog#_1-0-0-initial-release' },
+                ]
+            }
         ],
 
         sidebar: [

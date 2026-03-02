@@ -13,7 +13,7 @@
 
   <PropertyGroup>
     <PackageId>Skugga.OpenApi</PackageId>
-    <Version>1.3.0</Version>
+    <Version>1.5.0</Version>
     <Title>Skugga OpenAPI Source Generator</Title>
     <Description>Roslyn source generator for creating mocks from OpenAPI specifications. Automatically generates type-safe mocks with contract validation and example data support.</Description>
     <PackageTags>source-generator;roslyn;openapi;swagger;mocking;testing;skugga;aot</PackageTags>

@@ -42,6 +42,17 @@ mock.Setup(x => x.Process(It.IsAny<int>()))
    .Returns(true);
 ```
 
+### Async Callbacks
+
+Callbacks work seamlessly on methods returning `Task<T>` or `ValueTask<T>`:
+
+```csharp
+string? capturedKey = null;
+mock.Setup(x => x.FetchAsync(It.IsAny<string>()))
+   .Callback((string key) => capturedKey = key)
+   .ReturnsAsync("result");
+```
+
 ## Throwing Exceptions
 
 ```csharp

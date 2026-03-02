@@ -563,6 +563,7 @@ Skugga reports errors and warnings using diagnostic codes to help identify and r
 |------|----------|-------------|----------|
 | **SKUGGA001** | Error | Cannot mock sealed class | Sealed classes cannot be mocked. Mock an interface instead or remove the `sealed` keyword. |
 | **SKUGGA002** | Warning | Class has no virtual members | Classes must have virtual members to be mocked. Consider mocking an interface or make members `virtual`. |
+| **SKUGGA003** | Error | Mock.Of<T> incompatible with Native AOT | `Mock.Of<T>()` uses reflection and is incompatible with AOT. Use `Mock.Create<T>()` with explicit `Setup()` calls instead. |
 
 ### OpenAPI Generator Diagnostics
 

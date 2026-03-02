@@ -102,6 +102,20 @@ public class SetupExtensionsGenerator : ISourceGenerator
             GenerateCallbackOverload(sb, argCount, forVoidContext: true);
         }
 
+        // Generate async-aware Callback overloads for Task<TResult> (4-8 arguments)
+        // Manual overloads exist for 0-3 arguments
+        for (int argCount = 4; argCount <= maxArgs; argCount++)
+        {
+            GenerateAsyncCallbackOverload(sb, argCount, forValueTask: false);
+        }
+
+        // Generate async-aware Callback overloads for ValueTask<TResult> (4-8 arguments)
+        // Manual overloads exist for 0-3 arguments
+        for (int argCount = 4; argCount <= maxArgs; argCount++)
+        {
+            GenerateAsyncCallbackOverload(sb, argCount, forValueTask: true);
+        }
+
         sb.AppendLine("    }");
         sb.AppendLine("}");
 
@@ -230,6 +244,42 @@ public class SetupExtensionsGenerator : ISourceGenerator
         sb.AppendLine("        /// </summary>");
         sb.AppendLine($"        public static {returnType} Callback<{genericConstraint}, {typeParams}>(");
         sb.AppendLine($"            this {contextType} context, Action<{typeParams}> callback)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            if (context.Setup == null)");
+        sb.AppendLine("            {");
+        sb.AppendLine($"                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, {defaultValue}, args => callback({callbackParams}));");
+        sb.AppendLine("            }");
+        sb.AppendLine("            else");
+        sb.AppendLine("            {");
+        sb.AppendLine($"                context.Setup.Callback = args => callback({callbackParams});");
+        sb.AppendLine("            }");
+        sb.AppendLine("            return context;");
+        sb.AppendLine("        }");
+    }
+
+    /// <summary>
+    /// Generates an async-aware Callback overload for methods returning Task or ValueTask with the specified number of arguments.
+    /// These overloads fix async type inference by constraining on the Task/ValueTask wrapper type.
+    /// </summary>
+    /// <param name="sb">StringBuilder to append generated code to</param>
+    /// <param name="argCount">Number of method arguments (4-8)</param>
+    /// <param name="forValueTask">True for ValueTask overloads, false for Task overloads</param>
+    private void GenerateAsyncCallbackOverload(StringBuilder sb, int argCount, bool forValueTask)
+    {
+        var typeParams = string.Join(", ", Enumerable.Range(1, argCount).Select(i => $"TArg{i}"));
+        var callbackParams = string.Join(", ", Enumerable.Range(1, argCount).Select(i => $"(TArg{i})args[{i - 1}]!"));
+
+        var taskType = forValueTask ? "ValueTask<TResult>" : "Task<TResult>";
+        var defaultValue = forValueTask
+            ? "new ValueTask<TResult>(default(TResult)!)"
+            : "Task.FromResult(default(TResult)!)";
+
+        sb.AppendLine();
+        sb.AppendLine("        /// <summary>");
+        sb.AppendLine($"        /// Configures a callback with access to {argCount} method arguments on an async method returning {taskType}.");
+        sb.AppendLine("        /// </summary>");
+        sb.AppendLine($"        public static SetupContext<TMock, {taskType}> Callback<TMock, TResult, {typeParams}>(");
+        sb.AppendLine($"            this SetupContext<TMock, {taskType}> context, Action<{typeParams}> callback)");
         sb.AppendLine("        {");
         sb.AppendLine("            if (context.Setup == null)");
         sb.AppendLine("            {");

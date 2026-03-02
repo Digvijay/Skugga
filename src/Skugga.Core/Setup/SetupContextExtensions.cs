@@ -448,6 +448,153 @@ namespace Skugga.Core
 
         #endregion
 
+        #region Callback Methods (for async SetupContext<TMock, Task<TResult>>)
+
+        /// <summary>
+        /// Configures a callback on an async method returning Task&lt;TResult&gt;.
+        /// </summary>
+        /// <param name="callback">Action to execute on invocation</param>
+        /// <example>
+        /// mock.Setup(x =&gt; x.GetDataAsync()).Callback(() =&gt; Console.WriteLine("Called")).ReturnsAsync(42);
+        /// </example>
+        public static SetupContext<TMock, System.Threading.Tasks.Task<TResult>> Callback<TMock, TResult>(this SetupContext<TMock, System.Threading.Tasks.Task<TResult>> context, Action callback)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, System.Threading.Tasks.Task.FromResult(default(TResult)!), _ => callback());
+            }
+            else
+            {
+                context.Setup.Callback = _ => callback();
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures a typed callback on an async method returning Task&lt;TResult&gt;.
+        /// Resolves type inference so that TArg is correctly inferred without conflating with the Task wrapper.
+        /// </summary>
+        /// <param name="callback">Action to execute with the method argument on invocation</param>
+        /// <example>
+        /// mock.Setup(x =&gt; x.GetDataAsync(It.IsAny&lt;string&gt;()))
+        ///     .Callback((string s) =&gt; captured = s)
+        ///     .ReturnsAsync(42);
+        /// </example>
+        public static SetupContext<TMock, System.Threading.Tasks.Task<TResult>> Callback<TMock, TResult, TArg>(this SetupContext<TMock, System.Threading.Tasks.Task<TResult>> context, Action<TArg> callback)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, System.Threading.Tasks.Task.FromResult(default(TResult)!), args => callback((TArg)args[0]!));
+            }
+            else
+            {
+                context.Setup.Callback = args => callback((TArg)args[0]!);
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures a typed callback with two arguments on an async method returning Task&lt;TResult&gt;.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.Task<TResult>> Callback<TMock, TResult, TArg1, TArg2>(this SetupContext<TMock, System.Threading.Tasks.Task<TResult>> context, Action<TArg1, TArg2> callback)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, System.Threading.Tasks.Task.FromResult(default(TResult)!), args => callback((TArg1)args[0]!, (TArg2)args[1]!));
+            }
+            else
+            {
+                context.Setup.Callback = args => callback((TArg1)args[0]!, (TArg2)args[1]!);
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures a typed callback with three arguments on an async method returning Task&lt;TResult&gt;.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.Task<TResult>> Callback<TMock, TResult, TArg1, TArg2, TArg3>(this SetupContext<TMock, System.Threading.Tasks.Task<TResult>> context, Action<TArg1, TArg2, TArg3> callback)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, System.Threading.Tasks.Task.FromResult(default(TResult)!), args => callback((TArg1)args[0]!, (TArg2)args[1]!, (TArg3)args[2]!));
+            }
+            else
+            {
+                context.Setup.Callback = args => callback((TArg1)args[0]!, (TArg2)args[1]!, (TArg3)args[2]!);
+            }
+            return context;
+        }
+
+        #endregion
+
+        #region Callback Methods (for async SetupContext<TMock, ValueTask<TResult>>)
+
+        /// <summary>
+        /// Configures a callback on an async method returning ValueTask&lt;TResult&gt;.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> Callback<TMock, TResult>(this SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> context, Action callback)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, new System.Threading.Tasks.ValueTask<TResult>(default(TResult)!), _ => callback());
+            }
+            else
+            {
+                context.Setup.Callback = _ => callback();
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures a typed callback on an async method returning ValueTask&lt;TResult&gt;.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> Callback<TMock, TResult, TArg>(this SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> context, Action<TArg> callback)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, new System.Threading.Tasks.ValueTask<TResult>(default(TResult)!), args => callback((TArg)args[0]!));
+            }
+            else
+            {
+                context.Setup.Callback = args => callback((TArg)args[0]!);
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures a typed callback with two arguments on an async method returning ValueTask&lt;TResult&gt;.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> Callback<TMock, TResult, TArg1, TArg2>(this SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> context, Action<TArg1, TArg2> callback)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, new System.Threading.Tasks.ValueTask<TResult>(default(TResult)!), args => callback((TArg1)args[0]!, (TArg2)args[1]!));
+            }
+            else
+            {
+                context.Setup.Callback = args => callback((TArg1)args[0]!, (TArg2)args[1]!);
+            }
+            return context;
+        }
+
+        /// <summary>
+        /// Configures a typed callback with three arguments on an async method returning ValueTask&lt;TResult&gt;.
+        /// </summary>
+        public static SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> Callback<TMock, TResult, TArg1, TArg2, TArg3>(this SetupContext<TMock, System.Threading.Tasks.ValueTask<TResult>> context, Action<TArg1, TArg2, TArg3> callback)
+        {
+            if (context.Setup == null)
+            {
+                context.Setup = context.Handler.AddSetup(context.Signature, context.Args, new System.Threading.Tasks.ValueTask<TResult>(default(TResult)!), args => callback((TArg1)args[0]!, (TArg2)args[1]!, (TArg3)args[2]!));
+            }
+            else
+            {
+                context.Setup.Callback = args => callback((TArg1)args[0]!, (TArg2)args[1]!, (TArg3)args[2]!);
+            }
+            return context;
+        }
+
+        #endregion
+
         #region Callback Methods (for VoidSetupContext<T>)
 
         /// <summary>
