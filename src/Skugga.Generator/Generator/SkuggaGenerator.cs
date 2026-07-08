@@ -1,8 +1,4 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -310,9 +306,10 @@ namespace Skugga.Generator
                 else if (methodName == "Setup" || methodName == "Verify" || methodName == "SetupSet" || methodName == "VerifySet")
                 {
                     var mockType = context.SemanticModel.GetTypeInfo(member.Expression).Type;
-                    if (mockType != null && mockType.ToDisplayString().StartsWith("Moq.Mock<"))
+                    if ((mockType != null && mockType.ToDisplayString().StartsWith("Moq.Mock<"))
+                        || (mockType?.BaseType != null && mockType.BaseType.ToDisplayString().StartsWith("PCLMock.MockBase<")))
                     {
-                        return null; // Skip Moq's Mock<T>
+                        return null; // Skip Moq's Mock<T> and PCLMock's MockBase<T> to avoid conflicts with their own analyzers
                     }
                     if (invocation.ArgumentList.Arguments.Count > 0)
                     {
