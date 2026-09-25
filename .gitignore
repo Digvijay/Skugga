@@ -446,3 +446,5 @@ artifacts/
 # Private release documentation
 RELEASE_GUIDE.md
 *bak.png
+*.snupkg
+*.backup

@@ -3,7 +3,6 @@
 [![Skugga CI](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml/badge.svg)](https://github.com/Digvijay/Skugga/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Skugga.svg)](https://www.nuget.org/packages/Skugga/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-460%20passing-brightgreen)](https://github.com/Digvijay/Skugga)
 [![Docs](https://img.shields.io/badge/docs-comprehensive-blue)](docs/)
 
 ![Skugga Banner](docs/images/skugga_banner_small.png)
@@ -16,7 +15,7 @@
 
 ---
 
-Legacy tools like Moq rely on runtime reflection, which is slow, memory-intensive, and incompatible with Native AOT. Skugga takes a different approach: it moves the mocking logic to **Compile-Time**. The result is a library that is 100% AOT-compatible, uses zero reflection, and enables "Distroless" container deployments.
+Legacy tools like Moq rely on runtime reflection, which is slow, memory-intensive, and incompatible with Native AOT. Skugga takes a different approach: it moves the mocking logic to **Compile-Time**. The result is a library that is AOT-compatible, uses no runtime reflection, and enables "Distroless" container deployments.
 
 ---
 
@@ -50,7 +49,7 @@ graph TB
 -----
 ## Key Features
 
-> **Industry-First Features:** Skugga is the **only .NET mocking library** offering built-in [Chaos Engineering](#chaos-engineering) and [Zero-Allocation Testing](#zero-allocation-testing). While resilience libraries like [Polly](https://github.com/App-vNext/Polly) + [Simmy](https://github.com/Polly-Contrib/Simmy) provide chaos testing for production code, Skugga uniquely integrates chaos directly into your mocks for test-time resilience validation.
+> **Industry-First Features:** Skugga is, as far as we are aware, the **only .NET mocking library** offering built-in [Chaos Engineering](#chaos-engineering) and [Zero-Allocation Testing](#zero-allocation-testing). While resilience libraries like [Polly](https://github.com/App-vNext/Polly) + [Simmy](https://github.com/Polly-Contrib/Simmy) provide chaos testing for production code, Skugga uniquely integrates chaos directly into your mocks for test-time resilience validation.
 
 ### 1. Doppelgänger (OpenAPI Mock Generation)
 
@@ -122,7 +121,7 @@ error CS0029: Cannot convert type 'decimal' to 'int'
 **Auth Mocking** - OAuth2/JWT token generation built-in
 **Stateful Behavior** - In-memory CRUD for integration tests
 **Schema Validation** - Runtime validation against OpenAPI schemas
-**Native AOT Compatible** - 100% compile-time generation
+**Native AOT Compatible** - all doubles generated at compile time
 
 **[Read the full Doppelgänger guide ->](docs/DOPPELGANGER.md)** | **[Demo and example code ->](samples/DoppelgangerDemo)**
 
@@ -217,7 +216,7 @@ public partial interface IMyApi { }
 - Stateful CRUD operations
 - Runtime schema validation
 - OpenAPI quality linting
-- 100% Native AOT compatible
+- Native AOT compatible
 
 **[Read the full Doppelgänger guide ->](docs/DOPPELGANGER.md)**
 **[Step-by-step tutorial with examples ->](docs/API_REFERENCE.md#doppelgänger-openapi-mock-generation)**
@@ -261,7 +260,7 @@ recorder.UpdateStatus(12345, "Shipped");
 
 ### 3. Chaos Engineering
 
-> **Industry First:** Skugga is the **only .NET mocking library** with built-in chaos engineering for testing resilience patterns directly in your mocks. While [Polly](https://github.com/App-vNext/Polly) + [Simmy](https://github.com/Polly-Contrib/Simmy) provide chaos for production code, Skugga brings chaos to test time.
+> **Industry First:** Skugga is, as far as we are aware, the **only .NET mocking library** with built-in chaos engineering for testing resilience patterns directly in your mocks. While [Polly](https://github.com/App-vNext/Polly) + [Simmy](https://github.com/Polly-Contrib/Simmy) provide chaos for production code, Skugga brings chaos to test time.
 
 Test how your application handles failure. Inject random faults (latency, exceptions, timeouts) into mocks to **prove** your retry logic works.
 
@@ -300,7 +299,7 @@ Console.WriteLine($"Chaos triggered {stats.ChaosTriggeredCount} times");
 
 ### 4. Zero-Allocation Testing
 
-> **Industry First:** Skugga is the **only .NET mocking library** providing allocation assertions to **prove** your hot paths are truly zero-allocation. No other mocking framework (Moq, NSubstitute, FakeItEasy) offers this capability.
+> **Industry First:** Skugga is, as far as we are aware, the **only .NET mocking library** providing allocation assertions to **prove** your hot paths are truly zero-allocation. No other mocking framework (Moq, NSubstitute, FakeItEasy) offers this capability.
 
 Ensure your "hot paths" remain allocation-free with precise GC-level measurements. Catch performance regressions before they hit production.
 

@@ -1,40 +1,34 @@
-## Description
-<!-- Provide a clear and concise description of what this PR does -->
+## Summary
 
-## Type of Change
-- [ ] 🐛 Bug fix (non-breaking change fixing an issue)
-- [ ] ✨ New feature (non-breaking change adding functionality)
-- [ ] 💥 Breaking change (fix or feature causing existing functionality to change)
-- [ ] 📚 Documentation update
-- [ ] ⚡ Performance improvement
-- [ ] 🧹 Code refactoring
-- [ ] ✅ Test improvements
+<!-- What does this change do, and why? -->
+
+## Related issue
+
+<!-- e.g. Fixes #123 -->
+
+## Type of change
+
+- [ ] Bug fix (non-breaking)
+- [ ] New feature (non-breaking)
+- [ ] Breaking change
+- [ ] Documentation only
+- [ ] Build, CI, or release tooling
 
 ## Checklist
-- [ ] Code builds successfully (`dotnet build`)
-- [ ] All tests pass (`dotnet test`)
-- [ ] New tests added for new functionality
-- [ ] Code follows [coding standards](../CONTRIBUTING.md#coding-standards)
-- [ ] Commits follow [conventional commit format](../CONTRIBUTING.md#pr-title-format)
-- [ ] Documentation updated (if needed)
-- [ ] Native AOT compatibility verified
-- [ ] No new TODOs added without corresponding GitHub issues
-- [ ] Performance impact considered (run benchmarks if applicable)
 
-## Related Issues
-<!-- Link to related issues using keywords: Fixes #123, Closes #456, Relates to #789 -->
+- [ ] Tests cover the change, and the full suite passes locally
+- [ ] Public API changes are documented and follow semantic versioning
+- [ ] Native AOT and trimming compatibility is preserved (no new runtime reflection on a supported path)
+- [ ] No new build warnings
+- [ ] Documentation updated where behaviour changed
+- [ ] `CHANGELOG.md` updated for user-visible changes
+- [ ] No new TODOs without a tracking issue
 
-## Testing
-<!-- Describe how you tested this change. Include test scenarios, edge cases, and any manual testing performed -->
+## Performance impact
 
-## Performance Impact
-<!-- If applicable, describe any performance implications -->
-- [ ] No performance impact
-- [ ] Performance improved (include benchmark results)
-- [ ] Performance impact acceptable (explain why)
+<!-- If this touches a hot path or generated code, state the measured impact and how it was measured.
+     Claims about performance must be backed by reproducible benchmark output. -->
 
-## Screenshots/Output
-<!-- If applicable, add screenshots or console output showing the change -->
+## Security impact
 
-## Additional Notes
-<!-- Any additional information reviewers should know -->
+<!-- Does this change affect input handling, generated code, serialization, or a trust boundary? -->
