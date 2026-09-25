@@ -1,6 +1,19 @@
 <Project>
-  <!-- These properties are needed for Skugga's source generator to work in BenchmarkDotNet's isolated builds -->
+  <!--
+    This import is required. Without it, MSBuild stops walking up at this file and the project
+    silently loses every repository-wide setting from tests/Directory.Build.props and the root
+    Directory.Build.props: LangVersion, Nullable, analysis level, AOT flags, deterministic build
+    settings, package metadata, and IsPackable=false (which caused Skugga.Benchmarks.nupkg to be
+    produced by `dotnet pack` on the solution).
+
+    The InterceptorsPreviewNamespaces line below was originally added here to work around that
+    missing inheritance. It is kept because BenchmarkDotNet builds each benchmark in an isolated
+    project, but it now correctly appends to the inherited value rather than replacing it.
+  -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
   <PropertyGroup>
+    <!-- Needed for Skugga's source generator to work in BenchmarkDotNet's isolated builds -->
     <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Skugga.Generated</InterceptorsPreviewNamespaces>
   </PropertyGroup>
 </Project>

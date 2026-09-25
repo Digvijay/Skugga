@@ -1,5 +1,7 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -18,16 +20,36 @@ namespace Skugga.Generator
         public const string HandlerProperty = "public MockHandler Handler => _handler;";
         public const string ArrayEmpty = "Array.Empty<object?>()";
 
+        /// <summary>
+        /// Formats a compile-time constant as a C# literal for emission into generated source.
+        /// </summary>
+        /// <remarks>
+        /// Every numeric conversion here must use <see cref="CultureInfo.InvariantCulture"/>.
+        /// Generated source code is C#, not user-facing text, and C# literals are defined in terms
+        /// of the invariant culture regardless of the machine running the compiler.
+        ///
+        /// This previously used culture-sensitive interpolation. On a machine whose culture uses
+        /// ',' as the decimal separator, a setup written as <c>CalculateDiscount(999.99m, "x")</c>
+        /// emitted <c>999,99m</c> into the argument array, which the compiler read as *two*
+        /// arguments. The argument count then never matched the real invocation, so the setup
+        /// silently did not apply and the mock returned <c>default</c> -- with no compiler error
+        /// and no exception. Round-trip ("R") formatting is used for float and double so the
+        /// literal reconstructs the exact value.
+        /// </remarks>
         public static string FormatConstantValue(object? value)
         {
             if (value == null) return "null";
             if (value is string s) return $"\"{s.Replace("\"", "\\\"")}\"";
             if (value is bool b) return b ? "true" : "false";
             if (value is char c) return $"'{c}'";
-            if (value is decimal m) return $"{m}m";
-            if (value is float f) return $"{f}f";
-            if (value is double d) return $"{d}d";
-            if (value is long l) return $"{l}L";
+            if (value is decimal m) return m.ToString(CultureInfo.InvariantCulture) + "m";
+            if (value is float f) return f.ToString("R", CultureInfo.InvariantCulture) + "f";
+            if (value is double d) return d.ToString("R", CultureInfo.InvariantCulture) + "d";
+            if (value is long l) return l.ToString(CultureInfo.InvariantCulture) + "L";
+            if (value is ulong ul) return ul.ToString(CultureInfo.InvariantCulture) + "UL";
+            // Remaining integral types: still format invariantly, because the negative sign is
+            // itself culture-dependent.
+            if (value is IFormattable formattable) return formattable.ToString(null, CultureInfo.InvariantCulture);
             return value.ToString() ?? "null";
         }
 

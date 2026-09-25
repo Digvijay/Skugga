@@ -6,14 +6,20 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!--
+      A symbol package would be empty here: IncludeBuildOutput is false because the assembly is
+      packed into analyzers/ or tasks/ rather than lib/. Leaving the repo-wide IncludeSymbols=true
+      in place made dotnet pack fail with NU5017 ("Cannot create a package that has no
+      dependencies nor content"), which would have broken the CI pack step.
+    -->
+    <IncludeSymbols>false</IncludeSymbols>    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
     <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>Skugga.OpenApi</PackageId>
-    <Version>1.5.0</Version>
+    <Version>1.6.0</Version>
     <Title>Skugga OpenAPI Source Generator</Title>
     <Description>Roslyn source generator for creating mocks from OpenAPI specifications. Automatically generates type-safe mocks with contract validation and example data support.</Description>
     <PackageTags>source-generator;roslyn;openapi;swagger;mocking;testing;skugga;aot</PackageTags>

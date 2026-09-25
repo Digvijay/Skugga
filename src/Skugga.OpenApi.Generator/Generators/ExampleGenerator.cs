@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.OpenApi.Any;
@@ -12,6 +13,26 @@ namespace Skugga.OpenApi.Generator
     /// </summary>
     internal class ExampleGenerator
     {
+        /// <summary>
+        /// Formats a numeric OpenAPI example as a C# literal.
+        /// </summary>
+        /// <remarks>
+        /// Always invariant. Generated output is C# source, and C# numeric literals are defined in
+        /// terms of the invariant culture no matter what culture the compiler happens to run under.
+        ///
+        /// Culture-sensitive interpolation here produced <c>Price = 29,99</c> on a machine using
+        /// ',' as the decimal separator, which the compiler parsed as two object-initializer
+        /// members and rejected with CS0747 ("Invalid initializer member declarator"). Round-trip
+        /// ("R") formatting keeps double/float values exact.
+        /// </remarks>
+        private static string Num(double value) => value.ToString("R", CultureInfo.InvariantCulture);
+
+        private static string Num(float value) => value.ToString("R", CultureInfo.InvariantCulture);
+
+        private static string Num(long value) => value.ToString(CultureInfo.InvariantCulture);
+
+        private static string Num(int value) => value.ToString(CultureInfo.InvariantCulture);
+
         private readonly TypeMapper _typeMapper;
         private readonly string? _exampleSetName;
 
@@ -83,16 +104,16 @@ namespace Skugga.OpenApi.Generator
                     return $"\"{EscapeString(str.Value)}\"";
 
                 case OpenApiInteger intVal:
-                    return intVal.Value.ToString();
+                    return Num(intVal.Value);
 
                 case OpenApiLong longVal:
-                    return $"{longVal.Value}L";
+                    return Num(longVal.Value) + "L";
 
                 case OpenApiDouble doubleVal:
-                    return $"{doubleVal.Value}";
+                    return Num(doubleVal.Value);
 
                 case OpenApiFloat floatVal:
-                    return $"{floatVal.Value}f";
+                    return Num(floatVal.Value) + "f";
 
                 case OpenApiBoolean boolVal:
                     return boolVal.Value ? "true" : "false";
@@ -119,10 +140,10 @@ namespace Skugga.OpenApi.Generator
                 var propValue = kvp.Value switch
                 {
                     OpenApiString s => $"\"{EscapeString(s.Value)}\"",
-                    OpenApiInteger i => i.Value.ToString(),
-                    OpenApiLong l => $"{l.Value}L",
-                    OpenApiDouble d => $"{d.Value}",
-                    OpenApiFloat f => $"{f.Value}f",
+                    OpenApiInteger i => Num(i.Value),
+                    OpenApiLong l => Num(l.Value) + "L",
+                    OpenApiDouble d => Num(d.Value),
+                    OpenApiFloat f => Num(f.Value) + "f",
                     OpenApiBoolean b => b.Value ? "true" : "false",
                     OpenApiNull => "null!",
                     _ => "default"
@@ -154,8 +175,8 @@ namespace Skugga.OpenApi.Generator
                 {
                     OpenApiObject obj => GenerateObjectFromExample(obj, itemType),
                     OpenApiString s => $"\"{EscapeString(s.Value)}\"",
-                    OpenApiInteger i => i.Value.ToString(),
-                    OpenApiLong l => $"{l.Value}L",
+                    OpenApiInteger i => Num(i.Value),
+                    OpenApiLong l => Num(l.Value) + "L",
                     _ => "default"
                 };
             });
@@ -222,10 +243,10 @@ namespace Skugga.OpenApi.Generator
                         var propValue = kvp.Value switch
                         {
                             OpenApiString s => $"\"{EscapeString(s.Value)}\"",
-                            OpenApiInteger i => i.Value.ToString(),
-                            OpenApiLong l => $"{l.Value}L",
-                            OpenApiDouble d => $"{d.Value}",
-                            OpenApiFloat f => $"{f.Value}f",
+                            OpenApiInteger i => Num(i.Value),
+                            OpenApiLong l => Num(l.Value) + "L",
+                            OpenApiDouble d => Num(d.Value),
+                            OpenApiFloat f => Num(f.Value) + "f",
                             OpenApiBoolean b => b.Value ? "true" : "false",
                             _ => "default!"
                         };
@@ -244,10 +265,10 @@ namespace Skugga.OpenApi.Generator
                             var propValue = prop.Value.Example switch
                             {
                                 OpenApiString s => $"\"{EscapeString(s.Value)}\"",
-                                OpenApiInteger i => i.Value.ToString(),
-                                OpenApiLong l => $"{l.Value}L",
-                                OpenApiDouble d => $"{d.Value}",
-                                OpenApiFloat f => $"{f.Value}f",
+                                OpenApiInteger i => Num(i.Value),
+                                OpenApiLong l => Num(l.Value) + "L",
+                                OpenApiDouble d => Num(d.Value),
+                                OpenApiFloat f => Num(f.Value) + "f",
                                 OpenApiBoolean b => b.Value ? "true" : "false",
                                 _ => "default!"
                             };

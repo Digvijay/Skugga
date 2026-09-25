@@ -5,6 +5,39 @@ All notable changes to Skugga will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-09-25
+
+### Fixed
+- **Mock setups were silently ignored on machines whose culture uses a comma decimal separator.**
+  The generator formatted `decimal`, `double`, `float` and `long` argument literals using the
+  ambient culture, so a setup written as `Setup(x => x.Calculate(999.99m, "Electronics"))` emitted
+  `new object?[] { 999,99m, "Electronics" }` — three array elements instead of two. The argument
+  count never matched the real call, the setup was skipped, and the mock returned `default` with no
+  exception, warning or diagnostic. Affected every developer outside an invariant-like locale.
+  All numeric emission is now invariant, with round-trip formatting for `float` and `double`.
+  See `docs/known-issues.md`.
+- **`Skugga.OpenApi.Generator` emitted code that did not compile** (`CS0747: Invalid initializer
+  member declarator`) for any OpenAPI schema with a non-integer numeric example, for the same
+  reason: `Price = 29,99` inside an object initializer. All 20 emission sites now format
+  invariantly. Generated HTTP header values and analyzer diagnostic text were made invariant too.
+- **`dotnet pack` failed on the solution** with NU5017, because `IncludeSymbols` was on
+  repo-wide while `Skugga.OpenApi.Generator` and `Skugga.OpenApi.Tasks` set
+  `IncludeBuildOutput=false`. Symbol packages are now disabled for those two projects.
+- **Samples, tests and benchmarks were produced as NuGet packages** by `dotnet pack` on the
+  solution. Packability is now restricted to projects under `src/`.
+- **`tests/Skugga.Benchmarks/Directory.Build.props` did not import the file above it**, which
+  stops MSBuild's upward search and silently dropped every repository-wide setting (LangVersion,
+  Nullable, analysis level, AOT flags, deterministic builds, package metadata) for that project.
+- `Skugga.OpenApi.Tasks` was pinned at 1.0.0 while shipping alongside 1.6.0 packages; it now
+  tracks the same version.
+- Removed a redundant `Microsoft.SourceLink.GitHub` package reference (built into the SDK since
+  .NET 8) that pulled in `Microsoft.Build.Tasks.Git` and GHSA-23fw-v26w-5fgq.
+
+### Changed
+- Multi-targets `net8.0` (LTS) and `net10.0` (current) instead of a single framework, so the
+  package no longer forces consumers onto the newest runtime. `net11.0` is validated in CI behind
+  an opt-in switch.
+
 ## [1.4.0] - 2026-01-28
 
 ### Added

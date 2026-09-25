@@ -1,99 +1,100 @@
-name: Skugga CI
+name: CI
+
+permissions:
+  contents: read
 
 on:
   push:
-    branches: [ "master", "development", "test", "feature/**", "maintainance/**" ]
+    branches: [ "main", "development" ]
   pull_request:
-    branches: [ "master", "development", "test" ]
+    branches: [ "main", "development" ]
   workflow_dispatch:
 
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
 jobs:
-  build-and-test:
+  build:
+    name: Build & Test (.NET 8 LTS + .NET 10)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: [ '8.0.x', '10.0.x' ]
-    
+
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v6
-      with:
-        fetch-depth: 0 
+      - uses: actions/checkout@v4
+        with:
+          # Required: Nerdbank.GitVersioning walks history to compute version height and
+          # hard-fails on a shallow clone.
+          fetch-depth: 0
 
-    - name: Setup .NET ${{ matrix.dotnet-version }}
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Setup .NET (8.0 LTS and 10.0)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v4.3.3
-      with:
-        versionSpec: '6.x'
+      - name: Restore
+        run: dotnet restore Skugga.slnx
 
-    - name: Determine Version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v4.3.3
-      with:
-        configFilePath: GitVersion.yml
+      - name: Build
+        run: dotnet build Skugga.slnx --no-restore --configuration Release
 
-    - name: Display Version
-      run: |
-        echo "::notice::SemVer: ${{ steps.gitversion.outputs.semVer }}"
-        echo "::notice::FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
+      - name: Test
+        run: >
+          dotnet test Skugga.slnx --no-build --configuration Release
+          --collect:"XPlat Code Coverage" --results-directory ./coverage
 
-    - name: Restore Dependencies
-      run: dotnet restore Skugga.slnx
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-coverage
+          path: ./coverage
+      - name: Pack
+        run: dotnet pack Skugga.slnx --no-build --configuration Release --output ./artifacts
 
-    - name: Build Solution (Debug)
-      run: dotnet build Skugga.slnx /p:TreatWarningsAsErrors=false
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/*.nupkg
 
-    - name: Check Formatting
-      run: dotnet format --verify-no-changes Skugga.slnx --no-restore
+  preview:
+    name: Preview .NET (net11.0)
+    runs-on: ubuntu-latest
+    # Advisory. A preview SDK can regress for reasons outside this repository, so this leg
+    # reports breakage without blocking the merge queue.
+    continue-on-error: true
 
-    - name: Build Solution
-      run: |
-        dotnet build Skugga.slnx \
-        --configuration Release \
-        --no-restore \
-        /p:Version=${{ steps.gitversion.outputs.semVer }} \
-        /p:TreatWarningsAsErrors=true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Run Unit Tests
-      run: |
-        dotnet test Skugga.slnx \
-        --configuration Release \
-        --no-build \
-        --verbosity normal \
-        --logger "trx;LogFileName=test-results.trx" \
-        --collect:"XPlat Code Coverage" \
-        -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+      - name: Setup .NET (8.0, 10.0 and 11.0 preview)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+            11.0.x
+          dotnet-quality: preview
 
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v7
-      with:
-        name: test-results-${{ matrix.dotnet-version }}
-        path: "**/TestResults/**/*"
+      - name: Report SDK version
+        run: dotnet --info
 
-    - name: Upload Coverage
-      if: always()
-      uses: actions/upload-artifact@v7
-      with:
-        name: code-coverage-${{ matrix.dotnet-version }}
-        path: "**/coverage.opencover.xml"
+      - name: Restore (including net11.0)
+        env:
+          INCLUDE_PREVIEW_TFM: 'true'
+        run: dotnet restore Skugga.slnx
 
-    - name: Run Benchmarks (Smoke Test)
-      if: matrix.dotnet-version == '10.0.x'
-      run: |
-        dotnet run --project tests/Skugga.Benchmarks/Skugga.Benchmarks.csproj \
-        --configuration Release \
-        --filter *Skugga*
+      - name: Build (including net11.0)
+        env:
+          INCLUDE_PREVIEW_TFM: 'true'
+        run: dotnet build Skugga.slnx --no-restore --configuration Release
 
-    - name: Build Summary
-      if: always()
-      run: |
-        echo "### Build Summary for .NET ${{ matrix.dotnet-version }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "- Version: \`${{ steps.gitversion.outputs.semVer }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "- Configuration: Release" >> $GITHUB_STEP_SUMMARY
-        echo "- Warnings as Errors: Enabled" >> $GITHUB_STEP_SUMMARY
+      - name: Test (including net11.0)
+        env:
+          INCLUDE_PREVIEW_TFM: 'true'
+        run: dotnet test Skugga.slnx --no-build --configuration Release

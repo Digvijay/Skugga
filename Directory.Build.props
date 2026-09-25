@@ -1,4 +1,5 @@
 <Project>
+  <Import Project="Directory.TargetFrameworks.props" />
   <PropertyGroup>
     <Authors>Digvijay Chauhan</Authors>
     <Company>Digvijay Chauhan</Company>
@@ -22,8 +23,14 @@
     <IsAotCompatible Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">true</IsAotCompatible>
     
     <!-- Enable high quality analysis -->
-    <AnalysisLevel>latest</AnalysisLevel>
-    <AnalysisMode>Recommended</AnalysisMode>
+    <!--
+      Pinned deliberately. <AnalysisLevel>latest</AnalysisLevel> means "whatever the newest SDK on
+      the build machine enforces", so installing a new SDK can fail a build that has not changed.
+      That happened here: the .NET 11 RC SDK turned previously-clean code into 314 build errors
+      (IDE0055, IDE0011, IDE0059) with TreatWarningsAsErrors on. Pinning keeps builds reproducible
+      across SDKs; raise it deliberately and fix the new diagnostics in the same commit.
+    -->
+    <AnalysisLevel>10.0</AnalysisLevel>    <AnalysisMode>Recommended</AnalysisMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <NoWarn>$(NoWarn);CA2007;CA1014;CA1847;CA1852;CA1310;CA1311;CA1304;CA1860;CA1861;CA1834;CA1051;CA1805;CA1000;CA2201;CA1854;CA1869;CA1707;CA1862;CA1806;CA1716</NoWarn>
     
@@ -41,9 +48,19 @@
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
+  <!--
+    Only projects under src/ are shipped. Without this, `dotnet pack` on the solution produced
+    NuGet packages for the samples, benchmarks and migration tests (Step1-WithMoq.nupkg,
+    OrdersApi.nupkg, Skugga.Benchmarks.nupkg), which would have been uploaded as CI release
+    artifacts and could have been pushed to a feed by accident.
+  -->
+  <PropertyGroup Condition="!$(MSBuildProjectDirectory.Contains('$(MSBuildThisFileDirectory)src'))">
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
   <!-- Common Package References -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" Condition="'$(IsPackable)' == 'true'" />
+    <!-- SourceLink is built into the .NET SDK (8.0+); the standalone Microsoft.SourceLink.GitHub package is redundant and dragged in a vulnerable Microsoft.Build.Tasks.Git. -->
   </ItemGroup>
 
   <!-- Include icon and README in packages -->
