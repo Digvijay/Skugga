@@ -6,7 +6,7 @@ namespace Step2_WithSkugga.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController : ControllerBase
+public partial class ProductsController : ControllerBase
 {
     private readonly IProductRepository _repository;
     private readonly IInventoryService _inventory;
@@ -67,8 +67,7 @@ public class ProductsController : ControllerBase
         };
 
         var created = await _repository.CreateAsync(product);
-        var productId = created.Id;
-        _logger.LogInformation("Created product {ProductId}", productId);
+        LogProductCreated(created.Id);
 
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
     }
@@ -136,6 +135,11 @@ public class ProductsController : ControllerBase
 
         return Ok();
     }
+
+    // Source-generated logging: no params array and no boxing of the int,
+    // so nothing is allocated when Information level is disabled (CA1873).
+    [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Created product {ProductId}")]
+    private partial void LogProductCreated(int productId);
 
     private ProductDto MapToDto(Product product)
     {
