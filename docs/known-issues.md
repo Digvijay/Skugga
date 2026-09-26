@@ -266,6 +266,42 @@ single project under a single culture and never packed anything. The wider conte
 the Viking Air integration repository's `docs/known-issues.md`, which documents defects found
 across all four libraries.
 
+Issues 12 and 13 were found by opening a pull request, which ran CI on GitHub-hosted x64 runners
+for the first time. Both are properties of how the workflow invokes the CLI, so no amount of local
+testing on the development machine could have produced them.
+
+## 12. `-p:PublishAot=true` on the command line broke the generator project (NETSDK1207)
+
+`aot-validation.yml` passed `-p:PublishAot=true` to `dotnet publish`. The flag was redundant —
+the target project already declares `PublishAot` — and actively harmful, because a `-p:` switch on
+the command line creates a **global property**, and MSBuild propagates global properties into every
+`ProjectReference` it builds. `Skugga.Generators` targets `netstandard2.0`, which cannot be
+AOT-compiled, so the run failed with:
+
+```
+error NETSDK1207: Ahead-of-time compilation is not supported for the target framework.
+```
+
+The same property declared inside a project file does *not* flow across a `ProjectReference`. That
+asymmetry is the whole reason this never reproduced locally.
+
+**Fixed.** The flag is removed; AOT stays configured in the project file, where it belongs.
+
+## 13. The IL-warning list was split on its commas (MSB1006)
+
+The same step passed `-p:WarningsAsErrors=IL2026,IL2046,IL2062,...`. The dotnet CLI splits `-p:`
+values on commas, so every code after the first was parsed as its own switch and the run failed
+before compiling anything:
+
+```
+MSBUILD : error MSB1006: Property is not valid. Switch: IL2046
+```
+
+The step had therefore never enforced any of those trim and AOT warnings as errors. A bare `;` is
+no better, because it is the property separator.
+
+**Fixed.** The codes are joined with `%3B`, the escaped semicolon, which reaches MSBuild as a single
+property value.
 
 ---
 
