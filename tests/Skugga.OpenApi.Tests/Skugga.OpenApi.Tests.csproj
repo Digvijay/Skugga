@@ -31,7 +31,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.28" />
+    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.31" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
     
     <!-- Explicit references to fix version conflicts -->
