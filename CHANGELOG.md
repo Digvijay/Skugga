@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.0] - 2026-09-25
 
+### Added
+- **`tools/Skugga.AotProbe`** — a console app that consumes only the public API the way a real
+  consumer does, published with `PublishAot=true` and **executed as a native binary** by CI on
+  Linux and Windows. It asserts on returned *values*, not merely that calls do not throw, because
+  Skugga's reflective fallbacks catch exceptions and return `null`: under AOT a broken path
+  degrades silently rather than crashing, and only value assertions catch that.
+- **`tools/Skugga.AotProbe/aot-baseline.txt`** — a ratchet on the number of trim/AOT diagnostics
+  ILC attributes to Skugga's own code. CI fails if the count rises above the recorded 18, which
+  prevents new reflective fallbacks being added while allowing existing ones to be removed.
+
+### Changed — the Native AOT claim now matches the measurement
+- **The "100% AOT-compatible, zero runtime reflection" claim was never measured, and it was
+  wrong.** Publishing a realistic consumer with `PublishAot=true` produces **18 trim/AOT
+  diagnostics, all originating in Skugga** — expression compilation and `MakeGenericMethod` in
+  `MockExtensions`, `MakeGenericType` in `DefaultValueProviders`, `Task.FromResult<T>` in
+  `MockHandler`, and expression compilation in `LinqToMocks`. Corrected the claim in `README.md`
+  (new "Native AOT support" section with the per-file breakdown), `docs/index.md`,
+  `docs/security.md`, `docs/guide/getting-started.md`, `docs/TROUBLESHOOTING.md`,
+  `docs/DOPPELGANGER.md`, `docs/AOT_COMPATIBILITY_ANALYSIS.md`, and the NuGet `<Description>`.
+  The accurate position is that Skugga is AOT-*first*, not AOT-*pure*: the generated path has no
+  dynamic proxy and no JIT dependency, which is why it works where proxy-based libraries cannot,
+  but the fallbacks behind it are not yet AOT-clean.
+- **Two XML doc comments in `DefaultValueProviders.cs` asserted AOT safety directly above code
+  that calls `Type.MakeGenericType`.** Rewritten to say which branches are safe and which are not.
+- **`.github/workflows/aot-validation.yml`** rewritten. ILC warnings are deliberately *not* treated
+  as errors, because an errored ILC run produces no binary and running the binary is the only check
+  that proves anything. The trim-analyzer job is now advisory: it reports 42 diagnostics because it
+  inspects every method regardless of reachability, whereas ILC's whole-program analysis finds the
+  18 a consumer actually reaches. Both are surfaced; only the ILC figure is gated.
+
 ### Fixed — found by running CI on GitHub-hosted x64 runners for the first time
 - **The AOT validation workflow had never run to completion.** It passed `-p:PublishAot=true` on
   the command line, which creates a *global* property that MSBuild propagates into every

@@ -15,7 +15,9 @@
 
 ---
 
-Legacy tools like Moq rely on runtime reflection, which is slow, memory-intensive, and incompatible with Native AOT. Skugga takes a different approach: it moves the mocking logic to **Compile-Time**. The result is a library that is AOT-compatible, uses no runtime reflection, and enables "Distroless" container deployments.
+Legacy tools like Moq rely on runtime reflection and dynamic proxy generation, which is slow, memory-intensive, and incompatible with Native AOT. Skugga takes a different approach: it moves the mocking logic to **Compile-Time**. A mock is an ordinary C# class emitted by a source generator, so the common path involves no proxy generation, no JIT, and no `Expression.Compile`, which is what makes "Distroless" container deployments and Native AOT possible.
+
+Skugga is AOT-first rather than AOT-pure. The generated path is the design; behind it sit runtime fallbacks for the cases the generator has not covered, and those fallbacks do use reflection and expression compilation. Publishing a real consumer with `PublishAot=true` currently produces 18 trim/AOT diagnostics attributable to Skugga's own code. They are enumerated in [`tools/Skugga.AotProbe/aot-baseline.txt`](tools/Skugga.AotProbe/aot-baseline.txt), gated by CI so the count cannot rise, and tracked in [`docs/known-issues.md`](docs/known-issues.md). See [Native AOT support](#native-aot-support) for what this means in practice.
 
 ---
 
@@ -121,7 +123,7 @@ error CS0029: Cannot convert type 'decimal' to 'int'
 **Auth Mocking** - OAuth2/JWT token generation built-in
 **Stateful Behavior** - In-memory CRUD for integration tests
 **Schema Validation** - Runtime validation against OpenAPI schemas
-**Native AOT Compatible** - all doubles generated at compile time
+**Native AOT ready** - doubles are generated at compile time, not proxied at runtime
 
 **[Read the full Doppelgänger guide ->](docs/DOPPELGANGER.md)** | **[Demo and example code ->](samples/DoppelgangerDemo)**
 
@@ -216,7 +218,7 @@ public partial interface IMyApi { }
 - Stateful CRUD operations
 - Runtime schema validation
 - OpenAPI quality linting
-- Native AOT compatible
+- Native AOT ready (see [Native AOT support](#native-aot-support))
 
 **[Read the full Doppelgänger guide ->](docs/DOPPELGANGER.md)**
 **[Step-by-step tutorial with examples ->](docs/API_REFERENCE.md#doppelgänger-openapi-mock-generation)**
@@ -699,8 +701,8 @@ public class OrderServiceTests
 dotnet test
 ```
 
-That is it. No runtime reflection, no Castle.DynamicProxy, no JIT dependency.
-The mock is a plain C# class generated during compilation -- Native AOT ready from day one.
+That is it. No Castle.DynamicProxy, no proxy type built at runtime, no JIT dependency on this path.
+The mock is a plain C# class generated during compilation -- no proxy type is built at runtime.
 
 > **Note:** Interceptors are configured automatically by the Skugga NuGet package. No manual `.csproj` changes are required.
 
@@ -789,7 +791,7 @@ Skugga achieves **100% practical parity** with Moq's core API (937 tests coverin
 | **Events (Raise)** | Yes | Yes | Identical API |
 | **Partial Mocks** | Yes | Yes | Override specific methods via interceptors |
 | **Mock.Of<T>(expr)** | Yes | Yes | Functional style setup with LINQ expressions |
-| **Native AOT Support** | No | Yes | Moq crashes in AOT, Skugga is AOT-first |
+| **Native AOT Support** | No | Partial | Moq's dynamic proxies cannot work under AOT. Skugga generates mocks at compile time, and publishes and runs under AOT, but 18 diagnostics remain in its runtime fallbacks |
 | **Zero Reflection** | No | Yes | Skugga uses compile-time generation |
 | **AutoScribe** | No | Yes | Self-writing tests (Skugga exclusive) |
 | **Chaos Mode** | No | Yes | Resilience testing (Skugga exclusive) |
@@ -966,6 +968,25 @@ mock.Setup(f => f.Count).Returns(42);
 **Why?**C# interceptors only work on direct call sites in user code being compiled. When `Mock.Of()` internally calls `Mock.Create()`, that library-internal call cannot be intercepted without runtime IL generation (which breaks AOT compatibility). This is an architectural trade-off to maintain Native AOT support.
 
 **Mock.Get()***is* fully supported for retrieving the mock interface from created objects.
+
+## Native AOT support
+
+Skugga is AOT-first, and it is worth being precise about what that does and does not mean, because the distinction is easy to overstate.
+
+**What holds.** A mock is an ordinary C# class emitted by the source generator, and `Setup` and `Verify` call sites are rewritten by C# interceptors at compile time. No dynamic proxy is built, no IL is emitted at runtime, and nothing depends on a JIT. This is the difference from proxy-based libraries, which cannot work under AOT at all. A consumer that publishes with `PublishAot=true` gets a working native binary, and CI proves it: [`tools/Skugga.AotProbe`](tools/Skugga.AotProbe) is published with `PublishAot=true` on Linux and Windows on every push, and the resulting native executable is executed. Its assertions check returned *values*, not merely that calls do not throw, because the fallbacks below degrade silently rather than crashing.
+
+**What does not hold.** Behind the generated path are runtime fallbacks for cases the generator has not covered — compiling expression trees, constructing generic types with `Type.MakeGenericType`, and building generic methods with `MethodInfo.MakeGenericMethod`. Publishing a realistic consumer currently yields **18 trim/AOT diagnostics attributable to Skugga's own code**, concentrated in four files:
+
+| File | Diagnostics | Cause |
+| --- | --- | --- |
+| `Extensions/MockExtensions.cs` | 8 | `Expression.Lambda(...).Compile()` and `MakeGenericMethod` when evaluating argument matchers |
+| `Mocking/MockHandler.cs` | 4 | `Task.FromResult<T>` via `MakeGenericMethod`, and `Activator.CreateInstance` |
+| `Types/DefaultValueProviders.cs` | 5 | `MakeGenericType` for collection defaults, and a reflective mock-factory fallback |
+| `Mocking/LinqToMocks.cs` | 1 | expression compilation behind `Mock.Of<T>()`, which is [not supported](#aot-constraint-mockoft-limitation) anyway |
+
+These are enumerated in [`tools/Skugga.AotProbe/aot-baseline.txt`](tools/Skugga.AotProbe/aot-baseline.txt). CI ratchets the count, so it cannot rise without the build failing, and the target is zero. The route there is to move each remaining case into the generator rather than to suppress the warning.
+
+Note that the build-time AOT analyzer reports 42 diagnostics for `Skugga.Core`, because it inspects every method regardless of whether anything calls it. The 18 above come from ILC's whole-program reachability analysis, which is the number that describes what a consumer actually encounters. Both are reported by CI; only the ILC figure is gated.
 
 ## Contributing
 

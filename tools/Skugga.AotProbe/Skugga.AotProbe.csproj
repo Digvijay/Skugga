@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The AOT probe. Skugga's central claim is that mocks are generated at compile time and therefore
+    work under Native AOT, where Moq and other proxy-based libraries cannot. This project is what
+    turns that from a claim into a check.
+
+    It consumes only the public surface, is published with PublishAot=true, and is executed by CI.
+    Running it matters more than compiling it: the reflective fallbacks in Skugga.Core are guarded
+    by try/catch and return null on failure, so under AOT a broken path would show up as a wrong
+    value rather than an exception. The assertions below are what catch that.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <PublishAot>true</PublishAot>
+    <RootNamespace>Skugga.AotProbe</RootNamespace>
+
+    <!-- The generator rewrites Setup/Verify call sites; without this they fall back to runtime
+         expression compilation, which is exactly what must not happen under AOT. -->
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Skugga.Generated</InterceptorsPreviewNamespaces>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Skugga.Core\Skugga.Core.csproj" />
+    <ProjectReference Include="..\..\src\Skugga.Generator\Skugga.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

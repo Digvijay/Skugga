@@ -341,6 +341,74 @@ compilations can present the same key for an interface whose members have change
 generator would then serve the previous compilation's generated code. A caching fix that can emit
 stale output is worse than the cost it removes.
 
+## Defect 12 — the Native AOT claim was not measured, and it was wrong
+
+**Status:** open, bounded and gated. Not fixed.
+
+Skugga's central marketing claim was that it is "100% AOT-compatible" with "zero runtime
+reflection". Nobody had ever published a consumer with `PublishAot=true` and read the output. When
+that was finally done, the claim did not survive.
+
+`tools/Skugga.AotProbe` is a console app that uses only the public API the way a consumer does:
+default values for six types, `Setup(...).Returns(...)` with a literal and with a captured local,
+`Verify` with `Times.Exactly(2)`, and recursive mocking via `DefaultValue.Mock`. Publishing it with
+`PublishAot=true -p:TrimmerSingleWarn=false` produces **18 trim and AOT diagnostics, every one of
+them originating in Skugga's own code** — not in a dependency, and not in the test framework.
+
+| File | Count | Codes | Cause |
+| --- | --- | --- | --- |
+| `Extensions/MockExtensions.cs` | 8 | `IL3050` | `Expression.Lambda(...).Compile()` and `MakeGenericMethod` while evaluating argument matchers |
+| `Types/DefaultValueProviders.cs` | 5 | `IL3050`, `IL2060` | `MakeGenericType` for collection defaults; a reflective mock-factory fallback |
+| `Mocking/MockHandler.cs` | 4 | `IL3050`, `IL2067` | `Task.FromResult<T>` through `MakeGenericMethod`; `Activator.CreateInstance` |
+| `Mocking/LinqToMocks.cs` | 1 | `IL3050` | expression compilation behind `Mock.Of<T>()` |
+
+Three things about this are worth recording, because each was a surprise.
+
+**The analyzer and ILC disagree, and the difference matters.** Building `Skugga.Core` with
+`EnableAotAnalyzer=true` reports **42** diagnostics across five files. ILC reports 18. The analyzer
+inspects every method whether or not anything calls it; ILC performs whole-program reachability
+analysis. The 18 are what a consumer actually encounters. The gap is not noise to be dismissed —
+24 of the 42 sit in code this probe does not reach, and a different consumer might reach some of
+them — but it is the ILC number that describes the shipped experience, so that is the number gated.
+
+**The interceptor hypothesis was wrong.** The reasonable guess was that because the generator
+rewrites `Setup` and `Verify` call sites at compile time, the reflective fallbacks behind them
+would be unreachable and ILC would report nothing. It reports 18. The fallbacks are genuinely
+reachable from ordinary use.
+
+**These fail silently, which is worse than failing loudly.** The fallbacks are wrapped in
+`try`/`catch` blocks that return `null` on failure — see `DefaultValueProviders.cs:246-280`. Under
+AOT a broken path therefore does not throw; it hands back a wrong value and the test that depended
+on it fails somewhere else, or worse, passes. This is why the probe asserts on returned *values*
+rather than merely calling the API and checking nothing threw. Run under the JIT, all twelve
+assertions pass, which proves the logic is right and proves nothing at all about AOT.
+
+**What has been done.** The claim has been corrected everywhere it appeared — `README.md`,
+`docs/index.md`, `docs/security.md`, `docs/guide/getting-started.md`, `docs/TROUBLESHOOTING.md`,
+`docs/DOPPELGANGER.md`, `docs/AOT_COMPATIBILITY_ANALYSIS.md`, the NuGet `<Description>`, and two
+XML doc comments in `DefaultValueProviders.cs` that asserted AOT safety directly above code that
+calls `MakeGenericType`. `.github/workflows/aot-validation.yml` now publishes the probe under AOT
+on Linux and Windows, **executes the resulting native binary**, and ratchets the diagnostic count
+against `tools/Skugga.AotProbe/aot-baseline.txt` so it cannot rise.
+
+**What has not been done.** The 18 are still there. Fixing them means moving each fallback into the
+generator: an interpreting evaluator to replace the eight `Expression.Compile` sites, a
+statically-typed `RegisterDefaultValue<T>` seam emitted by the generator to replace
+`MakeGenericType` (mirroring the `RegisterMockFactory<T>` pattern that already exists and already
+works), and generator-emitted `Task.FromResult` defaults to replace `MakeGenericMethod`. That is a
+substantial change to the runtime and is not attempted here. The honest position today is that
+Skugga is AOT-*first*, not AOT-*pure*: it publishes, it links, it runs, and it is categorically
+better than a proxy-based library that cannot run under AOT at all — but the number is 18, not
+zero, and the README now says so.
+
+**Caveat.** As with everything else in this file, the measurement was taken on a single Windows
+ARM64 machine, and native linking cannot complete there because no MSVC toolchain is present. The
+diagnostic count and the managed-mode assertions are confirmed locally; that the *native* binary
+links and its assertions pass has never been observed anywhere, and the CI job added here is the
+first thing that will observe it.
+
+---
+
 Two caveats belong here rather than above, because neither is a defect and both bound what the
 entries are worth:
 
@@ -351,6 +419,6 @@ entries are worth:
   `net10.0` and `net11.0`), with no failures. A release candidate is not a release; the leg
   should be re-run against the GA SDK.
 
-A record of ten fixed defects and one partly fixed measures how hard this repository was looked at.
-It is not a claim that there is nothing left to find — and as the section above says, none of these
-would have been caught by the library's own primary test suite.
+A record of ten fixed defects, one partly fixed and one open measures how hard this repository was
+looked at. It is not a claim that there is nothing left to find — and as the section above says,
+none of these would have been caught by the library's own primary test suite.

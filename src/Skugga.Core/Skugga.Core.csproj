@@ -11,7 +11,7 @@
     <Company>Skugga</Company>
     
     <!-- Package Description -->
-    <Description>A compile-time mocking framework designed for Native AOT and cloud-native .NET applications. Skugga uses Roslyn source generators to eliminate reflection, enabling zero-overhead mocking with full AOT compatibility. 3.9x faster than Moq with 4.1x less memory. Features: AutoScribe (self-writing tests), Chaos Mode, SetupSequence, advanced argument matchers, and comprehensive diagnostics.</Description>
+    <Description>A compile-time mocking framework designed for Native AOT and cloud-native .NET applications. Skugga uses Roslyn source generators to generate mocks at compile time instead of building dynamic proxies at runtime, so mocking works under Native AOT where proxy-based libraries cannot. 3.9x faster than Moq with 4.1x less memory. Features: AutoScribe (self-writing tests), Chaos Mode, SetupSequence, advanced argument matchers, and comprehensive diagnostics. See the Native AOT support section of the README for the runtime fallbacks that are not yet AOT-clean.</Description>
     <PackageTags>mocking;native-aot;source-generator;testing;dotnet;interceptors;performance;cloud-native;zero-allocation;compile-time;moq-alternative;aot-compatible;roslyn;testing-framework</PackageTags>
     <PackageProjectUrl>https://github.com/Digvijay/Skugga</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Digvijay/Skugga</RepositoryUrl>
