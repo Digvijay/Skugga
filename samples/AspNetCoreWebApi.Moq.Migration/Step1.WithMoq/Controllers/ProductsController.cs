@@ -6,7 +6,7 @@ namespace Step1_WithMoq.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController : ControllerBase
+public partial class ProductsController : ControllerBase
 {
     private readonly IProductRepository _repository;
     private readonly IInventoryService _inventory;
@@ -68,7 +68,7 @@ public class ProductsController : ControllerBase
 
         var created = await _repository.CreateAsync(product);
         var productId = created.Id;
-        _logger.LogInformation("Created product {ProductId}", productId);
+        LogProductCreated(productId);
 
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
     }
@@ -151,4 +151,7 @@ public class ProductsController : ControllerBase
             InStock = product.StockQuantity > 0
         };
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Created product {ProductId}")]
+    private partial void LogProductCreated(int productId);
 }

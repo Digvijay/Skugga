@@ -13,6 +13,10 @@ ways it has been wrong, because its failures are invisible by construction.
 | 5 | `dotnet pack` failed on the solution (NU5017) | Moderate | **Fixed in 1.6.0** |
 | 6 | Samples and tests were published as NuGet packages | Moderate | **Fixed in 1.6.0** |
 | 7 | Benchmarks project silently ignored all repository build settings | Moderate | **Fixed in 1.6.0** |
+| 8 | CI never ran on the default branch | Moderate | **Fixed in 1.6.0** |
+| 9 | Generator assemblies leaked into consumers as compile references | Moderate | **Fixed in 1.6.0** |
+| 10 | Build warnings on the .NET 11 SDK and in samples | Low | **Fixed in 1.6.0** |
+| 11 | Generator pipeline re-runs on every edit | Low | **Partially fixed** |
 
 ---
 
@@ -197,6 +201,57 @@ now reports `false` and `12` rather than `true` and the SDK default.
 
 ---
 
+## 8. CI never ran on the default branch
+
+**Severity: moderate. Fixed in 1.6.0. Affected the build only, not consumers.**
+
+The CI workflow triggered on pushes and pull requests to `main`. Skugga's default branch is
+`master`, so no pull request to this repository was ever built or tested by CI, and every green
+result described above came from local runs only. The workflow also ran on Linux alone.
+
+**Fix:** the workflow triggers on `master` and runs on `ubuntu-latest` and `windows-latest`.
+
+---
+
+## 9. Generator assemblies leaked into consumers as compile references
+
+**Severity: moderate. Fixed in 1.6.0. Affected project-reference consumers, not the NuGet package.**
+
+`Skugga.Core.csproj` hooked `GetTargetPath` with a `GetDependencyTargetPaths` target that added
+`Skugga.Generator.dll`, `Skugga.Core.Generators.dll` and `Skugga.OpenApi.Generator.dll` to its
+own target path. Any project referencing `Skugga.Core` therefore compiled against three Roslyn
+analyzer assemblies as if they were libraries. The comment said it was "for packaging"; packaging
+never used it — the package takes the generators from explicit `analyzers/dotnet/cs` items.
+
+Two symptoms followed. `Skugga.Core.Tests` reported `MSB3277` on `net8.0`, because the generators
+depend on `System.Collections.Immutable` 9.0 and the `net8.0` framework supplies 8.0. And
+`Skugga.OpenApi.Tests`, which calls generator types directly, compiled only because of the leak: it
+referenced the OpenAPI generator with `ReferenceOutputAssembly="false"`.
+
+**Fix:** the hook is deleted and `Skugga.OpenApi.Tests` references its generator's assembly
+explicitly. The solution builds with no `MSB3277`, every test passes, and the `Skugga` package
+was packed before and after the change and its file list compared: identical.
+
+---
+
+## 10. Build warnings on the .NET 11 SDK and in samples
+
+**Severity: low. Fixed in 1.6.0. Affected the build only.**
+
+* `NU1510` (SDK 11): `Skugga.OpenApi.Tests` referenced `System.Memory`, `System.Buffers` and
+  `System.Runtime.CompilerServices.Unsafe`, all of which the target frameworks already provide.
+  Removed. The same references in the generator projects are kept; they are needed for
+  `netstandard2.0`.
+* `CA1050` × 54: every type in `Skugga.Benchmarks` was in the global namespace. The four source
+  files now declare `namespace Skugga.Benchmarks;`.
+* `CA1873`: both Moq-migration sample controllers logged through `LogInformation` with a params
+  array, allocating on every call even when logging is disabled. They now use a source-generated
+  `[LoggerMessage]` method — the pattern a sample for this toolkit should teach.
+
+The solution now builds with zero warnings on SDK 10 and on SDK `11.0.100-rc.1.26425.128`.
+
+---
+
 ## How these were found
 
 Issues 1 and 2 were found by building and testing the **entire solution** — samples, playgrounds
@@ -214,18 +269,52 @@ across all four libraries.
 
 ---
 
-# Open
+# Partially fixed
 
-Nothing is open in Skugga.
+## 11. The generator pipeline re-runs on every edit
+
+**Severity: low. Partially fixed; the remainder is open. Affects IDE responsiveness only; build
+output is correct.**
+
+`SkuggaGenerator` selected every `InvocationExpressionSyntax` in the compilation, performed
+semantic lookups on many of them, and then combined the results with `CompilationProvider`. The
+compilation changes on every keystroke, so all mock generation re-ran on every edit in every
+consuming project, regardless of whether a `Mock.Create` call changed. That is a real cost for a
+toolkit whose case rests on doing less work.
+
+**Fixed:** the predicate is now a syntactic name check (`IsCandidateInvocation`, matching `Create`,
+`Capture`, `Of`, `Partial` and the `MockRepository` entry points) instead of every invocation in
+the file, so the semantic model is consulted for a small fraction of the nodes it used to be. And
+the `CompilationProvider.Combine` is gone — its value was destructured and then never read, so it
+was pure cost: it forced the output stage to re-run on every keystroke and bought nothing.
+
+`GeneratorIncrementalityTests` pins both. The test asserting that the output stage does not depend
+on the compilation was run against the previous code first and fails there with
+`Expected steps.Keys {"Compilation", "SourceOutput"} to not contain "Compilation"`, so it is known
+to catch the regression rather than merely to pass.
+
+**Still open:** `TargetInfo` carries `INamedTypeSymbol`, `Location` and syntax nodes, and the five
+downstream generators (mock, interceptor, harness, recording proxy, setup/verify interceptor) are
+all symbol-driven. A probe confirms the output step still reports `Modified` on an identical
+re-run. Full caching requires extracting a value model for the entire interface graph, which is a
+large change against 1922 tests and should not be rushed alongside the rest of this work.
+
+A shortcut was considered and rejected: giving `TargetInfo` an `Equals` based on the symbol's
+display-string key. It would make the tests above pass and it would be a correctness bug. Two
+compilations can present the same key for an interface whose members have changed, and the
+generator would then serve the previous compilation's generated code. A caching fix that can emit
+stale output is worse than the cost it removes.
 
 Two caveats belong here rather than above, because neither is a defect and both bound what the
 entries are worth:
 
 * Every result recorded here was produced on a single Windows ARM64 machine. CI has never executed
   on a GitHub-hosted runner, so nothing above is confirmed on x64 or on Linux.
-* The `net11.0` preview leg is opt-in via `IncludePreviewTargetFramework` and has not been
-  exercised recently, because the preview SDK is not installed on the machine used for this work.
+* The `net11.0` leg is opt-in via `IncludePreviewTargetFramework`. It has been exercised on the
+  same machine with SDK `11.0.100-rc.1.26425.128` (restore, build and every test, `net8.0`,
+  `net10.0` and `net11.0`), with no failures. A release candidate is not a release; the leg
+  should be re-run against the GA SDK.
 
-A record of seven fixed defects measures how hard this repository was looked at. It is not a claim
-that there is nothing left to find — and as the section above says, none of these would have been
-caught by the library's own primary test suite.
+A record of ten fixed defects and one partly fixed measures how hard this repository was looked at.
+It is not a claim that there is nothing left to find — and as the section above says, none of these
+would have been caught by the library's own primary test suite.

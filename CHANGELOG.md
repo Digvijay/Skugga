@@ -32,6 +32,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tracks the same version.
 - Removed a redundant `Microsoft.SourceLink.GitHub` package reference (built into the SDK since
   .NET 8) that pulled in `Microsoft.Build.Tasks.Git` and GHSA-23fw-v26w-5fgq.
+- **`Skugga.Core` exposed its three generator assemblies as compile references** to every project
+  that referenced it, through an unused `GetTargetPath` hook, causing `MSB3277` on `net8.0`. The
+  NuGet package was not affected. Removed.
+- Zero build warnings on SDK 10 and SDK 11: removed framework-provided references (`NU1510`),
+  put benchmarks in a namespace (`CA1050`) and switched sample logging to `[LoggerMessage]`
+  (`CA1873`).
+- **The generator inspected every invocation in every file, and combined with the compilation for
+  nothing.** `SkuggaGenerator`'s predicate accepted every `InvocationExpressionSyntax` and asked
+  the semantic model about it, and the pipeline then combined with `CompilationProvider` whose
+  value was destructured and never read — which alone forced the output stage to re-run on every
+  keystroke. The predicate is now a syntactic method-name check, and the combine is gone.
+  Generated output is unchanged. `TargetInfo` still carries symbols, so full incremental caching
+  remains open and is tracked in `docs/known-issues.md` entry 11.
+
+### Added
+- `GeneratorIncrementalityTests` (13 tests), including one that fails against the previous code
+  with `Expected steps.Keys {"Compilation", "SourceOutput"} to not contain "Compilation"`.
 
 ### Changed
 - Multi-targets `net8.0` (LTS) and `net10.0` (current) instead of a single framework, so the

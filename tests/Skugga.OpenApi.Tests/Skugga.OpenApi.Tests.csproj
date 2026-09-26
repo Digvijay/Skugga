@@ -35,9 +35,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
     
     <!-- Explicit references to fix version conflicts -->
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,7 +44,7 @@
                       ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../src/Skugga.OpenApi.Generator/Skugga.OpenApi.Generator.csproj" 
                       OutputItemType="Analyzer" 
-                      ReferenceOutputAssembly="false" />
+                      ReferenceOutputAssembly="true" />
     <ProjectReference Include="../../src/Skugga.OpenApi.Tasks/Skugga.OpenApi.Tasks.csproj" />
   </ItemGroup>
 
