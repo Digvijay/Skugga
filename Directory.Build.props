@@ -42,8 +42,12 @@
   </PropertyGroup>
 
   <!-- Common Package References -->
+  <!-- Microsoft.SourceLink.GitHub is intentionally absent: SourceLink ships in
+       the .NET SDK from 8.0.100 onward, and the standalone package pulled in
+       Microsoft.Build.Tasks.Git 8.0.0, which carries GHSA-23fw-v26w-5fgq. The
+       PublishRepositoryUrl / EmbedUntrackedSources properties above are what
+       actually drive SourceLink, and the SDK honours them on its own. -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" Condition="'$(IsPackable)' == 'true'" />
   </ItemGroup>
 
   <!-- Include icon and README in packages -->

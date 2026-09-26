@@ -21,7 +21,7 @@
   <ItemGroup>
     <!-- Match Skugga.Generator's CodeAnalysis versions -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
     <!-- OpenApi.Readers 1.6.28: includes Microsoft.OpenApi 1.6.28 + SharpYaml 2.1.1 as dependencies -->
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.28" GeneratePathProperty="true" PrivateAssets="all" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.28" GeneratePathProperty="true" PrivateAssets="all" />

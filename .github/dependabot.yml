@@ -14,9 +14,18 @@ updates:
       prefix: "deps"
       include: "scope"
     ignore:
-      # Ignore major version updates for CodeAnalysis to maintain compatibility
+      # The Skugga generators are Roslyn compiler extensions. The
+      # Microsoft.CodeAnalysis *compiler* packages set the minimum Roslyn a
+      # consumer must be running, so raising them drops support for older
+      # SDKs rather than gaining anything. They are held at the floor the
+      # generators are built against and moved only as a deliberate
+      # supported-toolchain decision. Splitting them across Dependabot PRs
+      # also skews generator and test projects apart (CS1705).
+      # Microsoft.CodeAnalysis.Analyzers is dev-time only and stays current.
       - dependency-name: "Microsoft.CodeAnalysis.CSharp"
-        update-types: ["version-update:semver-major"]
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "Microsoft.CodeAnalysis.Common"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
