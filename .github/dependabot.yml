@@ -26,6 +26,14 @@ updates:
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "Microsoft.CodeAnalysis.Common"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # FluentAssertions relicensed at 8.0.0: versions >= 8 ship under the Xceed
+      # Community License, which is free only for non-commercial use and
+      # otherwise requires a paid per-developer licence. 6.x/7.x remain
+      # Apache-2.0. Holding the major keeps the test dependencies of this
+      # repository under a permissive licence; revisit only as a deliberate
+      # licensing decision, not as a routine version bump.
+      - dependency-name: "FluentAssertions"
+        update-types: ["version-update:semver-major"]
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
