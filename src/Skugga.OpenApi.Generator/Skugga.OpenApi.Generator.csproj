@@ -24,7 +24,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
     <!-- OpenApi.Readers 1.6.28: includes Microsoft.OpenApi 1.6.28 + SharpYaml 2.1.1 as dependencies -->
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.28" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.OpenApi" Version="1.6.28" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.OpenApi" Version="3.10.2" GeneratePathProperty="true" PrivateAssets="all" />
     <!-- Override SharpYaml to latest 2.1.4 -->
     <PackageReference Include="SharpYaml" Version="2.1.4" GeneratePathProperty="true" PrivateAssets="all" />
     <!-- System packages: Latest compatible with netstandard2.0 -->
