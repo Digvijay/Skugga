@@ -210,3 +210,22 @@ None would have been caught by the library's own primary test suite, because tha
 single project under a single culture and never packed anything. The wider context is recorded in
 the Viking Air integration repository's `docs/known-issues.md`, which documents defects found
 across all four libraries.
+
+
+---
+
+# Open
+
+Nothing is open in Skugga.
+
+Two caveats belong here rather than above, because neither is a defect and both bound what the
+entries are worth:
+
+* Every result recorded here was produced on a single Windows ARM64 machine. CI has never executed
+  on a GitHub-hosted runner, so nothing above is confirmed on x64 or on Linux.
+* The `net11.0` preview leg is opt-in via `IncludePreviewTargetFramework` and has not been
+  exercised recently, because the preview SDK is not installed on the machine used for this work.
+
+A record of seven fixed defects measures how hard this repository was looked at. It is not a claim
+that there is nothing left to find — and as the section above says, none of these would have been
+caught by the library's own primary test suite.
