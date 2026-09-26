@@ -5,6 +5,13 @@ All notable changes to Skugga will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Fixed culture-sensitive source generation for literal numeric setup and verify arguments. Decimal literals are now emitted with invariant C# formatting, preventing locales such as `en-SE` from splitting `999.99m` into multiple generated arguments.
+- Fixed the same culture-sensitive numeric emission in AutoScribe and OpenAPI-generated examples, headers, and validation values.
+- Updated the Core and Generator test runners so the `net10.0` test projects are discovered under the current .NET SDK, and added regression coverage for literal decimal setup and verify matching.
+
 ## [1.4.0] - 2026-01-28
 
 ### Added

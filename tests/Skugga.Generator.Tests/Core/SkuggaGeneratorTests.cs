@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Skugga.Generator;
@@ -47,9 +48,35 @@ public class SkuggaGeneratorTests
     private const string CoreAssembly = @"
         namespace Skugga.Core
         {
+            using System;
+            using System.Linq.Expressions;
+
             public static class Mock
             {
                 public static T Create<T>(MockBehavior behavior = MockBehavior.Loose) => default!;
+            }
+
+            public static class MockExtensions
+            {
+                public static MockSetup<TResult> Setup<T, TResult>(this T mock, Expression<Func<T, TResult>> expression) => default!;
+                public static void Verify<T, TResult>(this T mock, Expression<Func<T, TResult>> expression, Times? times = null) { }
+            }
+
+            public class MockSetup<TResult> { }
+
+            public class Times
+            {
+                public static Times Once() => new();
+            }
+
+            public static class It
+            {
+                public static T IsAny<T>() => default!;
+            }
+
+            public class ArgumentMatcher<T>
+            {
+                public ArgumentMatcher(Func<T, bool> predicate, string description) { }
             }
 
             public static class Harness
@@ -120,6 +147,55 @@ public class SkuggaGeneratorTests
             mockClass.Should().Contain("GetData()", "should implement GetData method");
             mockClass.Should().Contain("MockHandler _handler", "should have MockHandler field");
         });
+    }
+
+    [Fact]
+    [Trait("Category", "Generator")]
+    public async Task Generator_ShouldFormatDecimalArguments_WithInvariantCulture()
+    {
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUICulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("sv-SE");
+
+            var source = """
+                using Skugga.Core;
+
+                namespace TestNamespace
+                {
+                    public interface IPricingService
+                    {
+                        decimal CalculateDiscount(decimal price, string category);
+                    }
+
+                    public class TestClass
+                    {
+                        public void TestMethod()
+                        {
+                            var mock = Mock.Create<IPricingService>();
+                            mock.Setup(p => p.CalculateDiscount(999.99m, "Electronics"));
+                            mock.Verify(p => p.CalculateDiscount(999.99m, "Electronics"), Times.Once());
+                        }
+                    }
+                }
+                """;
+
+            await VerifyGeneratorAsync(source, generatedSources =>
+            {
+                var interceptorSources = string.Join("\n", generatedSources.Where(s => s.Contains("CalculateDiscount")));
+                interceptorSources.Should().Contain("new object?[] { 999.99m, \"Electronics\" }",
+                    "decimal literals in generated setup/verify interceptors must be culture-invariant C#");
+                interceptorSources.Should().NotContain("999,99m",
+                    "culture-specific decimal separators split the generated object array into extra arguments");
+            });
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUICulture;
+        }
     }
 
     /// <summary>

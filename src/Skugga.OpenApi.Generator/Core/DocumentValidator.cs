@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.OpenApi.Any;
@@ -276,10 +277,10 @@ namespace Skugga.OpenApi.Generator
             return value switch
             {
                 Microsoft.OpenApi.Any.OpenApiString s => s.Value,
-                Microsoft.OpenApi.Any.OpenApiInteger i => i.Value.ToString(),
-                Microsoft.OpenApi.Any.OpenApiLong l => l.Value.ToString(),
-                Microsoft.OpenApi.Any.OpenApiDouble d => d.Value.ToString(),
-                Microsoft.OpenApi.Any.OpenApiFloat f => f.Value.ToString(),
+                Microsoft.OpenApi.Any.OpenApiInteger i => i.Value.ToString(CultureInfo.InvariantCulture),
+                Microsoft.OpenApi.Any.OpenApiLong l => l.Value.ToString(CultureInfo.InvariantCulture),
+                Microsoft.OpenApi.Any.OpenApiDouble d => d.Value.ToString(CultureInfo.InvariantCulture),
+                Microsoft.OpenApi.Any.OpenApiFloat f => f.Value.ToString(CultureInfo.InvariantCulture),
                 Microsoft.OpenApi.Any.OpenApiBoolean b => b.Value.ToString().ToLowerInvariant(),
                 _ => value?.ToString() ?? "null"
             };

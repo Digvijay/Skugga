@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.OpenApi.Models;
@@ -783,15 +784,15 @@ namespace Skugga.OpenApi.Generator
                 var example = header.Schema.Example;
                 // Handle OpenApiInteger, OpenApiString, etc.
                 if (example is Microsoft.OpenApi.Any.OpenApiInteger intExample)
-                    return intExample.Value.ToString();
+                    return intExample.Value.ToString(CultureInfo.InvariantCulture);
                 if (example is Microsoft.OpenApi.Any.OpenApiString strExample)
                     return strExample.Value;
                 if (example is Microsoft.OpenApi.Any.OpenApiDouble dblExample)
-                    return dblExample.Value.ToString();
+                    return dblExample.Value.ToString(CultureInfo.InvariantCulture);
                 if (example is Microsoft.OpenApi.Any.OpenApiBoolean boolExample)
-                    return boolExample.Value.ToString().ToLower();
+                    return boolExample.Value.ToString().ToLowerInvariant();
                 if (example is Microsoft.OpenApi.Any.OpenApiLong longExample)
-                    return longExample.Value.ToString();
+                    return longExample.Value.ToString(CultureInfo.InvariantCulture);
             }
 
             // Try header-level example
@@ -799,15 +800,15 @@ namespace Skugga.OpenApi.Generator
             {
                 var example = header.Example;
                 if (example is Microsoft.OpenApi.Any.OpenApiInteger intExample)
-                    return intExample.Value.ToString();
+                    return intExample.Value.ToString(CultureInfo.InvariantCulture);
                 if (example is Microsoft.OpenApi.Any.OpenApiString strExample)
                     return strExample.Value;
                 if (example is Microsoft.OpenApi.Any.OpenApiDouble dblExample)
-                    return dblExample.Value.ToString();
+                    return dblExample.Value.ToString(CultureInfo.InvariantCulture);
                 if (example is Microsoft.OpenApi.Any.OpenApiBoolean boolExample)
-                    return boolExample.Value.ToString().ToLower();
+                    return boolExample.Value.ToString().ToLowerInvariant();
                 if (example is Microsoft.OpenApi.Any.OpenApiLong longExample)
-                    return longExample.Value.ToString();
+                    return longExample.Value.ToString(CultureInfo.InvariantCulture);
             }
 
             // Fallback to default value based on schema type

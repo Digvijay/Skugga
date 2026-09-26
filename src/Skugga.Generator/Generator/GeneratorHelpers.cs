@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -24,10 +25,11 @@ namespace Skugga.Generator
             if (value is string s) return $"\"{s.Replace("\"", "\\\"")}\"";
             if (value is bool b) return b ? "true" : "false";
             if (value is char c) return $"'{c}'";
-            if (value is decimal m) return $"{m}m";
-            if (value is float f) return $"{f}f";
-            if (value is double d) return $"{d}d";
-            if (value is long l) return $"{l}L";
+            if (value is decimal m) return $"{m.ToString(CultureInfo.InvariantCulture)}m";
+            if (value is float f) return $"{f.ToString(CultureInfo.InvariantCulture)}f";
+            if (value is double d) return $"{d.ToString(CultureInfo.InvariantCulture)}d";
+            if (value is long l) return $"{l.ToString(CultureInfo.InvariantCulture)}L";
+            if (value is IFormattable formattable) return formattable.ToString(null, CultureInfo.InvariantCulture);
             return value.ToString() ?? "null";
         }
 
