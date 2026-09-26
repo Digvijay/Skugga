@@ -383,6 +383,23 @@ on it fails somewhere else, or worse, passes. This is why the probe asserts on r
 rather than merely calling the API and checking nothing threw. Run under the JIT, all twelve
 assertions pass, which proves the logic is right and proves nothing at all about AOT.
 
+**What CI then showed, which changes the conclusion.** The probe was published and its native binary
+executed on `ubuntu-latest` and `windows-latest`. **All twelve assertions passed on both.** So the
+18 diagnostics do not describe code that is broken under AOT; they describe code ILC cannot *prove*
+is safe. The distinction is not academic, and the real behaviour is conditional:
+`Type.MakeGenericType(typeof(List<>), typeof(string))` succeeds in an AOT image if `List<string>`
+was instantiated somewhere the compiler could see, because the code for it is already present. It
+throws if nothing in the application ever mentions that closed generic. The probe passes precisely
+because it declares the types it asks for defaults for.
+
+The honest statement is therefore narrower and more useful than either extreme. Skugga is not
+"100% AOT-compatible", and it is not broken under AOT either. It works under AOT, and the
+reflective fallbacks work for generic instantiations the application already uses — which in a test
+project is nearly always the case, since the test is mocking types it references. A consumer can
+still hit a genuine failure by asking for a default of a constructed generic that appears nowhere
+else, and because of the swallowing `try`/`catch` that failure arrives as a `null`, not as an
+exception naming the cause.
+
 **What has been done.** The claim has been corrected everywhere it appeared — `README.md`,
 `docs/index.md`, `docs/security.md`, `docs/guide/getting-started.md`, `docs/TROUBLESHOOTING.md`,
 `docs/DOPPELGANGER.md`, `docs/AOT_COMPATIBILITY_ANALYSIS.md`, the NuGet `<Description>`, and two
@@ -401,11 +418,20 @@ Skugga is AOT-*first*, not AOT-*pure*: it publishes, it links, it runs, and it i
 better than a proxy-based library that cannot run under AOT at all — but the number is 18, not
 zero, and the README now says so.
 
-**Caveat.** As with everything else in this file, the measurement was taken on a single Windows
-ARM64 machine, and native linking cannot complete there because no MSVC toolchain is present. The
-diagnostic count and the managed-mode assertions are confirmed locally; that the *native* binary
-links and its assertions pass has never been observed anywhere, and the CI job added here is the
-first thing that will observe it.
+**Caveat.** Native linking cannot complete on the Windows ARM64 machine the rest of this file was
+measured on, because no MSVC toolchain is present. Unlike every other entry here, the central
+result above *was* confirmed on GitHub-hosted x64 runners: the native binary links and runs on both
+`ubuntu-latest` and `windows-latest`, and its assertions pass on both.
+
+**An aside worth recording, because it is the same defect twice.** The first version of the
+advisory analyzer job passed `-p:EnableAotAnalyzer=true` on the command line, and it failed. A
+property supplied with `-p:` is a *global* property, and MSBuild propagates global properties into
+every `ProjectReference` — including `Skugga.Generator`, which targets `netstandard2.0`, where
+those analyzers are not supported. This is exactly the mistake recorded against `PublishAot` in
+CHANGELOG 1.6.0, made again a few weeks later by someone who had read that entry. The fix is the
+general one: AOT-related settings belong in the project file, scoped to the project that wants
+them, never on the command line. `Skugga.Core.csproj` now exposes a single `AotAnalysis` flag for
+CI to set.
 
 ---
 

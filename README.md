@@ -984,6 +984,8 @@ Skugga is AOT-first, and it is worth being precise about what that does and does
 | `Types/DefaultValueProviders.cs` | 5 | `MakeGenericType` for collection defaults, and a reflective mock-factory fallback |
 | `Mocking/LinqToMocks.cs` | 1 | expression compilation behind `Mock.Of<T>()`, which is [not supported](#aot-constraint-mockoft-limitation) anyway |
 
+**What those 18 actually mean.** They are not proof that the code is broken — the native binary runs and all twelve probe assertions pass on both Linux and Windows. They mark code ILC cannot *prove* safe. The real behaviour is conditional: `MakeGenericType` over `List<string>` works in an AOT image when something in the application already uses `List<string>`, because the code for it is present, and throws when nothing does. In a test project that condition is nearly always met, since the test references the types it mocks. The residual risk is a default value for a constructed generic that appears nowhere else — and because the fallbacks catch exceptions and return `null`, that arrives as a wrong value rather than an error naming the cause.
+
 These are enumerated in [`tools/Skugga.AotProbe/aot-baseline.txt`](tools/Skugga.AotProbe/aot-baseline.txt). CI ratchets the count, so it cannot rise without the build failing, and the target is zero. The route there is to move each remaining case into the generator rather than to suppress the warning.
 
 Note that the build-time AOT analyzer reports 42 diagnostics for `Skugga.Core`, because it inspects every method regardless of whether anything calls it. The 18 above come from ILC's whole-program reachability analysis, which is the number that describes what a consumer actually encounters. Both are reported by CI; only the ILC figure is gated.

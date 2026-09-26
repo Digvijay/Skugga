@@ -3,7 +3,32 @@
     <TargetFrameworks>$(ToolkitLibraryTargetFrameworks)</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+  </PropertyGroup>
 
+  <!--
+    Opt-in AOT and trimming analysis, used by the advisory job in .github/workflows/aot-validation.yml.
+
+    These deliberately live here rather than being passed on the command line. A property supplied
+    with `-p:` becomes a *global* property, and MSBuild propagates global properties into every
+    ProjectReference — including Skugga.Generator, which targets netstandard2.0 and for which these
+    analyzers are not supported. That produces a build warning and, with TreatWarningsAsErrors, a
+    failure in a project that has nothing to do with AOT. This repository has already been bitten by
+    exactly that once, with PublishAot (see CHANGELOG 1.6.0).
+
+    Scoping them to a PropertyGroup in this one project means CI can pass the harmless `-p:AotAnalysis=true`
+    and only Skugga.Core reacts to it.
+
+    Note that this reports considerably more than ILC does — the analyzer inspects every method
+    whether or not anything reaches it, so it sees code paths a real consumer never executes. The
+    gated number is ILC's; this is for information.
+  -->
+  <PropertyGroup Condition="'$(AotAnalysis)' == 'true'">
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- Package Identity -->
     <PackageId>Skugga</PackageId>
     <Version>1.6.0</Version>
