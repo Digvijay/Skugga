@@ -26,7 +26,7 @@
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.31" GeneratePathProperty="true" PrivateAssets="all" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.31" GeneratePathProperty="true" PrivateAssets="all" />
     <!-- Override SharpYaml to latest 2.1.4 -->
-    <PackageReference Include="SharpYaml" Version="2.1.5" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="SharpYaml" Version="3.14.0" GeneratePathProperty="true" PrivateAssets="all" />
     <!-- System packages: Latest compatible with netstandard2.0 -->
     <PackageReference Include="System.Text.Json" Version="10.0.12" GeneratePathProperty="true" PrivateAssets="all" />
     <PackageReference Include="System.Text.Encodings.Web" Version="10.0.12" GeneratePathProperty="true" PrivateAssets="all" />
