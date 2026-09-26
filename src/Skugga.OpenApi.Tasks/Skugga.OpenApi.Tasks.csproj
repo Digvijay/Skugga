@@ -22,7 +22,7 @@
     
     <!-- For async HTTP downloads -->
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
   </ItemGroup>
 
   <!-- Pack the task DLL and .targets file into the package -->
