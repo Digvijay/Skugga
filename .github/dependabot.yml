@@ -34,6 +34,16 @@ updates:
       # licensing decision, not as a routine version bump.
       - dependency-name: "FluentAssertions"
         update-types: ["version-update:semver-major"]
+      # SharpYaml is not a direct dependency by choice: Skugga.OpenApi.Generator
+      # pins it so the copy packed into analyzers/dotnet/cs matches the one
+      # Microsoft.OpenApi.Readers expects. Readers 1.6.x is compiled against
+      # SharpYaml 2.x (it depends on 2.1.5), and SharpYaml 3.x renamed the
+      # entry point -- SharpYaml.Serialization.Serializer became
+      # SharpYaml.YamlSerializer. Forcing 3.x would break Readers at run time
+      # *inside the generator*, i.e. in consumers' builds rather than ours.
+      # Hold the major until Microsoft.OpenApi.Readers itself moves to 3.x.
+      - dependency-name: "SharpYaml"
+        update-types: ["version-update:semver-major"]
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
