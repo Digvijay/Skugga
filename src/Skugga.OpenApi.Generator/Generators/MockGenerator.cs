@@ -37,7 +37,7 @@ namespace Skugga.OpenApi.Generator
         /// <summary>
         /// Generates a mock implementation class for an interface.
         /// </summary>
-        public string GenerateMock(string interfaceName, string namespaceName, string? operationFilter = null, System.Collections.Generic.List<(string Name, string Modifiers)>? containingTypes = null)
+        public string GenerateMock(string interfaceName, string? namespaceName, string? operationFilter = null, System.Collections.Generic.List<(string Name, string Modifiers)>? containingTypes = null)
         {
             var sb = new StringBuilder();
             var mockClassName = $"{interfaceName}Mock";
@@ -49,11 +49,19 @@ namespace Skugga.OpenApi.Generator
             sb.AppendLine("#nullable disable");
             sb.AppendLine();
             sb.AppendLine("using System;");
+            sb.AppendLine("using System.Collections.Generic;");
+            // The mock implements Task / Task<T> members but never imported the
+            // namespace, so generated mocks only compiled where ImplicitUsings was on.
+            sb.AppendLine("using System.Threading.Tasks;");
             sb.AppendLine();
 
-            // Namespace
-            sb.AppendLine($"namespace {namespaceName}");
-            sb.AppendLine("{");
+            // Namespace (omitted entirely when the interface lives in the global namespace)
+            var hasNamespace = !string.IsNullOrEmpty(namespaceName);
+            if (hasNamespace)
+            {
+                sb.AppendLine($"namespace {namespaceName}");
+                sb.AppendLine("{");
+            }
 
             // Generate containing type declarations if nested
             int nestingLevel = 1;
@@ -142,7 +150,10 @@ namespace Skugga.OpenApi.Generator
             }
 
             // Close namespace
-            sb.AppendLine("}");
+            if (hasNamespace)
+            {
+                sb.AppendLine("}");
+            }
 
             return sb.ToString();
         }

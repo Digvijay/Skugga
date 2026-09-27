@@ -10,6 +10,7 @@
     <Project Path="tests/Skugga.Core.Tests/Skugga.Core.Tests.csproj" />
     <Project Path="tests/Skugga.Generator.Tests/Skugga.Generator.Tests.csproj" />
     <Project Path="tests/Skugga.OpenApi.Tests/Skugga.OpenApi.Tests.csproj" />
+    <Project Path="tests/Skugga.OpenApi.Generator.Tests/Skugga.OpenApi.Generator.Tests.csproj" />
     <Project Path="tests/Skugga.Benchmarks/Skugga.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/perf/">

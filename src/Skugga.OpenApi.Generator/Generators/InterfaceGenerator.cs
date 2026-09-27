@@ -26,7 +26,7 @@ namespace Skugga.OpenApi.Generator
         /// <summary>
         /// Generates a complete C# interface from OpenAPI paths.
         /// </summary>
-        public string GenerateInterface(string interfaceName, string namespaceName, string? operationFilter = null, System.Collections.Generic.List<(string Name, string Modifiers)>? containingTypes = null)
+        public string GenerateInterface(string interfaceName, string? namespaceName, string? operationFilter = null, System.Collections.Generic.List<(string Name, string Modifiers)>? containingTypes = null)
         {
             var sb = new StringBuilder();
 
@@ -37,9 +37,23 @@ namespace Skugga.OpenApi.Generator
             sb.AppendLine("#nullable enable");
             sb.AppendLine();
 
-            // Namespace
-            sb.AppendLine($"namespace {namespaceName}");
-            sb.AppendLine("{");
+            // The generated members expose Task / Task<T> and collection types. This
+            // file previously emitted no using directives at all, so it only compiled
+            // in projects with ImplicitUsings enabled - which every sample and test in
+            // this repository happens to have. Emit them explicitly so the generated
+            // code is self-contained.
+            sb.AppendLine("using System;");
+            sb.AppendLine("using System.Collections.Generic;");
+            sb.AppendLine("using System.Threading.Tasks;");
+            sb.AppendLine();
+
+            // Namespace (omitted entirely when the interface lives in the global namespace)
+            var hasNamespace = !string.IsNullOrEmpty(namespaceName);
+            if (hasNamespace)
+            {
+                sb.AppendLine($"namespace {namespaceName}");
+                sb.AppendLine("{");
+            }
 
             // Generate containing type declarations if nested
             int nestingLevel = 1;
@@ -88,7 +102,10 @@ namespace Skugga.OpenApi.Generator
             }
 
             // Close namespace
-            sb.AppendLine("}");
+            if (hasNamespace)
+            {
+                sb.AppendLine("}");
+            }
 
             return sb.ToString();
         }
