@@ -4,7 +4,14 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <IsPackable>true</IsPackable>
+    <!-- Not packed on its own. This generator ships inside the Skugga package:
+         Skugga.Core.csproj packs this assembly into analyzers/dotnet/cs. Producing
+         a second package carrying the same analyzer would load it twice in a
+         consumer that referenced both. It also could not ship as-is: with
+         IncludeBuildOutput=false the symbol package has no content, so `dotnet pack`
+         failed NU5017 with exit code 1, which is why no Skugga.OpenApi package has
+         ever been published despite five releases. -->
+    <IsPackable>false</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
@@ -66,8 +73,6 @@
     <None Include="$(PKGSystem_Runtime_CompilerServices_Unsafe)/lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     
     <!-- Include .props file for generator configuration -->
-    <None Include="build/Skugga.OpenApi.Generator.props" Pack="true" PackagePath="build" Visible="false" />
-    <None Include="build/Skugga.OpenApi.Generator.props" Pack="true" PackagePath="buildTransitive" Visible="false" />
   </ItemGroup>
 
   <!-- Add dependency on Skugga.OpenApi.Tasks -->
