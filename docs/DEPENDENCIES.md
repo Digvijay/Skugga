@@ -26,9 +26,9 @@ This document outlines all NuGet package dependencies used in the Skugga project
 
 | Package | Version | Status | Notes |
 |---------|---------|--------|-------|
-| `Microsoft.NET.Test.Sdk` | `17.12.0` |  Latest | Test platform infrastructure |
+| `Microsoft.NET.Test.Sdk` | `18.0.1` |  Latest | Test platform infrastructure |
 | `xunit` | `2.9.3` |  Latest | Testing framework |
-| `xunit.runner.visualstudio` | `3.0.0` |  Latest | Visual Studio test integration |
+| `xunit.runner.visualstudio` | `3.1.5` |  Latest | Visual Studio test integration |
 | `FluentAssertions` | `7.0.0` |  Latest | Fluent assertion library |
 | `coverlet.collector` | `6.0.2` |  Latest | Code coverage collection |
 
@@ -38,10 +38,10 @@ This document outlines all NuGet package dependencies used in the Skugga project
 
 | Package | Version | Status | Notes |
 |---------|---------|--------|-------|
-| `Microsoft.NET.Test.Sdk` | `17.12.0` |  Latest | Test platform infrastructure |
+| `Microsoft.NET.Test.Sdk` | `18.0.1` |  Latest | Test platform infrastructure |
 | `Microsoft.CodeAnalysis.CSharp` | `5.0.0` |  Latest Stable | Roslyn APIs for testing |
 | `xunit` | `2.9.3` |  Latest | Testing framework |
-| `xunit.runner.visualstudio` | `3.0.0` |  Latest | Visual Studio test integration |
+| `xunit.runner.visualstudio` | `3.1.5` |  Latest | Visual Studio test integration |
 | `FluentAssertions` | `7.0.0` |  Latest | Fluent assertion library |
 
 **Target Frameworks:** `net10.0`

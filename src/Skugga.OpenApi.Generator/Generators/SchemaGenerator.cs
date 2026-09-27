@@ -24,7 +24,7 @@ namespace Skugga.OpenApi.Generator
         /// </summary>
         /// <param name="namespaceName">The namespace for the generated classes</param>
         /// <param name="prefix">Optional prefix for schema class names (null or empty for no prefix)</param>
-        public string GenerateSchemas(string namespaceName, string? prefix = null)
+        public string GenerateSchemas(string? namespaceName, string? prefix = null)
         {
             var sb = new StringBuilder();
 
@@ -38,9 +38,13 @@ namespace Skugga.OpenApi.Generator
             sb.AppendLine("using System.Collections.Generic;");
             sb.AppendLine();
 
-            // Namespace
-            sb.AppendLine($"namespace {namespaceName}");
-            sb.AppendLine("{");
+            // Namespace (omitted entirely when the interface lives in the global namespace)
+            var hasNamespace = !string.IsNullOrEmpty(namespaceName);
+            if (hasNamespace)
+            {
+                sb.AppendLine($"namespace {namespaceName}");
+                sb.AppendLine("{");
+            }
 
             // Track generated classes to avoid duplicates
             var generatedClasses = new HashSet<string>();
@@ -52,7 +56,10 @@ namespace Skugga.OpenApi.Generator
                 GenerateSchemaAndSubtypes(sb, className, schemaEntry.Value, generatedClasses, prefix);
             }
 
-            sb.AppendLine("}");
+            if (hasNamespace)
+            {
+                sb.AppendLine("}");
+            }
 
             return sb.ToString();
         }

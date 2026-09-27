@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.OpenApi.Readers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Referenced as an ordinary assembly, not OutputItemType="Analyzer". These
+         tests drive the generator through CSharpGeneratorDriver against a
+         compilation they construct themselves, which is what lets them observe the
+         output an ordinary consumer gets rather than the output this project's own
+         SDK settings would produce. Skugga.OpenApi.Tests keeps the analyzer-mode
+         reference because its tests assert on compile-time generation. -->
+    <ProjectReference Include="../../src/Skugga.OpenApi.Generator/Skugga.OpenApi.Generator.csproj" />
+    <ProjectReference Include="../../src/Skugga.Core/Skugga.Core.csproj" />
+  </ItemGroup>
+
+</Project>

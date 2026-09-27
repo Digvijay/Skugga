@@ -3,7 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>12.0</LangVersion>
-    <IsPackable>true</IsPackable>
+    <!-- Not packed on its own. Skugga.Core.csproj packs this assembly into
+         tasks/netstandard2.0 and its .targets into build/ and buildTransitive/
+         inside the Skugga package, so a separate package would define the
+         SkuggaDownloadOpenApiSpecs target a second time in any consumer that had
+         both. It also carried no Version property, so it packed as 1.0.0 against
+         the generator's 1.5.0, and like the generator it failed NU5017 with exit
+         code 1 because IncludeBuildOutput=false leaves the symbol package empty. -->
+    <IsPackable>false</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <!--
       A symbol package would be empty here: IncludeBuildOutput is false because the assembly is
@@ -24,12 +31,12 @@
 
   <ItemGroup>
     <!-- MSBuild SDK for writing tasks -->
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" PrivateAssets="all" />
     
     <!-- For async HTTP downloads -->
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="System.Net.Http" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
 
   <!-- Pack the task DLL and .targets file into the package -->

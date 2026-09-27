@@ -387,7 +387,15 @@ namespace Skugga.OpenApi.Generator
         private void GenerateCode(SourceProductionContext context, INamedTypeSymbol interfaceSymbol,
             OpenApiDocument document, AttributeData attribute, string source)
         {
-            var namespaceName = interfaceSymbol.ContainingNamespace?.ToDisplayString() ?? "Generated";
+            // ContainingNamespace is never null for the global namespace: it is a
+            // symbol whose ToDisplayString() is the literal "<global namespace>",
+            // so the null-coalescing fallback below never fired and that string was
+            // emitted straight into a namespace declaration, producing code that
+            // could not parse. Test for the global namespace explicitly.
+            var containingNamespace = interfaceSymbol.ContainingNamespace;
+            var namespaceName = containingNamespace == null || containingNamespace.IsGlobalNamespace
+                ? null
+                : containingNamespace.ToDisplayString();
             var interfaceName = interfaceSymbol.Name;
 
             // Check if interface is nested and build containing type info

@@ -67,8 +67,7 @@ public partial class ProductsController : ControllerBase
         };
 
         var created = await _repository.CreateAsync(product);
-        var productId = created.Id;
-        LogProductCreated(productId);
+        LogProductCreated(created.Id);
 
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
     }
@@ -137,6 +136,11 @@ public partial class ProductsController : ControllerBase
         return Ok();
     }
 
+    // Source-generated logging: no params array and no boxing of the int,
+    // so nothing is allocated when Information level is disabled (CA1873).
+    [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Created product {ProductId}")]
+    private partial void LogProductCreated(int productId);
+
     private ProductDto MapToDto(Product product)
     {
         var discount = _pricing.CalculateDiscount(product.Price, product.Category);
@@ -151,7 +155,4 @@ public partial class ProductsController : ControllerBase
             InStock = product.StockQuantity > 0
         };
     }
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Created product {ProductId}")]
-    private partial void LogProductCreated(int productId);
 }

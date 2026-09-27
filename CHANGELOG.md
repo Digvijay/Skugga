@@ -5,6 +5,13 @@ All notable changes to Skugga will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Updated the Core and Generator test runners so the `net10.0` test projects are discovered
+  under the current .NET SDK, and added regression coverage for literal decimal setup and
+  verify matching.
+
 ## [1.6.0] - 2026-09-25
 
 ### Added

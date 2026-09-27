@@ -63,7 +63,7 @@ MyRepo/
 1. **Check your `.csproj` file:**
 ```xml
 <ItemGroup>
-  <PackageReference Include="Skugga" Version="1.1.0" />
+  <PackageReference Include="Skugga" Version="1.5.0" />
   <!-- Use PackageReference for Skugga -->
   
   <!--  Do NOT use ProjectReference to Skugga.Core -->
@@ -294,7 +294,7 @@ When Skugga isn't working, check these in order:
 - [ ] **2. Are you using PackageReference?**
   ```bash
   grep -r "Skugga" *.csproj
-  # Should show: <PackageReference Include="Skugga" Version="1.1.0" />
+  # Should show: <PackageReference Include="Skugga" Version="1.5.0" />
   ```
 
 - [ ] **3. Is your project in a separate solution from Skugga?**

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.OpenApi.Models;
@@ -36,7 +37,7 @@ namespace Skugga.OpenApi.Generator
         /// <summary>
         /// Generates a mock implementation class for an interface.
         /// </summary>
-        public string GenerateMock(string interfaceName, string namespaceName, string? operationFilter = null, System.Collections.Generic.List<(string Name, string Modifiers)>? containingTypes = null)
+        public string GenerateMock(string interfaceName, string? namespaceName, string? operationFilter = null, System.Collections.Generic.List<(string Name, string Modifiers)>? containingTypes = null)
         {
             var sb = new StringBuilder();
             var mockClassName = $"{interfaceName}Mock";
@@ -48,11 +49,19 @@ namespace Skugga.OpenApi.Generator
             sb.AppendLine("#nullable disable");
             sb.AppendLine();
             sb.AppendLine("using System;");
+            sb.AppendLine("using System.Collections.Generic;");
+            // The mock implements Task / Task<T> members but never imported the
+            // namespace, so generated mocks only compiled where ImplicitUsings was on.
+            sb.AppendLine("using System.Threading.Tasks;");
             sb.AppendLine();
 
-            // Namespace
-            sb.AppendLine($"namespace {namespaceName}");
-            sb.AppendLine("{");
+            // Namespace (omitted entirely when the interface lives in the global namespace)
+            var hasNamespace = !string.IsNullOrEmpty(namespaceName);
+            if (hasNamespace)
+            {
+                sb.AppendLine($"namespace {namespaceName}");
+                sb.AppendLine("{");
+            }
 
             // Generate containing type declarations if nested
             int nestingLevel = 1;
@@ -141,7 +150,10 @@ namespace Skugga.OpenApi.Generator
             }
 
             // Close namespace
-            sb.AppendLine("}");
+            if (hasNamespace)
+            {
+                sb.AppendLine("}");
+            }
 
             return sb.ToString();
         }
@@ -783,15 +795,15 @@ namespace Skugga.OpenApi.Generator
                 var example = header.Schema.Example;
                 // Handle OpenApiInteger, OpenApiString, etc.
                 if (example is Microsoft.OpenApi.Any.OpenApiInteger intExample)
-                    return intExample.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    return intExample.Value.ToString(CultureInfo.InvariantCulture);
                 if (example is Microsoft.OpenApi.Any.OpenApiString strExample)
                     return strExample.Value;
                 if (example is Microsoft.OpenApi.Any.OpenApiDouble dblExample)
-                    return dblExample.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    return dblExample.Value.ToString(CultureInfo.InvariantCulture);
                 if (example is Microsoft.OpenApi.Any.OpenApiBoolean boolExample)
-                    return boolExample.Value ? "true" : "false";
+                    return boolExample.Value.ToString().ToLowerInvariant();
                 if (example is Microsoft.OpenApi.Any.OpenApiLong longExample)
-                    return longExample.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    return longExample.Value.ToString(CultureInfo.InvariantCulture);
             }
 
             // Try header-level example
@@ -799,15 +811,15 @@ namespace Skugga.OpenApi.Generator
             {
                 var example = header.Example;
                 if (example is Microsoft.OpenApi.Any.OpenApiInteger intExample)
-                    return intExample.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    return intExample.Value.ToString(CultureInfo.InvariantCulture);
                 if (example is Microsoft.OpenApi.Any.OpenApiString strExample)
                     return strExample.Value;
                 if (example is Microsoft.OpenApi.Any.OpenApiDouble dblExample)
-                    return dblExample.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    return dblExample.Value.ToString(CultureInfo.InvariantCulture);
                 if (example is Microsoft.OpenApi.Any.OpenApiBoolean boolExample)
-                    return boolExample.Value ? "true" : "false";
+                    return boolExample.Value.ToString().ToLowerInvariant();
                 if (example is Microsoft.OpenApi.Any.OpenApiLong longExample)
-                    return longExample.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    return longExample.Value.ToString(CultureInfo.InvariantCulture);
             }
 
             // Fallback to default value based on schema type

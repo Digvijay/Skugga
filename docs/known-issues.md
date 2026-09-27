@@ -341,7 +341,7 @@ compilations can present the same key for an interface whose members have change
 generator would then serve the previous compilation's generated code. A caching fix that can emit
 stale output is worse than the cost it removes.
 
-## Defect 12 — the Native AOT claim was not measured, and it was wrong
+## 14. The Native AOT claim was not measured, and it was wrong
 
 **Status:** open, bounded and gated. Not fixed.
 

@@ -1,29 +1,70 @@
 version: 2
 updates:
+  # Enable version updates for NuGet
   - package-ecosystem: "nuget"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
-    groups:
-      microsoft-extensions:
-        patterns:
-          - "Microsoft.Extensions.*"
-          - "Microsoft.AspNetCore.*"
-      opentelemetry:
-        patterns:
-          - "OpenTelemetry*"
-      test-dependencies:
-        patterns:
-          - "xunit*"
-          - "Microsoft.NET.Test.Sdk"
-          - "coverlet.*"
+      - "nuget"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    ignore:
+      # The Skugga generators are Roslyn compiler extensions. The
+      # Microsoft.CodeAnalysis *compiler* packages set the minimum Roslyn a
+      # consumer must be running, so raising them drops support for older
+      # SDKs rather than gaining anything. They are held at the floor the
+      # generators are built against and moved only as a deliberate
+      # supported-toolchain decision. Splitting them across Dependabot PRs
+      # also skews generator and test projects apart (CS1705).
+      # Microsoft.CodeAnalysis.Analyzers is dev-time only and stays current.
+      - dependency-name: "Microsoft.CodeAnalysis.CSharp"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "Microsoft.CodeAnalysis.Common"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # FluentAssertions relicensed at 8.0.0: versions >= 8 ship under the Xceed
+      # Community License, which is free only for non-commercial use and
+      # otherwise requires a paid per-developer licence. 6.x/7.x remain
+      # Apache-2.0. Holding the major keeps the test dependencies of this
+      # repository under a permissive licence; revisit only as a deliberate
+      # licensing decision, not as a routine version bump.
+      - dependency-name: "FluentAssertions"
+        update-types: ["version-update:semver-major"]
+      # SharpYaml is not a direct dependency by choice: Skugga.OpenApi.Generator
+      # pins it so the copy packed into analyzers/dotnet/cs matches the one
+      # Microsoft.OpenApi.Readers expects. Readers 1.6.x is compiled against
+      # SharpYaml 2.x (it depends on 2.1.5), and SharpYaml 3.x renamed the
+      # entry point -- SharpYaml.Serialization.Serializer became
+      # SharpYaml.YamlSerializer. Forcing 3.x would break Readers at run time
+      # *inside the generator*, i.e. in consumers' builds rather than ours.
+      # Hold the major until Microsoft.OpenApi.Readers itself moves to 3.x.
+      - dependency-name: "SharpYaml"
+        update-types: ["version-update:semver-major"]
 
+  # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+
+  - package-ecosystem: "npm"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+  # No dotnet-sdk entry: this repository deliberately has no global.json so
+  # CI can build across the 8.0.x and 10.0.x SDK matrix. Dependabot aborts
+  # the dotnet-sdk ecosystem outright when global.json is absent.

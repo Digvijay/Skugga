@@ -99,11 +99,11 @@ internal static class AutoScribeCodeGenerator
         sb.AppendLine("            if (value is string s) return $\"\\\"{s.Replace(\"\\\"\", \"\\\\\\\"\")}\\\"\";");
         sb.AppendLine("            if (value is bool b) return b ? \"true\" : \"false\";");
         sb.AppendLine("            if (value is char c) return $\"'{c}'\";");
-        sb.AppendLine("            if (value is decimal d) return d.ToString(System.Globalization.CultureInfo.InvariantCulture) + \"m\";");
-        sb.AppendLine("            if (value is float f) return f.ToString(\"R\", System.Globalization.CultureInfo.InvariantCulture) + \"f\";");
-        sb.AppendLine("            if (value is double dbl) return dbl.ToString(\"R\", System.Globalization.CultureInfo.InvariantCulture) + \"d\";");
-        sb.AppendLine("            if (value is System.IFormattable n && (value is int || value is long || value is short || value is byte || value is uint || value is ulong || value is ushort || value is sbyte)) return n.ToString(null, System.Globalization.CultureInfo.InvariantCulture);");
+        sb.AppendLine("            if (value is decimal d) return $\"{d.ToString(global::System.Globalization.CultureInfo.InvariantCulture)}m\";");
+        sb.AppendLine("            if (value is float f) return $\"{f.ToString(global::System.Globalization.CultureInfo.InvariantCulture)}f\";");
         sb.AppendLine("            if (value is System.Enum) return $\"{value.GetType().Name}.{value}\";");
+        sb.AppendLine("            if (value is double dbl) return $\"{dbl.ToString(global::System.Globalization.CultureInfo.InvariantCulture)}d\";");
+        sb.AppendLine("            if (value is System.IFormattable formattable) return formattable.ToString(null, global::System.Globalization.CultureInfo.InvariantCulture);");
         sb.AppendLine("            if (value is System.Collections.IEnumerable enumerable && value is not string)");
         sb.AppendLine("            {");
         sb.AppendLine("                var items = new System.Collections.Generic.List<string>();");
