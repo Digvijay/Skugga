@@ -27,19 +27,19 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Match Skugga.Generator's CodeAnalysis versions -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <!-- OpenApi.Readers 1.6.28: includes Microsoft.OpenApi 1.6.28 + SharpYaml 2.1.1 as dependencies -->
-    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.31" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.OpenApi" Version="1.6.31" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.OpenApi.Readers" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.OpenApi" GeneratePathProperty="true" PrivateAssets="all" />
     <!-- Override SharpYaml to latest 2.1.4 -->
-    <PackageReference Include="SharpYaml" Version="2.1.5" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="SharpYaml" GeneratePathProperty="true" PrivateAssets="all" />
     <!-- System packages: Latest compatible with netstandard2.0 -->
-    <PackageReference Include="System.Text.Json" Version="10.0.12" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="10.0.12" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="System.Memory" Version="4.6.3" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="System.Buffers" Version="4.6.1" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Encodings.Web" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Memory" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Buffers" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
   <!-- Include analyzer dependencies in output -->
   <PropertyGroup>

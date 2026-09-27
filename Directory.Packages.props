@@ -1,0 +1,70 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Left enabled so a project can still pin a package it genuinely needs to
+         differ on, but every such case must carry a comment explaining why. -->
+    <CentralPackageVersionOverrideEnabled>true</CentralPackageVersionOverrideEnabled>
+  </PropertyGroup>
+
+  <!--
+    Before this file, 28 projects declared 95 PackageReference versions by hand and
+    eight packages had drifted apart - Microsoft.NET.Test.Sdk alone was pinned at five
+    different versions across projects targeting the same framework, and
+    xunit.runner.visualstudio at four. The drift also reached Dependabot: PR #28 bumped
+    a package that PR #40 had already bumped in the other copy of the same reference,
+    and four separate pull requests were needed to move System.Collections.Immutable.
+  -->
+
+  <ItemGroup>
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="FakeItEasy" Version="9.0.1" />
+    <!-- Held on 6.x deliberately: FluentAssertions 7.0.0 changed to a paid licence
+         for commercial use. See .github/dependabot.yml. -->
+    <PackageVersion Include="FluentAssertions" Version="6.12.2" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.1.0" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.10.1" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.10.1" />
+    <!-- Roslyn is held at 5.0.0 because it sets the oldest Visual Studio and SDK a
+         consumer of the analyzers can be on. Raising it raises that floor. -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.31" />
+    <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.31" />
+    <PackageVersion Include="Moq" Version="4.21.0" />
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
+    <PackageVersion Include="PCLMock" Version="5.1.3" />
+    <!-- Held on 2.x: Microsoft.OpenApi.Readers 1.6.x binds to the SharpYaml 2 API, and
+         the generator loads it inside the Roslyn analyzer host where a mismatch is a
+         runtime failure rather than a build error. See .github/dependabot.yml. -->
+    <PackageVersion Include="SharpYaml" Version="2.1.5" />
+    <PackageVersion Include="System.Buffers" Version="4.6.1" />
+    <PackageVersion Include="System.Collections.Immutable" Version="10.0.12" />
+    <PackageVersion Include="System.Memory" Version="4.6.3" />
+    <PackageVersion Include="System.Net.Http" Version="4.3.4" />
+    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
+    <PackageVersion Include="System.Text.Encodings.Web" Version="10.0.12" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.12" />
+    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
+  </ItemGroup>
+
+  <!--
+    Microsoft.AspNetCore.Mvc.Testing ships out of the ASP.NET Core shared framework, so
+    its major version has to track the consuming project's target framework. This is the
+    one package whose version genuinely differs by project rather than through drift.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.31" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net8.0'">
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.1" />
+  </ItemGroup>
+
+</Project>
