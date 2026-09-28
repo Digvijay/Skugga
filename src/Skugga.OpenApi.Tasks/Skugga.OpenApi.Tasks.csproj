@@ -12,12 +12,19 @@
          code 1 because IncludeBuildOutput=false leaves the symbol package empty. -->
     <IsPackable>false</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <!--
+      A symbol package would be empty here: IncludeBuildOutput is false because the assembly is
+      packed into analyzers/ or tasks/ rather than lib/. Leaving the repo-wide IncludeSymbols=true
+      in place made dotnet pack fail with NU5017 ("Cannot create a package that has no
+      dependencies nor content"), which would have broken the CI pack step.
+    -->
+    <IncludeSymbols>false</IncludeSymbols>    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <DevelopmentDependency>true</DevelopmentDependency>
     
     <!-- Package metadata -->
     <PackageId>Skugga.OpenApi.Tasks</PackageId>
+    <Version>1.6.0</Version>
     <Title>Skugga OpenAPI MSBuild Tasks</Title>
     <Description>MSBuild tasks for downloading OpenAPI specifications from URLs before source generation</Description>
   </PropertyGroup>

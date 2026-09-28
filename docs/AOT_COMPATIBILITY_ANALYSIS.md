@@ -5,7 +5,7 @@
 Skugga claims "100% AOT Compatibility" and "Zero Reflection" for its core mocking paths. This document analyzes the technical implementation of these claims, verifying their accuracy and documenting the specific mechanisms used to achieve AOT safety.
 
 **Verdict: Confirmed with caveats.**
-The core API (`Mock.Create<T>`, `Setup`, `Verify`) uses **zero runtime reflection** and is fully AOT-compatible via C# 12 Interceptors. However, specific edge cases (recursive mocking default values, generic collections) rely on safety mechanisms that require careful understanding.
+The core API (`Mock.Create<T>`, `Setup`, `Verify`) uses **no runtime reflection on the generated path** and publishes and runs under Native AOT via C# 12 Interceptors. Specific edge cases (recursive mocking default values, generic collections, argument-matcher evaluation) fall back to reflection and expression compilation, and those fallbacks are **not** AOT-clean: ILC reports 18 diagnostics for them. They are enumerated in `tools/Skugga.AotProbe/aot-baseline.txt`, gated by CI, and tracked in `docs/known-issues.md`.
 
 ## 1. Core Mock Creation (`Mock.Create<T>`)
 

@@ -23,6 +23,7 @@
     <Project Path="samples/ConsoleApp.Moq.Migration/Step2.WithSkugga/Step2-WithSkugga.csproj" />
     <Project Path="samples/ConsoleApp.Moq.Migration/Step2.WithSkugga.Tests/Step2-WithSkugga.Tests.csproj" />
   </Folder>
+  <Folder Name="/samples/" />
   <Folder Name="/samples/AspNetCoreWebApi.Moq.Migration/">
     <Project Path="samples/AspNetCoreWebApi.Moq.Migration/Step1.WithMoq/Step1-WithMoq.csproj" />
     <Project Path="samples/AspNetCoreWebApi.Moq.Migration/Step1.WithMoq.Tests/Step1-WithMoq.Tests.csproj" />
@@ -32,5 +33,8 @@
   <Folder Name="/samples/AzureFunctions.NonInvasive/">
     <Project Path="samples/AzureFunctions.NonInvasive/src/OrdersApi.csproj" />
     <Project Path="samples/AzureFunctions.NonInvasive/tests/OrdersApi.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Skugga.AotProbe/Skugga.AotProbe.csproj" />
   </Folder>
 </Solution>

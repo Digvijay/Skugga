@@ -8,9 +8,101 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Fixed culture-sensitive source generation for literal numeric setup and verify arguments. Decimal literals are now emitted with invariant C# formatting, preventing locales such as `en-SE` from splitting `999.99m` into multiple generated arguments.
-- Fixed the same culture-sensitive numeric emission in AutoScribe and OpenAPI-generated examples, headers, and validation values.
-- Updated the Core and Generator test runners so the `net10.0` test projects are discovered under the current .NET SDK, and added regression coverage for literal decimal setup and verify matching.
+- Updated the Core and Generator test runners so the `net10.0` test projects are discovered
+  under the current .NET SDK, and added regression coverage for literal decimal setup and
+  verify matching.
+
+## [1.6.0] - 2026-09-25
+
+### Added
+- **`tools/Skugga.AotProbe`** — a console app that consumes only the public API the way a real
+  consumer does, published with `PublishAot=true` and **executed as a native binary** by CI on
+  Linux and Windows. It asserts on returned *values*, not merely that calls do not throw, because
+  Skugga's reflective fallbacks catch exceptions and return `null`: under AOT a broken path
+  degrades silently rather than crashing, and only value assertions catch that.
+- **`tools/Skugga.AotProbe/aot-baseline.txt`** — a ratchet on the number of trim/AOT diagnostics
+  ILC attributes to Skugga's own code. CI fails if the count rises above the recorded 18, which
+  prevents new reflective fallbacks being added while allowing existing ones to be removed.
+
+### Changed — the Native AOT claim now matches the measurement
+- **The "100% AOT-compatible, zero runtime reflection" claim was never measured, and it was
+  wrong.** Publishing a realistic consumer with `PublishAot=true` produces **18 trim/AOT
+  diagnostics, all originating in Skugga** — expression compilation and `MakeGenericMethod` in
+  `MockExtensions`, `MakeGenericType` in `DefaultValueProviders`, `Task.FromResult<T>` in
+  `MockHandler`, and expression compilation in `LinqToMocks`. Corrected the claim in `README.md`
+  (new "Native AOT support" section with the per-file breakdown), `docs/index.md`,
+  `docs/security.md`, `docs/guide/getting-started.md`, `docs/TROUBLESHOOTING.md`,
+  `docs/DOPPELGANGER.md`, `docs/AOT_COMPATIBILITY_ANALYSIS.md`, and the NuGet `<Description>`.
+  The accurate position is that Skugga is AOT-*first*, not AOT-*pure*: the generated path has no
+  dynamic proxy and no JIT dependency, which is why it works where proxy-based libraries cannot,
+  but the fallbacks behind it are not yet AOT-clean.
+- **Two XML doc comments in `DefaultValueProviders.cs` asserted AOT safety directly above code
+  that calls `Type.MakeGenericType`.** Rewritten to say which branches are safe and which are not.
+- **`.github/workflows/aot-validation.yml`** rewritten. ILC warnings are deliberately *not* treated
+  as errors, because an errored ILC run produces no binary and running the binary is the only check
+  that proves anything. The trim-analyzer job is now advisory: it reports 42 diagnostics because it
+  inspects every method regardless of reachability, whereas ILC's whole-program analysis finds the
+  18 a consumer actually reaches. Both are surfaced; only the ILC figure is gated.
+
+### Fixed — found by running CI on GitHub-hosted x64 runners for the first time
+- **The AOT validation workflow had never run to completion.** It passed `-p:PublishAot=true` on
+  the command line, which creates a *global* property that MSBuild propagates into every
+  `ProjectReference` — including the `netstandard2.0` generator, which cannot be AOT-compiled
+  (`NETSDK1207`). The flag was also redundant: the target project already declares `PublishAot`.
+  Removed; AOT stays configured in the project file, where it does not flow across references.
+- **The trim and AOT warnings-as-errors list was never enforced.** It was passed as
+  `-p:WarningsAsErrors=IL2026,IL2046,...`, and the dotnet CLI splits `-p:` values on commas, so
+  every code after the first was parsed as a separate switch and the run failed with
+  `MSB1006: Property is not valid. Switch: IL2046` before compiling anything. The codes are now
+  joined with `%3B`, the escaped semicolon.
+
+### Fixed
+- **Mock setups were silently ignored on machines whose culture uses a comma decimal separator.**
+  The generator formatted `decimal`, `double`, `float` and `long` argument literals using the
+  ambient culture, so a setup written as `Setup(x => x.Calculate(999.99m, "Electronics"))` emitted
+  `new object?[] { 999,99m, "Electronics" }` — three array elements instead of two. The argument
+  count never matched the real call, the setup was skipped, and the mock returned `default` with no
+  exception, warning or diagnostic. Affected every developer outside an invariant-like locale.
+  All numeric emission is now invariant, with round-trip formatting for `float` and `double`.
+  See `docs/known-issues.md`.
+- **`Skugga.OpenApi.Generator` emitted code that did not compile** (`CS0747: Invalid initializer
+  member declarator`) for any OpenAPI schema with a non-integer numeric example, for the same
+  reason: `Price = 29,99` inside an object initializer. All 20 emission sites now format
+  invariantly. Generated HTTP header values and analyzer diagnostic text were made invariant too.
+- **`dotnet pack` failed on the solution** with NU5017, because `IncludeSymbols` was on
+  repo-wide while `Skugga.OpenApi.Generator` and `Skugga.OpenApi.Tasks` set
+  `IncludeBuildOutput=false`. Symbol packages are now disabled for those two projects.
+- **Samples, tests and benchmarks were produced as NuGet packages** by `dotnet pack` on the
+  solution. Packability is now restricted to projects under `src/`.
+- **`tests/Skugga.Benchmarks/Directory.Build.props` did not import the file above it**, which
+  stops MSBuild's upward search and silently dropped every repository-wide setting (LangVersion,
+  Nullable, analysis level, AOT flags, deterministic builds, package metadata) for that project.
+- `Skugga.OpenApi.Tasks` was pinned at 1.0.0 while shipping alongside 1.6.0 packages; it now
+  tracks the same version.
+- Removed a redundant `Microsoft.SourceLink.GitHub` package reference (built into the SDK since
+  .NET 8) that pulled in `Microsoft.Build.Tasks.Git` and GHSA-23fw-v26w-5fgq.
+- **`Skugga.Core` exposed its three generator assemblies as compile references** to every project
+  that referenced it, through an unused `GetTargetPath` hook, causing `MSB3277` on `net8.0`. The
+  NuGet package was not affected. Removed.
+- Zero build warnings on SDK 10 and SDK 11: removed framework-provided references (`NU1510`),
+  put benchmarks in a namespace (`CA1050`) and switched sample logging to `[LoggerMessage]`
+  (`CA1873`).
+- **The generator inspected every invocation in every file, and combined with the compilation for
+  nothing.** `SkuggaGenerator`'s predicate accepted every `InvocationExpressionSyntax` and asked
+  the semantic model about it, and the pipeline then combined with `CompilationProvider` whose
+  value was destructured and never read — which alone forced the output stage to re-run on every
+  keystroke. The predicate is now a syntactic method-name check, and the combine is gone.
+  Generated output is unchanged. `TargetInfo` still carries symbols, so full incremental caching
+  remains open and is tracked in `docs/known-issues.md` entry 11.
+
+### Added
+- `GeneratorIncrementalityTests` (13 tests), including one that fails against the previous code
+  with `Expected steps.Keys {"Compilation", "SourceOutput"} to not contain "Compilation"`.
+
+### Changed
+- Multi-targets `net8.0` (LTS) and `net10.0` (current) instead of a single framework, so the
+  package no longer forces consumers onto the newest runtime. `net11.0` is validated in CI behind
+  an opt-in switch.
 
 ## [1.4.0] - 2026-01-28
 

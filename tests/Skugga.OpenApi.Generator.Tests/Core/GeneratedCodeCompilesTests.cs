@@ -162,7 +162,7 @@ namespace Consumer
             return updated;
         }
 
-        private static Compilation CreateCompilation(string userSource)
+        private static CSharpCompilation CreateCompilation(string userSource)
         {
             // Touch a type from Skugga.Core so the assembly is loaded before the
             // AppDomain is enumerated; otherwise [SkuggaFromOpenApi] is unresolvable

@@ -1,8 +1,12 @@
 #nullable enable
+using System;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
+
+[assembly: InternalsVisibleTo("Skugga.Generator.Tests")]
 
 namespace Skugga.Generator
 {
@@ -27,18 +31,38 @@ namespace Skugga.Generator
             isEnabledByDefault: true,
             description: "Classes must have virtual members to be mocked effectively.");
 
+        /// <summary>
+        /// The method names the transform can act on. Everything else is rejected syntactically.
+        /// </summary>
+        /// <remarks>
+        /// The predicate runs for every node in every file on every keystroke, so it must be cheap
+        /// and must reject aggressively. Matching every invocation, as this once did, meant asking
+        /// the semantic model about every call in the compilation — the single most expensive thing
+        /// a generator can do — only to discard almost all of it.
+        /// </remarks>
+        private static readonly string[] InterceptedMethodNames =
+        {
+            "Create", "Capture", "Of", "Setup", "Verify", "SetupSet", "VerifySet"
+        };
+
+        internal static bool IsCandidateInvocation(SyntaxNode node)
+        {
+            return node is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax member }
+                && Array.IndexOf(InterceptedMethodNames, member.Name.Identifier.Text) >= 0;
+        }
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             var provider = context.SyntaxProvider.CreateSyntaxProvider(
-                predicate: (node, _) => node is InvocationExpressionSyntax,
-                transform: (ctx, _) => GetTarget(ctx)
+                predicate: static (node, _) => IsCandidateInvocation(node),
+                transform: static (ctx, _) => GetTarget(ctx)
             ).Where(m => m != null);
 
-            var compilationAndClasses = context.CompilationProvider.Combine(provider.Collect());
-
-            context.RegisterSourceOutput(compilationAndClasses, (spc, source) =>
+            // Deliberately not combined with CompilationProvider: the compilation changes on every
+            // keystroke, so combining with it forces this output to re-run even when no target
+            // changed. Nothing here needs the compilation.
+            context.RegisterSourceOutput(provider.Collect(), (spc, targets) =>
             {
-                var (compilation, targets) = source;
                 var distinctMocks = new HashSet<string>();
                 var mockQueue = new Queue<TargetInfo>();
 

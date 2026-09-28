@@ -21,7 +21,7 @@ hero:
 
 features:
   - title: "Native AOT First"
-    details: "Built from the ground up for Native AOT. Zero reflection, zero JIT, zero dynamic proxies -- mocks compile to static machine code."
+    details: "Built from the ground up for Native AOT. Mocks are generated at compile time -- no dynamic proxies, no IL emitted at runtime, no JIT dependency on the generated path."
   - title: "Familiar API"
     details: "100% Moq-compatible API surface. Setup, Verify, It.IsAny -- everything you know. Migrate in minutes."
   - title: "Doppelganger (OpenAPI Mocks)"

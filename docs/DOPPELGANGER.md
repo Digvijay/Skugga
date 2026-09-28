@@ -716,7 +716,7 @@ A: Phase 2 will support both OpenAPI 2.0 and 3.0+.
 A: Yes! Use normal Skugga `.Setup()` calls to override defaults.
 
 **Q: Does this work with Native AOT?**
-A: Yes! Everything is compile-time generated, zero reflection, fully AOT-compatible.
+A: Everything is compile-time generated, so there is no dynamic proxy and no reflection on the generated path. See the [Native AOT support](https://github.com/Digvijay/Skugga#native-aot-support) section for the fallbacks that are not yet AOT-clean.
 
 ## Contributing
 

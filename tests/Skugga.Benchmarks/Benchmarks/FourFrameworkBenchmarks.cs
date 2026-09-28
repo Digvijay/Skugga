@@ -5,6 +5,8 @@ using Moq;
 using NSubstitute;
 using Skugga.Core;
 
+namespace Skugga.Benchmarks;
+
 // Unique interfaces for 4-framework comparison
 public interface ICounter { int Increment(); int GetValue(); }
 public interface IMessageBroker { string SendMessage(string msg); bool IsConnected(); }

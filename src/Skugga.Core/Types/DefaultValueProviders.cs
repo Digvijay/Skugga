@@ -46,8 +46,14 @@ namespace Skugga.Core
     /// <item><description><b>Reference types</b>: null</description></item>
     /// </list>
     /// <para>
-    /// This provider is AOT-safe and uses <see cref="System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute"/>
-    /// to ensure required constructors are preserved during trimming.
+    /// <b>Not fully AOT-safe.</b> The value-type, string and null branches are. The array and
+    /// generic-collection branches are not: they call <see cref="Array.CreateInstance(Type, int)"/>
+    /// and <see cref="Type.MakeGenericType(Type[])"/>, which Native AOT cannot generate code for,
+    /// and ILC reports them. In practice the source generator resolves defaults at compile time
+    /// (see <c>GeneratorHelpers.GetDefaultValueForType</c>), so this provider is a fallback for
+    /// types the generator did not handle. <see cref="System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute"/>
+    /// keeps the required constructors alive under trimming, but it cannot make
+    /// <c>MakeGenericType</c> work without a JIT. Tracked in <c>docs/known-issues.md</c>.
     /// </para>
     /// </remarks>
     public class EmptyDefaultValueProvider : DefaultValueProvider
@@ -133,9 +139,14 @@ namespace Skugga.Core
         }
 
         /// <summary>
-        /// AOT-safe helper to create value type instances using Activator.CreateInstance.
-        /// The DynamicallyAccessedMembers attribute ensures the parameterless constructor is preserved during trimming.
+        /// Creates an instance of a type with a public parameterless constructor.
         /// </summary>
+        /// <remarks>
+        /// Trim-safe, because the <see cref="System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute"/>
+        /// on the parameter preserves the constructor. It is not, despite the name this helper used
+        /// to carry, AOT-safe in every case: callers reach it with types built by
+        /// <see cref="Type.MakeGenericType(Type[])"/>, which requires a JIT.
+        /// </remarks>
         private static object CreateDefaultValueType(
             [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(
                 System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]

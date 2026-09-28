@@ -23,7 +23,7 @@ We will respond within 48 hours and work with you to resolve the issue.
 - **CycloneDX SBOM** generated with every release
 - **GitHub CodeQL** scans on all branches
 - **Dependabot** monitors dependencies
-- **Zero runtime reflection** -- reduced attack surface
+- **No runtime reflection on the generated path** -- reduced attack surface
 - **Native AOT compatible** -- "distroless" deployments supported
 
 ## Supply Chain Security

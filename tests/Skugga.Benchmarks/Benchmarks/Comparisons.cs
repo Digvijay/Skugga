@@ -5,6 +5,8 @@ using Moq;
 using NSubstitute;
 using Skugga.Core;
 
+namespace Skugga.Benchmarks;
+
 // Test interfaces for different scenarios
 public interface ICalculator
 {

@@ -2,7 +2,7 @@
 
 ## What is Skugga?
 
-**Skugga** (Swedish for *Shadow*) is a mocking library engineered specifically for **Native AOT** and Cloud-Native .NET. It moves mocking logic from runtime reflection to **compile-time code generation**, making it 100% AOT-compatible with zero overhead.
+**Skugga** (Swedish for *Shadow*) is a mocking library engineered specifically for **Native AOT** and Cloud-Native .NET. It moves mocking logic from runtime reflection to **compile-time code generation**, so the common path has no dynamic proxies and no JIT dependency. Runtime fallbacks remain for cases the generator has not covered; see [Native AOT support](https://github.com/Digvijay/Skugga#native-aot-support) for exactly what is and is not AOT-clean.
 
 Legacy tools like Moq rely on `System.Reflection.Emit` to generate proxy objects at runtime. Since Native AOT strips away the JIT compiler, these tools crash instantly. **Skugga eliminates this trade-off** by generating mock implementations during the build process.
 

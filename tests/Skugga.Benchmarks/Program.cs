@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Running; // <--- REQUIRED for benchmarks
 using Skugga.Core;
 
+namespace Skugga.Benchmarks;
+
 // --- DEFINITIONS ---
 public interface IRepo { string GetData(int id); }
 public class RealRepo : IRepo

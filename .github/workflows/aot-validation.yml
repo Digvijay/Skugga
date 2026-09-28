@@ -1,0 +1,133 @@
+name: Native AOT validation
+
+# Skugga's central claim is that mocks are generated at compile time and therefore work under
+# Native AOT, where proxy-based libraries such as Moq cannot. This workflow is what turns that from
+# a claim into a check.
+#
+# It does two things, and the order of importance is the opposite of the obvious one.
+#
+# The primary check is that the native binary RUNS and its assertions pass. Skugga's reflective
+# fallbacks are wrapped in try/catch and return null on failure, so a path that breaks under AOT
+# does not throw — it silently hands back a wrong value. Only asserting on the values catches that.
+#
+# The secondary check is a ratchet on the number of trim/AOT diagnostics ILC attributes to Skugga's
+# own code. That number is currently 18, not 0, and pretending otherwise would be the same mistake
+# the README made. The ratchet stops it growing while the remaining fallbacks are moved into the
+# generator.
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  aot-probe:
+    name: AOT probe (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install AOT native toolchain (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      # ILC warnings are deliberately non-fatal. If they were errors the build would stop and the
+      # binary could never be run, and running it is the only check that actually proves anything.
+      - name: Publish the AOT probe
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet publish tools/Skugga.AotProbe/Skugga.AotProbe.csproj \
+            --configuration Release \
+            --framework net10.0 \
+            -p:TrimmerSingleWarn=false \
+            -p:TreatWarningsAsErrors=false \
+            --output ./aot-output \
+            2>&1 | tee ./ilc.log
+
+      # THE PRIMARY CHECK.
+      - name: Execute the native binary
+        shell: bash
+        run: |
+          set -e
+          binary=$(find ./aot-output -maxdepth 1 -type f \( -perm -u+x -o -name '*.exe' \) ! -name '*.pdb' ! -name '*.json' ! -name '*.dbg' | head -n 1)
+          if [ -z "$binary" ]; then
+            echo "::error::No native executable was produced."
+            ls -R ./aot-output
+            exit 1
+          fi
+          echo "Running $binary"
+          "$binary"
+
+      - name: Ratchet the AOT debt
+        shell: bash
+        run: |
+          set -e
+          baseline=$(grep -vE '^\s*(#|$)' tools/Skugga.AotProbe/aot-baseline.txt | head -n 1 | tr -d '[:space:]')
+          actual=$(grep -cE 'IL[0-9]{4}: Skugga' ./ilc.log || true)
+          echo "baseline=$baseline actual=$actual"
+
+          if [ "$actual" -gt "$baseline" ]; then
+            echo "::error::Skugga-origin trim/AOT diagnostics rose from $baseline to $actual. A new reflective fallback was added; move it into the generator instead."
+            grep -E 'IL[0-9]{4}: Skugga' ./ilc.log || true
+            exit 1
+          fi
+
+          if [ "$actual" -lt "$baseline" ]; then
+            echo "::notice::Skugga-origin diagnostics fell from $baseline to $actual. Lower the number in tools/Skugga.AotProbe/aot-baseline.txt to lock the improvement in."
+          fi
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### Native AOT probe (${{ matrix.os }})"
+            echo
+            echo "Skugga-origin diagnostics by file:"
+            echo '```'
+            grep -oE 'Skugga\.Core[/\\][A-Za-z/\\.]+\.cs' ./ilc.log 2>/dev/null \
+              | sort | uniq -c | sort -rn || echo "none"
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY
+
+  trim-analysis:
+    name: Trimming and AOT analyzers (advisory)
+    runs-on: ubuntu-latest
+    # Advisory. The analyzer inspects every method regardless of reachability and reports 42
+    # diagnostics, where ILC's whole-program analysis finds 18 that a real consumer reaches. The
+    # larger number is still useful to see, but the ILC figure is the one that is gated.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build with AOT and trim analyzers
+        # AotAnalysis is a plain flag that only src/Skugga.Core/Skugga.Core.csproj reacts to. The
+        # analyzer properties themselves are NOT passed here on purpose: a -p: property is global and
+        # MSBuild pushes it into every ProjectReference, including the netstandard2.0 generator, where
+        # these analyzers are unsupported and the build then warns. That is the same mistake that broke
+        # this workflow once before with PublishAot.
+        run: >
+          dotnet build src/Skugga.Core/Skugga.Core.csproj
+          --configuration Release
+          -p:AotAnalysis=true
+          -p:TreatWarningsAsErrors=false

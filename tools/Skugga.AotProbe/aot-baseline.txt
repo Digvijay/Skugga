@@ -1,0 +1,32 @@
+# Native AOT baseline for Skugga.Core
+#
+# Each line is a trim or AOT diagnostic that ILC reports for code *originating in Skugga* when
+# tools/Skugga.AotProbe is published with PublishAot=true. These are not third-party warnings and
+# they are not analyzer noise: the analyzer reports 42 diagnostics across Skugga.Core because it
+# inspects every method, but ILC performs whole-program reachability analysis, and these 18 are the
+# ones a realistic consumer actually reaches.
+#
+# They exist because Skugga has two paths. The source generator intercepts Setup/Verify call sites
+# and emits mocks at compile time, and that path is genuinely AOT-safe — it is what the library is
+# for. Behind it sit runtime fallbacks that compile expression trees and construct generic types
+# reflectively, for the cases the generator has not handled. Those fallbacks are what ILC is
+# pointing at.
+#
+# This file is a ratchet, not an approval. CI fails if the count rises, which stops new reflective
+# fallbacks being added, while allowing them to be removed one at a time. The target is zero, and
+# the intended route there is to move each remaining case into the generator rather than to
+# annotate or suppress it. Progress is tracked in docs/known-issues.md.
+#
+# IMPORTANT: the fallbacks are wrapped in try/catch and return null when they fail, so a path that
+# breaks under AOT degrades silently rather than throwing. The probe therefore asserts the values
+# it receives; the count below is the secondary check, and the probe's assertions are the primary
+# one.
+#
+# Regenerate with:
+#   dotnet publish tools/Skugga.AotProbe/Skugga.AotProbe.csproj -c Release --framework net10.0 \
+#     -p:TrimmerSingleWarn=false -p:TreatWarningsAsErrors=false -o out 2>&1 | tee ilc.log
+#   grep -cE 'IL[0-9]{4}: Skugga' ilc.log
+#
+# Measured with .NET SDK 10, ILC 10.0.12.
+
+18
