@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="FakeItEasy" Version="9.0.1" />
     <!-- Held on 6.x deliberately: FluentAssertions 7.0.0 changed to a paid licence
          for commercial use. See .github/dependabot.yml. -->
