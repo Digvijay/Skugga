@@ -61,7 +61,7 @@
     one package whose version genuinely differs by project rather than through drift.
   -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.31" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.33" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' != 'net8.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.1" />
